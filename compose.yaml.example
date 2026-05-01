@@ -1,0 +1,41 @@
+﻿services:
+  db:
+    image: postgres:14.22-trixie
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: azangaramods
+      POSTGRES_PASSWORD: azangaramods
+      POSTGRES_DB: azangaramods
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U azangaramods -d azangaramods" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  azangaramodswebsiteback:
+    image: azangaramodswebsiteback
+    build:
+      context: .
+      dockerfile: AzangaraMods-Website-Back/Dockerfile
+    environment:
+      FRONT_URL:  "http://127.0.0.1:3000"
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+  azangaramodswebsitefront:
+    image: azangaramodswebsitefront
+    build:
+      context: ./AzangaraMods-Website-Front
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ./AzangaraMods-Website-Front:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      azangaramodswebsiteback:
+        condition: service_started
