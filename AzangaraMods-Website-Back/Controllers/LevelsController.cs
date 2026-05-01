@@ -14,9 +14,9 @@ namespace AzangaraMods_Website_Back.Controllers;
 public class LevelsController(ILevelService levelService) : Controller
 {
     public record PutLevelFileResponseData(string id, string[] files);
-    [HttpPut("files")]
+    [HttpPut("files/{levelId}")]
     [RequestSizeLimit(20 * 1024 * 1024)]
-    public async Task<IActionResult> PutLevelFile([FromForm] IFormFile? file)
+    public async Task<IActionResult> PutLevelFile([FromForm] IFormFile? file, [FromRoute] long levelId)
     {
         if (file is null) return BadRequest(new ErrorResponseModel("No file or file too big"));
 
@@ -63,6 +63,7 @@ public class LevelsController(ILevelService levelService) : Controller
         await levelService.InsertLevelFile(new LevelFile()
         {
             Id = levelFileId,
+            LevelId = levelId,
             FileName = string.Concat(Path.GetFileNameWithoutExtension(file.FileName)
                 .Split(Path.GetInvalidFileNameChars())),
             FileSize = (int)pakStream.Position
