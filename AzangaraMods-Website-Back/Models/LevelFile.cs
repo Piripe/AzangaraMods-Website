@@ -10,14 +10,14 @@ public class LevelFile
     [Key]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public required long Id { get; set; }
-    public long LevelId  { get; set; }
+    public long? LevelId  { get; set; }
     public DateTime UploadDate { get; set; } = DateTime.UtcNow;
     [MaxLength(128)]
-    public required string EntryPoint { get; set; }
+    public string? EntryPoint { get; set; }
     [MaxLength(128)]
     public required string FileName { get; set; }
     public required int FileSize { get; set; }
     
-    [ForeignKey("LevelId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault), Required]
-    public virtual required Level Level { get; set; }
+    [ForeignKey("LevelId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public virtual Level? Level { get; set; }
 }

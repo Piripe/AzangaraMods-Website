@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Middlewares;
+using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ builder.Services.AddControllersWithViews()
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ILevelService, LevelService>();
 
 
 builder.Services.AddCors(options =>

@@ -12,8 +12,9 @@ public class LevelService(MainDbContext db) : ILevelService
         return db.SaveChangesAsync();
     }
 
-    public async Task<int> UploadLevelFile()
+    public Task<int> InsertLevelFile(LevelFile file)
     {
-        throw new NotImplementedException();
+        db.LevelFiles?.Add(file);
+        return db.SaveChangesAsync();
     }
 }
