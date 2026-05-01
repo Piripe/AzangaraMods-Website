@@ -1,0 +1,3 @@
+[submodule "libs/AzangaraTools"]
+	path = libs/AzangaraTools
+	url = https://github.com/Piripe/AzangaraTools
