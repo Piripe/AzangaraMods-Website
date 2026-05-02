@@ -96,8 +96,21 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
         
         pakStream.Close();
         
-        //PakHelper.Write();
-        
         return Ok(new PutLevelFileResponseData(levelFileId.ToString(), pakFiles.Select(x=>x.Path).ToArray()));
+    }
+    
+    public record PatchLevelFileRequestData(string? fileName, string? entryPoint);
+
+    [HttpPatch("files/{levelId}/{levelFileId}")]
+    public async Task<IActionResult> PatchLevelFile([FromBody] PatchLevelFileRequestData partialLevelFile, [FromRoute] long levelId, [FromRoute] long levelFileId)
+    {
+        if (partialLevelFile.entryPoint == null && partialLevelFile.fileName == null) return BadRequest(new ErrorResponseModel("Request is null"));
+        var levelFile = await levelService.UpdateLevelFile(
+            levelId,
+            levelFileId,
+            partialLevelFile.fileName,
+            partialLevelFile.entryPoint);
+        if (levelFile == null) return BadRequest(new ErrorResponseModel("Level file doesn't exists"));
+        return Ok(levelFile);
     }
 }

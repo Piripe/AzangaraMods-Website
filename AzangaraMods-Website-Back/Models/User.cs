@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Models;
 
@@ -24,8 +25,8 @@ public class User()
     public bool VerifiedModder { get; set; } = false;
     [MaxLength(128), JsonIgnore, Required] public string Password { get; set; } = "";
     
-    [InverseProperty("Author"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [InverseProperty("Author"), DeleteBehavior(DeleteBehavior.Cascade), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual ICollection<Level>? Levels { get; set; }
-    [InverseProperty("User"), JsonIgnore]
+    [InverseProperty("User"), DeleteBehavior(DeleteBehavior.Cascade),JsonIgnore]
     public virtual ICollection<Token>? Tokens { get; set; }
 }

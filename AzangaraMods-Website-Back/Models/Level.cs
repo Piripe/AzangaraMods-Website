@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Models;
 
@@ -32,8 +33,8 @@ public class Level
     
     [ForeignKey("AuthorId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual User? Author { get; set; }
-    [InverseProperty("Level"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [InverseProperty("Level"), DeleteBehavior(DeleteBehavior.Cascade), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual ICollection<LevelFile>? LevelFiles { get; set; }
-    [InverseProperty("Level"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [InverseProperty("Level"), DeleteBehavior(DeleteBehavior.Cascade), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual ICollection<GalleryFile>? GalleryFiles { get; set; }
 }
