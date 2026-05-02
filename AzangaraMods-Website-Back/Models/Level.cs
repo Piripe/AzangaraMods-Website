@@ -30,6 +30,8 @@ public class Level
     [MaxLength(32)]
     [Column(TypeName = "varchar(32)[]")]
     public required string[] Tags { get; set; }
+
+    public bool Published { get; set; } = false;
     
     [ForeignKey("AuthorId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual User? Author { get; set; }

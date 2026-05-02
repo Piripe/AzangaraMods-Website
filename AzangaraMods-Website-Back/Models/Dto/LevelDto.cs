@@ -18,6 +18,7 @@ public class LevelPartialDto
         get => Math.Max(0, (float)RealDifficulty) / short.MaxValue * 10f;
         set => RealDifficulty = (short)(Math.Clamp(value / 10f, 0, 1) * short.MaxValue);
     }
+    public bool Published { get; set; } = false;
     
     public required string[] Tags { get; set; }
     
@@ -25,6 +26,6 @@ public class LevelPartialDto
 }
 public class LevelDto : LevelPartialDto
 {
-    public virtual ICollection<LevelFile>? LevelFiles { get; set; }
-    public virtual ICollection<GalleryFile>? GalleryFiles { get; set; }
+    public virtual ICollection<LevelFilePartialDto>? LevelFiles { get; set; }
+    public virtual ICollection<GalleryFilePartialDto>? GalleryFiles { get; set; }
 }

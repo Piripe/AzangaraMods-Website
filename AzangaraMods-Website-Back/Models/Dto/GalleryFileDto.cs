@@ -1,22 +1,19 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace AzangaraMods_Website_Back.Models;
+namespace AzangaraMods_Website_Back.Models.Dto;
 
-[Table("gallery_files")]
-public class GalleryFile
+public class GalleryFilePartialDto
 {
-    [Key]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public required long Id { get; set; }
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public long LevelId  { get; set; }
     public DateTime UploadDate { get; set; } = DateTime.UtcNow;
-    [MaxLength(256)] public string Description { get; set; } = "";
-    [MaxLength(128)]
+    public string Description { get; set; } = "";
     public required string FileName { get; set; }
-    
-    [ForeignKey("LevelId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault), Required]
-    public virtual Level? Level { get; set; }
+}
+public class GalleryFileDto : GalleryFilePartialDto
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public virtual LevelPartialDto? Level { get; set; }
 }

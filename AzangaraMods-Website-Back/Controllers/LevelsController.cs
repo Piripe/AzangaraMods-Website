@@ -8,6 +8,7 @@ using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
 using AzangaraTools;
 using AzangaraTools.Models.File;
+using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -39,11 +40,12 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
         return Ok(mapper.Map<LevelPartialDto>(level));
     }
     public record PutLevelFileResponseData(string id, string[] files);
-    [HttpPut("files/{levelId}")]
+    [HttpPut("{levelId}/files")]
     [RequestSizeLimit(20 * 1024 * 1024)]
     public async Task<IActionResult> PutLevelFile([FromForm] IFormFile? file, [FromRoute] long levelId)
     {
         if (file is null) return BadRequest(new ErrorResponseModel("No file or file too big"));
+        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
 
         IFile[] pakFiles;
         
@@ -74,8 +76,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
 
         var levelFileId = await IdUtils.GenerateId();
 
-        var filePath = string.Format("{0:x}", levelFileId);
-        filePath = Path.Combine(Environment.GetEnvironmentVariable("DATA_DIR") ?? "/data", filePath[..2], filePath[2..4], filePath[4..6], filePath[6..] + ".zip");
+        var filePath = levelFileId.GetIdFilePath("zip");
 
         Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "");
         var fileStream = System.IO.File.Create(filePath);
@@ -101,9 +102,10 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
     
     public record PatchLevelFileRequestData(string? fileName, string? entryPoint);
 
-    [HttpPatch("files/{levelId}/{levelFileId}")]
+    [HttpPatch("{levelId}/files/{levelFileId}")]
     public async Task<IActionResult> PatchLevelFile([FromBody] PatchLevelFileRequestData partialLevelFile, [FromRoute] long levelId, [FromRoute] long levelFileId)
     {
+        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
         if (partialLevelFile.entryPoint == null && partialLevelFile.fileName == null) return BadRequest(new ErrorResponseModel("Request is null"));
         var levelFile = await levelService.UpdateLevelFile(
             levelId,
@@ -111,6 +113,51 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
             partialLevelFile.fileName,
             partialLevelFile.entryPoint);
         if (levelFile == null) return BadRequest(new ErrorResponseModel("Level file doesn't exists"));
-        return Ok(levelFile);
+        return Ok(mapper.Map<LevelFileDto>(levelFile));
+    }
+    
+    
+    [HttpPut("{levelId}/gallery")]
+    [RequestSizeLimit(5 * 1024 * 1024)]
+    public async Task<IActionResult> PutLevelGallery([FromForm] IFormFile? file, [FromRoute] long levelId)
+    {
+        if (file is null) return BadRequest(new ErrorResponseModel("No file or file too big"));
+        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
+
+        switch (file.ContentType)
+        {
+            case "image/avif":
+            case "image/jpeg":
+            case "image/png":
+            case "image/tiff":
+            case "image/webp":
+                var galleryImage = new MagickImage(file.OpenReadStream());
+                var sizeRatio = Math.Sqrt((1920f * 1080f) / Math.Max(1,galleryImage.Width * galleryImage.Height));
+                if (sizeRatio < 1)
+                {
+                    galleryImage.Resize((uint)(galleryImage.Width * sizeRatio),(uint)(galleryImage.Height * sizeRatio), FilterType.Lanczos);
+                }
+                
+                var galleryImageId = await IdUtils.GenerateId();
+
+                galleryImage.Quality = 85;
+                var filePath = galleryImageId.GetIdFilePath("webp");
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "");
+                await galleryImage.WriteAsync(filePath, MagickFormat.WebP);
+
+                var galleryFile = new GalleryFile
+                {
+                    Id = galleryImageId,
+                    FileName = string.Concat(Path.GetFileNameWithoutExtension(file.FileName)
+                        .Split(Path.GetInvalidFileNameChars())) + ".webp",
+                    LevelId = levelId
+                };
+                
+                await levelService.InsertGalleryFile(galleryFile);
+                
+                return Ok(mapper.Map<GalleryFileDto>(galleryFile));
+            default:
+                return BadRequest(new ErrorResponseModel("Invalid file type"));
+        }
     }
 }

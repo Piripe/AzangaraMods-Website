@@ -27,5 +27,24 @@ public class LevelService(MainDbContext db) : ILevelService
         await db.SaveChangesAsync();
         return levelFile;
     }
-    
+
+    public Task<int> InsertGalleryFile(GalleryFile file)
+    {
+        db.GalleryFiles?.Add(file);
+        return db.SaveChangesAsync();
+    }
+
+    public async Task<GalleryFile?> UpdateGalleryFile(long levelId, long galleryFileId, string? newFilename, string? newDescription)
+    {
+        var galleryFile = db.GalleryFiles?.FirstOrDefault(x=>x.Id == galleryFileId&&x.LevelId == levelId);
+        if (newFilename != null) galleryFile?.FileName = newFilename;
+        if (newDescription != null) galleryFile?.Description = newDescription;
+        await db.SaveChangesAsync();
+        return galleryFile;
+    }
+
+    public async Task<bool> UserOwnsLevel(long userId, long levelId)
+    {
+        return (await (db.Levels?.FirstOrDefaultAsync(x=>x.Id==levelId)??Task.FromResult<Level?>(null)))?.AuthorId == userId;
+    }
 }
