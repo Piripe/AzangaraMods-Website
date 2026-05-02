@@ -16,11 +16,13 @@ public class MainDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<Level>()
+            .ToTable(t => t.HasCheckConstraint("CK_Tags_MaxCount", "array_length(\"Tags\",1) <= 10"));
         /*builder.Entity<User>().Property(u => u.Creation).HasDefaultValueSql("now()");
         builder.Entity<User>().Property(u => u.LastLogin).HasDefaultValueSql("now()");*/
-        
-        
-        
+
+
+
         //builder.Entity<User>().HasMany(e=>e.Tokens).WithOne(t=>t.User).HasForeignKey(t=>t.UserId).HasPrincipalKey(e => e.Id).OnDelete(DeleteBehavior.Cascade).IsRequired();
         //builder
         /*builder.Entity<User>().HasMany(e => e.Connections).WithOne(p => p.User).HasForeignKey(p=> p.UserId).HasPrincipalKey(e=>e.Id).OnDelete(DeleteBehavior.Cascade).IsRequired();

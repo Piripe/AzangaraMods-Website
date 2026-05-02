@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Middlewares;
+using AzangaraMods_Website_Back.Models;
+using AzangaraMods_Website_Back.Models.Dto;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
@@ -19,6 +21,15 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.CreateMap<Level, LevelPartialDto>();
+    cfg.CreateMap<Level, LevelDto>();
+    cfg.CreateMap<User, UserPublicPartialDto>();
+    cfg.CreateMap<User, UserPublicDto>();
+    cfg.CreateMap<User, UserPrivateDto>();
+});
 
 
 builder.Services.AddCors(options =>

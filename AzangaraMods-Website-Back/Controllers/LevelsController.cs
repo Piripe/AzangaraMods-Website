@@ -1,18 +1,43 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using AzangaraMods_Website_Back.Models;
+using AzangaraMods_Website_Back.Models.Dto;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
 using AzangaraTools;
 using AzangaraTools.Models.File;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace AzangaraMods_Website_Back.Controllers;
 
 [Route("[controller]")]
-public class LevelsController(ILevelService levelService) : Controller
+public class LevelsController(IMapper mapper, ILevelService levelService) : Controller
 {
+    public record PutLevelRequestData(string name, string description, float difficulty, string tags);
+    [HttpPut("")]
+    public async Task<IActionResult> PutLevel([FromBody] PutLevelRequestData partialLevel)
+    {
+        if (partialLevel.name.Length >= 64) return BadRequest(new ErrorResponseModel("Name is too long"));
+        if (partialLevel.description.Length >= 8192) return BadRequest(new ErrorResponseModel("Description is too long"));
+        var tags = partialLevel.tags.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (tags.Length >= 10) return BadRequest(new ErrorResponseModel("Too many tags"));
+        if (tags.Max(x=>x.Length) >= 32) return BadRequest(new ErrorResponseModel("Tag name is too long"));
+        var level = new Level()
+        {
+            Id = await IdUtils.GenerateId(),
+            AuthorId = (HttpContext.Items[0] as User)!.Id,
+            Name = partialLevel.name,
+            Description = partialLevel.description,
+            Difficulty = partialLevel.difficulty,
+            Tags = tags
+        };
+        
+        await levelService.Insert(level);
+        return Ok(mapper.Map<LevelPartialDto>(level));
+    }
     public record PutLevelFileResponseData(string id, string[] files);
     [HttpPut("files/{levelId}")]
     [RequestSizeLimit(20 * 1024 * 1024)]
