@@ -3,6 +3,7 @@ using System;
 using AzangaraMods_Website_Back.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AzangaraMods_Website_Back.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    partial class MainDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502123255_LevelPublished")]
+    partial class LevelPublished
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,12 +72,6 @@ namespace AzangaraMods_Website_Back.Migrations
                         .HasMaxLength(8192)
                         .HasColumnType("character varying(8192)");
 
-                    b.Property<long?>("DiscordForumMessage")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("DiscordForumThread")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("LastEdit")
                         .HasColumnType("timestamp with time zone");
 
@@ -124,7 +121,7 @@ namespace AzangaraMods_Website_Back.Migrations
                     b.Property<int>("FileSize")
                         .HasColumnType("integer");
 
-                    b.Property<long>("LevelId")
+                    b.Property<long?>("LevelId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("UploadDate")
@@ -227,8 +224,7 @@ namespace AzangaraMods_Website_Back.Migrations
                     b.HasOne("AzangaraMods_Website_Back.Models.Level", "Level")
                         .WithMany("LevelFiles")
                         .HasForeignKey("LevelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Level");
                 });

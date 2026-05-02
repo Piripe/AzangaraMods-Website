@@ -32,6 +32,8 @@ public class Level
     public required string[] Tags { get; set; }
 
     public bool Published { get; set; } = false;
+    public long? DiscordForumMessage { get; set; } = null;
+    public long? DiscordForumThread { get; set; } = null;
     
     [ForeignKey("AuthorId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual User? Author { get; set; }

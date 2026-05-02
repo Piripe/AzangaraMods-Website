@@ -10,8 +10,9 @@ public class LevelFile
     [Key]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public required long Id { get; set; }
+    [Required]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
-    public long? LevelId  { get; set; }
+    public required long LevelId  { get; set; }
     public DateTime UploadDate { get; set; } = DateTime.UtcNow;
     [MaxLength(128)]
     public string? EntryPoint { get; set; }

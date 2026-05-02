@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using AutoMapper;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Models.Dto;
+using AzangaraMods_Website_Back.Services.Discord;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
 using AzangaraTools;
@@ -15,7 +16,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace AzangaraMods_Website_Back.Controllers;
 
 [Route("[controller]")]
-public class LevelsController(IMapper mapper, ILevelService levelService) : Controller
+public class LevelsController(IMapper mapper, ILevelService levelService, IDiscordService discordService) : Controller
 {
     public record PutLevelRequestData(string name, string description, float difficulty, string tags);
     [HttpPut("")]
@@ -38,6 +39,29 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
         
         await levelService.Insert(level);
         return Ok(mapper.Map<LevelPartialDto>(level));
+    }
+    public record PatchLevelRequestData(string? name, string? description, bool? published, float? difficulty, string[]? tags);
+
+    [HttpPatch("{levelId}")]
+    public async Task<IActionResult> PatchLevel([FromBody] PatchLevelRequestData partialLevel, [FromRoute] long levelId)
+    {
+        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
+        if (
+            partialLevel.name == null && 
+            partialLevel.description == null && 
+            partialLevel.published == null && 
+            partialLevel.difficulty == null && 
+            partialLevel.tags == null ) return BadRequest(new ErrorResponseModel("Request is null"));
+        var level = await levelService.UpdateLevel(
+            levelId,
+            partialLevel.name,
+            partialLevel.description,
+            partialLevel.published,
+            partialLevel.difficulty,
+            partialLevel.tags);
+        if (level == null) return BadRequest(new ErrorResponseModel("Level doesn't exists"));
+        await discordService.UpdateDiscordForum(level);
+        return Ok(mapper.Map<LevelDto>(level));
     }
     public record PutLevelFileResponseData(string id, string[] files);
     [HttpPut("{levelId}/files")]
@@ -86,16 +110,21 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
         var pakStream = pakEntry.Open();
         PakHelper.Write(pakStream, pakFiles);
 
-        await levelService.InsertLevelFile(new LevelFile()
+        var levelFile = new LevelFile()
         {
             Id = levelFileId,
             LevelId = levelId,
             FileName = string.Concat(Path.GetFileNameWithoutExtension(file.FileName)
                 .Split(Path.GetInvalidFileNameChars())),
             FileSize = (int)pakStream.Position
-        });
+        };
+        
+        await levelService.InsertLevelFile(levelFile);
         
         pakStream.Close();
+
+        var level = levelFile.Level ?? await levelService.GetLevelById(levelFile.LevelId);
+        if (level != null) await discordService.UpdateDiscordForum(level);
         
         return Ok(new PutLevelFileResponseData(levelFileId.ToString(), pakFiles.Select(x=>x.Path).ToArray()));
     }
@@ -113,6 +142,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
             partialLevelFile.fileName,
             partialLevelFile.entryPoint);
         if (levelFile == null) return BadRequest(new ErrorResponseModel("Level file doesn't exists"));
+        
         return Ok(mapper.Map<LevelFileDto>(levelFile));
     }
     
@@ -154,6 +184,10 @@ public class LevelsController(IMapper mapper, ILevelService levelService) : Cont
                 };
                 
                 await levelService.InsertGalleryFile(galleryFile);
+                
+                
+                var level = galleryFile.Level ?? await levelService.GetLevelById(galleryFile.LevelId);
+                if (level != null) await discordService.UpdateDiscordForum(level);
                 
                 return Ok(mapper.Map<GalleryFileDto>(galleryFile));
             default:

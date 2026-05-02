@@ -13,6 +13,24 @@ public class LevelService(MainDbContext db) : ILevelService
         return db.SaveChangesAsync();
     }
 
+    public async Task<Level?> UpdateLevel(long levelId, string? newName, string? newDescription, bool? newPublished,
+        float? newDifficulty, string[]? newTags)
+    {
+        var level = db.Levels?.FirstOrDefault(x=>x.Id == levelId);
+        if (newName != null) level?.Name = newName;
+        if (newDescription != null) level?.Description = newDescription;
+        if (newPublished.HasValue) level?.Published = newPublished.Value;
+        if (newDifficulty.HasValue) level?.Difficulty = newDifficulty.Value;
+        if (newTags != null) level?.Tags = newTags;
+        await db.SaveChangesAsync();
+        return level;
+    }
+
+    public Task<Level?> GetLevelById(long levelId)
+    {
+        return db.Levels?.FirstOrDefaultAsync(x=>x.Id == levelId)??Task.FromResult<Level?>(null);
+    }
+
     public Task<int> InsertLevelFile(LevelFile file)
     {
         db.LevelFiles?.Add(file);
