@@ -46,6 +46,12 @@ public class LevelService(MainDbContext db) : ILevelService
         return levelFile;
     }
 
+    public Task<LevelFile?> GetLevelFileById(long levelId, long levelFileId)
+    {
+        return db.LevelFiles?.FirstOrDefaultAsync(x=>x.Id == levelFileId&&x.LevelId == levelId)??Task.FromResult<LevelFile?>(null);
+
+    }
+
     public Task<int> InsertGalleryFile(GalleryFile file)
     {
         db.GalleryFiles?.Add(file);

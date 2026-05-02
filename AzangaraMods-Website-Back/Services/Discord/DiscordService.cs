@@ -25,9 +25,13 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                 }
                 return;
             }
-
+            
+            var latestFile = level.LevelFiles?.OrderByDescending(x=>x.UploadDate).FirstOrDefault();
+            
+            var downloadPath = $"{Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080"}/level/{level.Id}/files/{latestFile?.Id}";
+            
             string title = $"{level.Name}";
-            string text = $"{level.Name} made by {level.Author?.Username}\n\n{level.Description}";
+            string text = $"{level.Name} made by {level.Author?.Username}\n\n{level.Description}\n\nDownload: [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
             
             if (level is { DiscordForumMessage: not null, DiscordForumThread: not null })
             {

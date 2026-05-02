@@ -10,6 +10,7 @@ public interface ILevelService
     public Task<bool> UserOwnsLevel(long userId, long levelId);
     public Task<int> InsertLevelFile(LevelFile file);
     public Task<LevelFile?> UpdateLevelFile(long levelId, long levelFileId, string? newFilename, string? newEntrypoint);
+    public Task<LevelFile?> GetLevelFileById(long levelId, long levelFileId);
     public Task<int> InsertGalleryFile(GalleryFile file);
     public Task<GalleryFile?> UpdateGalleryFile(long levelId, long galleryFileId, string? newFilename, string? newDescription);
 }

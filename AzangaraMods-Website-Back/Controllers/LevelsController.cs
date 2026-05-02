@@ -59,7 +59,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             partialLevel.published,
             partialLevel.difficulty,
             partialLevel.tags);
-        if (level == null) return BadRequest(new ErrorResponseModel("Level doesn't exists"));
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found"));
         await discordService.UpdateDiscordForum(level);
         return Ok(mapper.Map<LevelDto>(level));
     }
@@ -122,9 +122,8 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         await levelService.InsertLevelFile(levelFile);
         
         pakStream.Close();
-
-        var level = levelFile.Level ?? await levelService.GetLevelById(levelFile.LevelId);
-        if (level != null) await discordService.UpdateDiscordForum(level);
+        await finalZip.DisposeAsync();
+        fileStream.Close();
         
         return Ok(new PutLevelFileResponseData(levelFileId.ToString(), pakFiles.Select(x=>x.Path).ToArray()));
     }
@@ -141,7 +140,10 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             levelFileId,
             partialLevelFile.fileName,
             partialLevelFile.entryPoint);
-        if (levelFile == null) return BadRequest(new ErrorResponseModel("Level file doesn't exists"));
+        if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found"));
+        
+        var level = levelFile.Level ?? await levelService.GetLevelById(levelFile.LevelId);
+        if (level != null) await discordService.UpdateDiscordForum(level);
         
         return Ok(mapper.Map<LevelFileDto>(levelFile));
     }
