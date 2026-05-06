@@ -32,7 +32,9 @@ public class Level
     public required string[] Tags { get; set; }
 
     public bool Published { get; set; } = false;
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public long? DiscordForumMessage { get; set; } = null;
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public long? DiscordForumThread { get; set; } = null;
     
     [ForeignKey("AuthorId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

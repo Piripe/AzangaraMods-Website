@@ -67,13 +67,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseRouting();
+
 app.UseCors();
 
-string[] publicRoutes = ["/register", "/login", "/logout", "/download"];
-
-app.UseWhen(context => !publicRoutes.Any(x => context.Request.Path.StartsWithSegments(x)),
-    appBuilder => { appBuilder.UseMiddleware<AuthMiddleware>(); });
-
+app.UseMiddleware<AuthMiddleware>();
 
 app.MapControllers().RequireCors();
 

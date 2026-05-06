@@ -14,7 +14,7 @@ export function LoginBox() {
     const [email, setEmail] = useState<string|null>(null);
     const [password, setPassword] = useState<string|null>(null);
     const [loading, setLoading] = useState(false);
-    const { user, setUser } = useUserData();
+    const { user, setUser, setToken } = useUserData();
 
   const router = useRouter();
 
@@ -33,6 +33,7 @@ export function LoginBox() {
                         let loginData = body as LoginResponseData;
                         console.log("Login successful: ", loginData);
                         localStorage.setItem("token", loginData.token);
+                        setToken(loginData.token);
                         setUser(loginData.user);
                         router.push("/dashboard");
                     } else {

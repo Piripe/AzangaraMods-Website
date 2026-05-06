@@ -17,8 +17,8 @@ public class LevelService(MainDbContext db) : ILevelService
         float? newDifficulty, string[]? newTags)
     {
         var level = db.Levels?.FirstOrDefault(x=>x.Id == levelId);
-        if (newName != null) level?.Name = newName;
-        if (newDescription != null) level?.Description = newDescription;
+        if (!string.IsNullOrWhiteSpace(newName)) level?.Name = newName;
+        if (!string.IsNullOrWhiteSpace(newDescription)) level?.Description = newDescription;
         if (newPublished.HasValue) level?.Published = newPublished.Value;
         if (newDifficulty.HasValue) level?.Difficulty = newDifficulty.Value;
         if (newTags != null) level?.Tags = newTags;
@@ -29,6 +29,18 @@ public class LevelService(MainDbContext db) : ILevelService
     public Task<Level?> GetLevelById(long levelId)
     {
         return db.Levels?.FirstOrDefaultAsync(x=>x.Id == levelId)??Task.FromResult<Level?>(null);
+    }
+
+    public async Task<Level> FetchLevelFiles(Level level)
+    {
+        level.LevelFiles = await db.LevelFiles!.Where(x => x.LevelId == level.Id).ToArrayAsync();
+        level.GalleryFiles = await db.GalleryFiles!.Where(x => x.LevelId == level.Id).ToArrayAsync();
+        return level;
+    }
+
+    public Task<Level[]> GetPublicLevels()
+    {
+        return db.Levels?.Where(x=>x.Published).ToArrayAsync()??Task.FromResult<Level[]>([]);
     }
 
     public Task<int> InsertLevelFile(LevelFile file)
@@ -52,6 +64,12 @@ public class LevelService(MainDbContext db) : ILevelService
 
     }
 
+    public Task<int> DeleteLevelFile(LevelFile levelFile)
+    {
+        db.LevelFiles?.Remove(levelFile);
+        return db.SaveChangesAsync();
+    }
+
     public Task<int> InsertGalleryFile(GalleryFile file)
     {
         db.GalleryFiles?.Add(file);
@@ -65,6 +83,18 @@ public class LevelService(MainDbContext db) : ILevelService
         if (newDescription != null) galleryFile?.Description = newDescription;
         await db.SaveChangesAsync();
         return galleryFile;
+    }
+
+    public Task<GalleryFile?> GetGalleryFileById(long levelId, long galleryFileId)
+    {
+        return db.GalleryFiles?.FirstOrDefaultAsync(x=>x.Id == galleryFileId&&x.LevelId == levelId)??Task.FromResult<GalleryFile?>(null);
+    }
+
+    public Task<int> DeleteGalleryFile(GalleryFile galleryFile)
+    {
+        
+        db.GalleryFiles?.Remove(galleryFile);
+        return db.SaveChangesAsync();
     }
 
     public async Task<bool> UserOwnsLevel(long userId, long levelId)

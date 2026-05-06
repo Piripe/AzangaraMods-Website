@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Models;
 
@@ -7,15 +8,17 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
-    private record SendWebhookMessageRequest(string username, string content, string thread_name);
-    private record EditWebhookMessageRequest(string content, string thread_name);
+    private record EmbedImage(string url, int width = 1920, int height = 1080);
+    private record Embed(EmbedImage image);
+    private record SendWebhookMessageRequest(string username, string content, string thread_name, Embed[] embeds);
+    private record EditWebhookMessageRequest(string content, Embed[] embeds);
     private record SendWebhookMessageResponse(string id, string channel_id);
     
     public async Task UpdateDiscordForum(Level level)
     {
         try
         {
-            if (!level.Published)
+            if (!level.Published || level.LevelFiles?.Count <= 0)
             {
                 if (level is { DiscordForumMessage: not null, DiscordForumThread: not null })
                 {
@@ -27,19 +30,24 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             }
             
             var latestFile = level.LevelFiles?.OrderByDescending(x=>x.UploadDate).FirstOrDefault();
-            
-            var downloadPath = $"{Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080"}/level/{level.Id}/files/{latestFile?.Id}";
+            var downloadUrl = Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080";
+            var downloadPath = $"{downloadUrl}/level/{level.Id}/files/{latestFile?.Id}";
+
+            var embeds = level.GalleryFiles
+                ?.Select(x => new Embed(new ($"{downloadUrl}/level/{x.LevelId}/gallery/{x.Id}"))).ToArray() ?? [];
             
             string title = $"{level.Name}";
             string text = $"{level.Name} made by {level.Author?.Username}\n\n{level.Description}\n\nDownload: [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
             
             if (level is { DiscordForumMessage: not null, DiscordForumThread: not null })
             {
-                var res = await _httpClient.PatchAsync(GetDiscordRequestUri( $"/messages/{level.DiscordForumMessage.Value}?thread_id={level.DiscordForumThread.Value}"), JsonContent.Create(new EditWebhookMessageRequest(text, title)));
+                var res = await _httpClient.PatchAsync(GetDiscordRequestUri( $"/messages/{level.DiscordForumMessage.Value}?thread_id={level.DiscordForumThread.Value}"), JsonContent.Create(new EditWebhookMessageRequest(text, embeds)));
+                Console.WriteLine(JsonSerializer.Serialize(new EditWebhookMessageRequest(text, embeds)));
+                Console.WriteLine(await res.Content.ReadAsStringAsync());
             }
             else
             {
-                var res = await _httpClient.PostAsync(GetDiscordRequestUri( $"?wait=true"), JsonContent.Create(new SendWebhookMessageRequest(level.Author?.Username ?? level.AuthorId.ToString(), text, title)));
+                var res = await _httpClient.PostAsync(GetDiscordRequestUri( $"?wait=true"), JsonContent.Create(new SendWebhookMessageRequest(level.Author?.Username ?? level.AuthorId.ToString(), text, title, embeds)));
 
                 Console.WriteLine(await res.Content.ReadAsStringAsync());
 

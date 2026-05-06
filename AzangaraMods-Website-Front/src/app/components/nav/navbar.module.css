@@ -1,0 +1,17 @@
+.navBar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.25em 2em;
+    gap: 0.25em;
+    
+    & > a {
+        padding: 0.5em 1em;
+        border-radius: 100px;
+        transition: background-color 0.15s ease-in-out;
+
+
+        &:hover {
+            background-color: var(--control-back-1);
+        }
+    }
+}

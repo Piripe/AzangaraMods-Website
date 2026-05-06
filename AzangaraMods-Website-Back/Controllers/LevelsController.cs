@@ -2,6 +2,8 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json.Serialization;
 using AutoMapper;
+using AzangaraMods_Website_Back.Attributes;
+using AzangaraMods_Website_Back.Middlewares;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Models.Dto;
 using AzangaraMods_Website_Back.Services.Discord;
@@ -18,6 +20,18 @@ namespace AzangaraMods_Website_Back.Controllers;
 [Route("[controller]")]
 public class LevelsController(IMapper mapper, ILevelService levelService, IDiscordService discordService) : Controller
 {
+    [HttpGet(""), Public]
+    public async Task<IActionResult> GetLevels()
+    {
+        return Ok(mapper.Map<LevelPartialDto[]>(await levelService.GetPublicLevels()).OrderByDescending(x=>x.Published));
+    }
+    [HttpGet("{levelId}")]
+    public async Task<IActionResult> GetLevel([FromRoute] long levelId)
+    {
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found"));
+        return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelFiles(level)));
+    }
     public record PutLevelRequestData(string name, string description, float difficulty, string tags);
     [HttpPut("")]
     public async Task<IActionResult> PutLevel([FromBody] PutLevelRequestData partialLevel)
@@ -26,7 +40,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (partialLevel.description.Length >= 8192) return BadRequest(new ErrorResponseModel("Description is too long"));
         var tags = partialLevel.tags.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (tags.Length >= 10) return BadRequest(new ErrorResponseModel("Too many tags"));
-        if (tags.Max(x=>x.Length) >= 32) return BadRequest(new ErrorResponseModel("Tag name is too long"));
+        if (tags.Length > 0 && tags.Max(x=>x.Length) >= 32) return BadRequest(new ErrorResponseModel("Tag name is too long"));
         var level = new Level()
         {
             Id = await IdUtils.GenerateId(),
@@ -47,8 +61,8 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     {
         if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
         if (
-            partialLevel.name == null && 
-            partialLevel.description == null && 
+            string.IsNullOrWhiteSpace(partialLevel.name) && 
+            string.IsNullOrWhiteSpace(partialLevel.description) && 
             partialLevel.published == null && 
             partialLevel.difficulty == null && 
             partialLevel.tags == null ) return BadRequest(new ErrorResponseModel("Request is null"));
@@ -60,7 +74,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             partialLevel.difficulty,
             partialLevel.tags);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found"));
-        await discordService.UpdateDiscordForum(level);
+        await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
         return Ok(mapper.Map<LevelDto>(level));
     }
     public record PutLevelFileResponseData(string id, string[] files);
@@ -76,7 +90,6 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (file.ContentType == "application/octet-stream")
         {
             // .pak
-            // check if it's the right file format
             try
             {
                 pakFiles = PakHelper.Read(file.OpenReadStream());
@@ -148,6 +161,21 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         return Ok(mapper.Map<LevelFileDto>(levelFile));
     }
     
+    [HttpDelete("{levelId}/files/{levelFileId}")]
+    public async Task<IActionResult> DeleteLevelFile([FromRoute] long levelId, [FromRoute] long levelFileId)
+    {
+        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
+        var levelFile = await levelService.GetLevelFileById(levelId, levelFileId);
+        if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found"));
+        await levelService.DeleteLevelFile(levelFile);
+        System.IO.File.Delete(levelFileId.GetIdFilePath("zip"));
+        
+        var level = levelFile.Level ?? await levelService.GetLevelById(levelId);
+        if (level == null) return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseModel("Level not found but file deleted"));
+        await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+        return Ok(mapper.Map<LevelDto>(level));
+    }
+    
     
     [HttpPut("{levelId}/gallery")]
     [RequestSizeLimit(5 * 1024 * 1024)]
@@ -189,11 +217,26 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
                 
                 
                 var level = galleryFile.Level ?? await levelService.GetLevelById(galleryFile.LevelId);
-                if (level != null) await discordService.UpdateDiscordForum(level);
+                if (level != null) await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
                 
                 return Ok(mapper.Map<GalleryFileDto>(galleryFile));
             default:
                 return BadRequest(new ErrorResponseModel("Invalid file type"));
         }
+    }
+    
+    [HttpDelete("{levelId}/gallery/{galleryFileId}")]
+    public async Task<IActionResult> DeleteGalleryFile([FromRoute] long levelId, [FromRoute] long galleryFileId)
+    {
+        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level"));
+        var galleryFile = await levelService.GetGalleryFileById(levelId, galleryFileId);
+        if (galleryFile == null) return NotFound(new ErrorResponseModel("Gallery file not found"));
+        await levelService.DeleteGalleryFile(galleryFile);
+        System.IO.File.Delete(galleryFileId.GetIdFilePath("webp"));
+        
+        var level = galleryFile.Level ?? await levelService.GetLevelById(levelId);
+        if (level == null) return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseModel("Level not found but image deleted"));
+        await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+        return Ok(mapper.Map<LevelDto>(level));
     }
 }

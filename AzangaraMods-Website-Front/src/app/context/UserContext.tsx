@@ -4,8 +4,11 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import fetchApi from "../utils/fetchApi";
 
 interface UserContextProps {
+    token: string | null;
+    setToken: (token: string | null) => void;
     user: User | null;
     setUser: (user:User | null) => void;
+    pushLevel: (level: Level) => void;
 }
 
 export const UserContext = createContext<UserContextProps | null>(null);
@@ -13,9 +16,10 @@ export const UserContext = createContext<UserContextProps | null>(null);
 export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({children}) => {
     const [user, setUser] = useState<User | null>(null);
 
+    const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+
     useEffect(()=>{
         if (user) return;
-        const token = localStorage.getItem("token");
         if (token) {
             (async ()=>{
                 let res = await fetchApi(
@@ -27,11 +31,15 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
                 }
             })();
         }
-    }, [user]);
+    }, [user, token]);
 
     const contextValue = useMemo<UserContextProps>(
-        ()=>({user, setUser}),
-        [user, setUser]
+        ()=>({user, setUser, token, setToken, pushLevel: (level: Level) => {
+            if (user) {
+                setUser({...user, levels: [...user.levels??[], level]});
+            }
+        }}),
+        [user, setUser, token, setToken]
     );
 
     return (

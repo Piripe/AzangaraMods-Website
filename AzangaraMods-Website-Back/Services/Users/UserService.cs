@@ -31,6 +31,13 @@ public class UserService(MainDbContext db) : IUserService
     {
         return db.Users!.AnyAsync(x => x.Email == email || x.Username == username);
     }
+
+    public async Task<User> FetchLevels(User user)
+    {
+        user.Levels = await db.Levels!.Where(x => x.AuthorId == user.Id).ToArrayAsync();
+        return user;
+    }
+
     public Task<User?> GetUserByEmail(string email)
     {
         return db.Users!.FirstOrDefaultAsync(x => x.Email == email);

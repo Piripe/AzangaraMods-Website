@@ -9,4 +9,5 @@ public interface IUserService
     Task<bool> Login(User user, string password);
     Task<User?> GetUserByEmail(string email);
     Task<bool> CheckUserExists(string? email, string? username);
+    Task<User> FetchLevels(User user);
 }

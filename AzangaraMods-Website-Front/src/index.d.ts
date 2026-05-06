@@ -9,11 +9,14 @@ type User = {
 }
 type Level = {
     id: string,
-    author: string,
     name: string,
+    description: string,
     authorId: string,
     lastEdit: string,
+    difficulty: number,
+    published: boolean,
     author: User|null|undefined,
+    tags: string[]|undefined,
     galleryFiles: GalleryFile[]|undefined,
     levelFiles: LevelFile[]|undefined,
 }
@@ -42,4 +45,8 @@ type LoginResponseData = {
 }
 type RegisterResponseData = {
     status: string
+}
+type LevelFileUploadResponseData = {
+    id: string,
+    files: string[],
 }

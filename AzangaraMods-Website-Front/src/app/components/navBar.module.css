@@ -1,0 +1,10 @@
+.navBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0em 0.5em;
+
+    background: var(--back-2);
+
+}

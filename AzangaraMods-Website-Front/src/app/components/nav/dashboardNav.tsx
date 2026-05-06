@@ -1,8 +1,9 @@
 import Link from "next/link";
+import styles from "./navbar.module.css";
 
 export function DashboardNav() {
     return (
-        <div>
+        <div className={styles.navBar}>
             <Link href="/">Home</Link>
             <Link href="/dashboard">Dashboard</Link>
             <Link href="/dashboard/levels">Levels</Link>

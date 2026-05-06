@@ -1,3 +1,4 @@
+using AzangaraMods_Website_Back.Attributes;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
@@ -11,7 +12,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
     public record LoginResponseData(string Token, User User);
     public record LoginRequestData(string Email, string Password);
     
-    [HttpPost("/login")]
+    [HttpPost("/login"), Public]
     public async Task<IActionResult> Login([FromBody] LoginRequestData req)
     {
         var user = await userService.GetUserByEmail(req.Email);
@@ -27,7 +28,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
     public record RegisterResponseData(string Status);
     public record RegisterRequestData(string Username, string Email, string Password);
     
-    [HttpPost("/register")]
+    [HttpPost("/register"), Public]
     public async Task<IActionResult> Register([FromBody] RegisterRequestData req)
     {
         if (await userService.CheckUserExists(req.Email, req.Username)) return UnprocessableEntity(new ErrorResponseModel("Can't register user"));

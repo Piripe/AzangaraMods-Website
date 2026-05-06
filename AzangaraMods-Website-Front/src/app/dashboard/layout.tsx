@@ -1,5 +1,5 @@
-import NavBar from "@/app/components/navBar";
-import { DashboardNav } from "../components/dashboardNav";
+import NavBar, { NavBarType } from "@/app/components/navBar";
+import { DashboardNav } from "../components/nav/dashboardNav";
 
 export default function Layout({
   children,
@@ -8,8 +8,7 @@ export default function Layout({
 }>) {
   return (
     <div>
-        <NavBar/>
-        <DashboardNav/>
+        <NavBar navBarType={NavBarType.DASHBOARD} />
         {children}
     </div>
   );

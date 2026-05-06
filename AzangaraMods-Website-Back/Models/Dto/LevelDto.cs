@@ -21,7 +21,10 @@ public class LevelPartialDto
     public bool Published { get; set; } = false;
     
     public required string[] Tags { get; set; }
-    
+}
+
+public class LevelPartialAuthorDto : LevelPartialDto
+{
     public virtual UserPublicPartialDto? Author { get; set; }
 }
 public class LevelDto : LevelPartialDto

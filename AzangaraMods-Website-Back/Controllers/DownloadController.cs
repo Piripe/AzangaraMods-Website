@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text;
+using AzangaraMods_Website_Back.Attributes;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AzangaraMods_Website_Back.Controllers;
 
-[Route("[controller]")]
+[Route("[controller]"), Public]
 public class DownloadController(ILevelService levelService) : Controller
 {
     
@@ -33,6 +34,22 @@ public class DownloadController(ILevelService levelService) : Controller
             default:
                 return BadRequest(new ErrorResponseModel("Unsupported file type"));
         }
+        
+    }
+    
+    [HttpGet("level/{levelId}/gallery/{galleryFileId}")]
+    public async Task<IActionResult> DownloadLevelFile([FromRoute] long levelId, [FromRoute] long galleryFileId)
+    {
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null)  return NotFound(new ErrorResponseModel("Level not found"));
+        if (!level.Published && (HttpContext.Items[0] as User)!.Id != level.Id) return Unauthorized(new ErrorResponseModel("Level is restricted"));
+        var galleryFile = level?.GalleryFiles?.FirstOrDefault(x=>x.Id == galleryFileId) ?? await levelService.GetGalleryFileById(levelId, galleryFileId);
+        if (galleryFile == null) return NotFound(new ErrorResponseModel("Level file not found"));
+
+        var imageFile = System.IO.File.OpenRead(galleryFileId.GetIdFilePath("webp"));
+        
+        Response.ContentType = "image/webp";
+        return Ok(imageFile);
         
     }
 }
