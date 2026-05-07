@@ -1,0 +1,23 @@
+.icon {
+    display: inline-block;
+}
+.infoBubble {
+    position: absolute;
+    background-color: var(--control-back-1);
+    backdrop-filter: blur(8px) brightness(0.7);
+    padding: 0.5em;
+    font-size: medium;
+    font-weight: 500;
+    border-radius: 4px;
+
+    z-index: 100;
+
+    pointer-events: none;
+    user-select: none;
+
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+.icon:hover>.infoBubble {
+    opacity: 1;
+}

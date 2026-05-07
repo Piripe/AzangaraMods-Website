@@ -1,4 +1,6 @@
 .button {
+    display: flex;
+    align-items: center;
     background-color: var(--control-back-1);
     border: none;
     color: white;
@@ -7,6 +9,7 @@
     border-radius: 100px;
     cursor: pointer;
     transition: background-color 0.15s ease-in-out;
+    font-size: var(--font-size-1);
 
     &:hover {
         background-color: var(--control-back-2);

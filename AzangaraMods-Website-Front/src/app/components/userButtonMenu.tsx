@@ -14,7 +14,7 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
     return (
         <div ref={ref} className={styles.menu}>
             <Link href="/dashboard/levels">My Levels</Link>
-            <Link href="/dashboard">Dashboard</Link>
+            {/* <Link href="/dashboard">Dashboard</Link> */}
             <Link href="/" onNavigate={()=>{
                 fetchApi("/logout", localStorage.getItem("token") ?? "");
                 localStorage.removeItem("token");

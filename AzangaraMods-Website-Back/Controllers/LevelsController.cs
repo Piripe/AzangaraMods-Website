@@ -25,12 +25,13 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     {
         return Ok(mapper.Map<LevelPartialDto[]>(await levelService.GetPublicLevels()).OrderByDescending(x=>x.Published));
     }
-    [HttpGet("{levelId}")]
+    [HttpGet("{levelId}"), Public]
     public async Task<IActionResult> GetLevel([FromRoute] long levelId)
     {
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found"));
-        return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelFiles(level)));
+        if (level.Published || level.AuthorId == (HttpContext.Items[0] as User)!.Id) return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelFiles(level)));
+        return Unauthorized(new ErrorResponseModel("Level is restricted"));
     }
     public record PutLevelRequestData(string name, string description, float difficulty, string tags);
     [HttpPut("")]

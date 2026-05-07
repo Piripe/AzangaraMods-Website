@@ -2,20 +2,20 @@
 
 import useUserData from "@/app/hooks/useUserData";
 import Link from "next/link";
+import styles from "./levelsList.module.css";
+import Icon, { IconType } from "../kit/icon";
 
 export function LevelsList() {
 
     const {user} = useUserData();
 
     return (
-        <div>
+        <div className={styles.container}>
             {
                 user?.levels?.map(level => (
-                    <div key={level.id}>
-                        <Link href={`/dashboard/levels/${level.id}`}>
-                            {level.name}
-                        </Link>
-                    </div>
+                    <Link key={level.id} href={`/dashboard/levels/${level.id}`} className={styles.levelItem}>
+                        {level.name} <Icon size={18} icon={level.published ? IconType.LockOpen : IconType.LockClosed} alt={level.published ? "Published" : "Not published"} />
+                    </Link>
                 ))
             }
         </div>

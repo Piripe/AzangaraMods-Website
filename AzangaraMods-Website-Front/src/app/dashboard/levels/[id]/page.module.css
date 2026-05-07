@@ -1,0 +1,82 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1em;
+    & > h1 {
+        font-size: 1.5em;
+        font-weight: 500;
+    }
+} 
+.levelActions {
+    display: flex;
+    gap: 0.5em;
+}
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+.description {
+    background-color: var(--control-back-0);
+    border-radius: var(--radius-3);
+    padding: 1em;
+    margin: 1em 0;
+}
+.twoColumns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+}
+.listContainer {
+    background-color: var(--control-back-0);
+    border-radius: var(--radius-3);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+.listHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5em;
+}
+.listTitle {
+    font-size: var(--font-size-3);
+    font-weight: 500;
+}
+.listItem {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-1);
+    font-weight: 500;
+    padding: 0.5em 0.75em 0.5em 1em;
+    border-radius: var(--radius-3);
+    background-color: var(--control-back-0);
+    gap:1em;
+
+    transition: background-color 0.3s ease-in-out;
+    &:hover {
+        background-color: var(--control-back-1);
+    }
+}
+.galleryImageContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25em;
+}
+.galleryImage {
+    height: 48px;
+}
+.ellipsis {
+    word-break: break-all;
+}

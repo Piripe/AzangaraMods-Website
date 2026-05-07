@@ -8,6 +8,7 @@ import Popup from "./kit/popup";
 import { LoginBox } from "./loginBox";
 import useUserData from "../hooks/useUserData";
 import { RegisterBox } from "./registerBox";
+import styles from "./userButton.module.css";
 
 export default function UserButton() {
 
@@ -33,10 +34,10 @@ export default function UserButton() {
       {user ?
         (<Button click={toggleMenu}>{user.username}</Button>)
       :
-        <>
+        <div className={styles.buttons}>
           <Button click={toggleLoginBox}>{"Login"}</Button>
           <Button click={toggleRegisterBox}>{"Register"}</Button>
-        </>
+        </div>
       }
       {menuVisible &&
         createPortal(

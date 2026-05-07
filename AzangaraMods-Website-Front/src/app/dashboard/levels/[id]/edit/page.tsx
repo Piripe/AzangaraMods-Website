@@ -10,6 +10,8 @@ import Button from "@/app/components/kit/button";
 import TextBox from "@/app/components/kit/textbox";
 import Slider from "@/app/components/kit/silder";
 import { useRouter } from "next/navigation";
+import BigTextBox from "@/app/components/kit/bigTextbox";
+import Stars from "@/app/components/kit/stars";
 
 export default  function Page({
   params,
@@ -52,8 +54,9 @@ export default  function Page({
         <p>Name</p>
         <TextBox onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
         <p>Description</p>
-        <TextBox onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
+        <BigTextBox onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
         <p>Difficulty</p>
+        <Stars value={difficulty??levelData?.difficulty ?? 0} size={14.3} alt={`Difficulty ${Math.round((difficulty??levelData?.difficulty ?? 0)*100)/100}/10`}/>
         <Slider onChange={(e)=>setDifficulty(e)} min={0} max={10} step={0.01} defaultValue={levelData?.difficulty ?? 0}/>
         <p>Tags (max 10)</p>
         <TextBox onChange={(e)=>setTags(e)} defaultValue={levelData?.tags?.join(" ")} />
