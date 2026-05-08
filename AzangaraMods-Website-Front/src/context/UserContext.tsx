@@ -17,9 +17,10 @@ export const UserContext = createContext<UserContextProps | null>(null);
 export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({children}) => {
     const [user, setUser] = useState<User | null>(null);
 
-    const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+    const [token, setToken] = useState<string | null>(null);
 
     useEffect(()=>{
+        setToken(localStorage.getItem("token"));
         if (user) return;
         if (token) {
             (async ()=>{

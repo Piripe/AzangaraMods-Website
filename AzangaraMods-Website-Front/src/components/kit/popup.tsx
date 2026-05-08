@@ -1,4 +1,4 @@
-import { useClickOutside } from "@/app/utils/clickOutside";
+import { useClickOutside } from "@/utils/clickOutside";
 import { JSX, useRef } from "react";
 import { createPortal } from "react-dom";
 import styles from "./popup.module.css";

@@ -1,18 +1,18 @@
 'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
-import NavBar from "@/app/components/navBar";
-import fetchApi from "@/app/utils/fetchApi";
+import NavBar from "@/components/navBar";
+import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
-import useUserData from "@/app/hooks/useUserData";
+import useUserData from "@/hooks/useUserData";
 import Link from "next/link";
-import Button from "@/app/components/kit/button";
-import TextBox from "@/app/components/kit/textbox";
-import Slider from "@/app/components/kit/silder";
+import Button from "@/components/kit/button";
+import TextBox from "@/components/kit/textbox";
+import Slider from "@/components/kit/silder";
 import { useRouter } from "next/navigation";
-import BigTextBox from "@/app/components/kit/bigTextbox";
-import Stars from "@/app/components/kit/stars";
-import LinkButton from "@/app/components/kit/linkButton";
+import BigTextBox from "@/components/kit/bigTextbox";
+import Stars from "@/components/kit/stars";
+import LinkButton from "@/components/kit/linkButton";
 
 export default  function Page({
   params,

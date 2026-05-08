@@ -1,9 +1,9 @@
 import Image from "next/image";
 import styles from "./page.module.css";
-import NavBar from "@/app/components/navBar";
-import { LevelsList } from "@/app/components/dashboard/levelsList";
+import NavBar from "@/components/navBar";
+import { LevelsList } from "@/components/dashboard/levelsList";
 import Link from "next/link";
-import LinkButton from "@/app/components/kit/linkButton";
+import LinkButton from "@/components/kit/linkButton";
 
 export default function Page() {
     

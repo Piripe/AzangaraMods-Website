@@ -1,3 +1,4 @@
+"use client";
 import { useRef } from "react";
 import { useClickOutside } from "../utils/clickOutside";
 import Link from "next/link";

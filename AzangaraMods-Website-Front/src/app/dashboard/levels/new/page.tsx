@@ -1,12 +1,12 @@
 "use client";
-import BigTextBox from "@/app/components/kit/bigTextbox";
-import Button from "@/app/components/kit/button";
-import LinkButton from "@/app/components/kit/linkButton";
-import Slider from "@/app/components/kit/silder";
-import Stars from "@/app/components/kit/stars";
-import TextBox from "@/app/components/kit/textbox";
-import useUserData from "@/app/hooks/useUserData";
-import fetchApi from "@/app/utils/fetchApi";
+import BigTextBox from "@/components/kit/bigTextbox";
+import Button from "@/components/kit/button";
+import LinkButton from "@/components/kit/linkButton";
+import Slider from "@/components/kit/silder";
+import Stars from "@/components/kit/stars";
+import TextBox from "@/components/kit/textbox";
+import useUserData from "@/hooks/useUserData";
+import fetchApi from "@/utils/fetchApi";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./page.module.css"

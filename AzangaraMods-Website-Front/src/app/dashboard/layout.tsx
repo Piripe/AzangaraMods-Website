@@ -1,5 +1,5 @@
-import NavBar, { NavBarType } from "@/app/components/navBar";
-import { DashboardNav } from "../components/nav/dashboardNav";
+import NavBar, { NavBarType } from "@/components/navBar";
+import { DashboardNav } from "../../components/nav/dashboardNav";
 import styles from "./layout.module.css";
 
 export default function Layout({

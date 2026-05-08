@@ -11,7 +11,6 @@ import { RegisterBox } from "./registerBox";
 import styles from "./userButton.module.css";
 
 export default function UserButton() {
-
   const [menuVisible, setMenuVisible] = useState(false);
   const [loginBoxVisible, setLoginBoxVisible] = useState(false);
   const [registerBoxVisible, setRegisterBoxVisible] = useState(false);

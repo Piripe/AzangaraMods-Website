@@ -1,16 +1,16 @@
 'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
-import NavBar from "@/app/components/navBar";
-import fetchApi from "@/app/utils/fetchApi";
+import NavBar from "@/components/navBar";
+import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
-import useUserData from "@/app/hooks/useUserData";
+import useUserData from "@/hooks/useUserData";
 import Link from "next/link";
-import Button from "@/app/components/kit/button";
-import LinkButton from "@/app/components/kit/linkButton";
-import Icon, { IconType } from "@/app/components/kit/icon";
-import Stars from "@/app/components/kit/stars";
-import formatBytes from "@/app/utils/fileSize";
+import Button from "@/components/kit/button";
+import LinkButton from "@/components/kit/linkButton";
+import Icon, { IconType } from "@/components/kit/icon";
+import Stars from "@/components/kit/stars";
+import formatBytes from "@/utils/fileSize";
 
 export default  function Page({
   params,

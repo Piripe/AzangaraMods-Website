@@ -1,6 +1,6 @@
 "use client";
 
-import useUserData from "@/app/hooks/useUserData";
+import useUserData from "@/hooks/useUserData";
 import Link from "next/link";
 import styles from "./levelsList.module.css";
 import Icon, { IconType } from "../kit/icon";

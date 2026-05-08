@@ -1,15 +1,15 @@
 'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
-import NavBar from "@/app/components/navBar";
-import fetchApi from "@/app/utils/fetchApi";
+import NavBar from "@/components/navBar";
+import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
-import useUserData from "@/app/hooks/useUserData";
+import useUserData from "@/hooks/useUserData";
 import Link from "next/link";
-import Button from "@/app/components/kit/button";
-import FileSelect from "@/app/components/kit/fileSelect";
+import Button from "@/components/kit/button";
+import FileSelect from "@/components/kit/fileSelect";
 import { useRouter } from "next/navigation";
-import LinkButton from "@/app/components/kit/linkButton";
+import LinkButton from "@/components/kit/linkButton";
 
 export default  function Page({
   params,
