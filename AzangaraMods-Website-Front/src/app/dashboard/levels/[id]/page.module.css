@@ -28,7 +28,7 @@
     gap: 0.5em;
 }
 .description {
-    background-color: var(--control-back-0);
+    background-color: var(--back-2);
     border-radius: var(--radius-3);
     padding: 1em;
     margin: 1em 0;
@@ -39,7 +39,7 @@
     gap: 1em;
 }
 .listContainer {
-    background-color: var(--control-back-0);
+    background-color: var(--back-2);
     border-radius: var(--radius-3);
     padding: 1em;
     display: flex;

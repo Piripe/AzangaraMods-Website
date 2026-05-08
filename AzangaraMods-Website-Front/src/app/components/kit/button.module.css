@@ -1,9 +1,9 @@
 .button {
     display: flex;
     align-items: center;
-    background-color: var(--control-back-1);
+    background-color: var(--control-back-0);
     border: none;
-    color: white;
+    color: var(--front-1);
     padding: 0.25em 1em;
     height: 32px;
     border-radius: 100px;
@@ -12,6 +12,6 @@
     font-size: var(--font-size-1);
 
     &:hover {
-        background-color: var(--control-back-2);
+        background-color: var(--control-back-1);
     }
 }

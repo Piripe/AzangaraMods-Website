@@ -1,17 +1,27 @@
 :root {
   --back-1: #ffffff;
-  --back-2: #f0f0f0;
+  --back-2: #ececec;
   --back-3: #efefef;
   --front-1: #171717;
-  --control-back-0: #00000008;
-  --control-back-1: #0001;
-  --control-back-2: #0002;
+  --front-2: #272727;
+  --front-3: #373737;
+  --control-back-0: #00000012;
+  --control-back-1: #0000001c;
+  --control-back-2: #00000025;
 
   --font-size-1: 14px;
   --font-size-2: 16px;
   --font-size-3: 18px;
 
+  --radius-1: 4px;
   --radius-3: 8px;
+
+  --accent-0: oklab(from var(--accent-1) calc(l - 0.12) a b);
+  --accent-1: #d0800f;
+  --accent-2: oklab(from var(--accent-1) calc(l + 0.1) calc(a + 0.025) b);
+  --accent-3: oklab(from var(--accent-1) calc(l + 0.12) calc(a + 0.05) b);
+
+  --backdrop-brightness: 0.98;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,14 +30,12 @@
     --back-2: #171717;
     --back-3: #202020;
     --front-1: #ededed;
+    --front-2: #d0d0d0;
+    --front-3: #b0b0b0;
     --control-back-0: #ffffff08;
     --control-back-1: #fff1;
     --control-back-2: #fff2;
-
-    --accent-0: oklab(from var(--accent-1) calc(l - 0.12) a b);
-    --accent-1: #d0800f;
-    --accent-2: oklab(from var(--accent-1) calc(l + 0.1) calc(a + 0.025) b);
-    --accent-3: oklab(from var(--accent-1) calc(l + 0.12) calc(a + 0.05) b);
+    --backdrop-brightness: 0.2;
   }
 }
 

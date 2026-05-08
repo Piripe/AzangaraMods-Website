@@ -3,7 +3,7 @@
     top: 3em;
     right: .5em;
     background-color: var(--control-back-2);
-    backdrop-filter: blur(8px) brightness(0.2);
+    backdrop-filter: blur(8px) brightness(var(--backdrop-brightness));
     border-radius: 8px;
     gap: 2px;
     display: flex;
