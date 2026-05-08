@@ -35,8 +35,13 @@
 }
 .twoColumns {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1em;
+}
+@media (min-width: 900px) {
+    .twoColumns {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 .listContainer {
     background-color: var(--back-2);
