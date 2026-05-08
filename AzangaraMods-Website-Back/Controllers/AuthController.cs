@@ -22,7 +22,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
             return UnprocessableEntity(new ErrorResponseModel("Invalid username or password"));
         }
 
-        return Ok(new LoginResponseData(await tokenService.GenerateToken(user), user));
+        return Ok(new LoginResponseData(await tokenService.GenerateToken(user), await userService.FetchLevels(user)));
     }
     
     public record RegisterResponseData(string Status);
