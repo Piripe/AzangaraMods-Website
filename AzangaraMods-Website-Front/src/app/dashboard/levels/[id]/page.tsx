@@ -90,11 +90,11 @@ export default  function Page({
                     token!,
                     "DELETE"
                   );
-                  levelData.levelFiles = levelData.levelFiles?.filter(file=>file.id !== f.id);
-                  setLevelData({...levelData});
-                  levelData.lastEdit = new Date().toString();
-                  setLevelData({...levelData});
-                  updateLevel(levelData);
+                  var newLevelData = {...levelData};
+                  newLevelData.levelFiles = levelData.levelFiles?.filter(file=>file.id !== f.id);
+                  newLevelData.lastEdit = new Date().toString();
+                  updateLevel(newLevelData);
+                  setLevelData(newLevelData);
                 }}>Delete</Button>
               </div>
             ))
@@ -121,11 +121,11 @@ export default  function Page({
                   token!,
                   "DELETE"
                 );
-                levelData.galleryFiles = levelData.galleryFiles?.filter(file=>file.id !== f.id);
-                setLevelData({...levelData});
-                levelData.lastEdit = new Date().toString();
-                setLevelData({...levelData});
-                updateLevel(levelData);
+                var newLevelData = {...levelData};
+                newLevelData.galleryFiles = levelData.galleryFiles?.filter(file=>file.id !== f.id);
+                newLevelData.lastEdit = new Date().toString();
+                updateLevel(newLevelData);
+                setLevelData(newLevelData);
               }}>Delete</Button>
             </div>
           ))
