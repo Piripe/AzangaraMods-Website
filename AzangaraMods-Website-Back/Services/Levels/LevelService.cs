@@ -13,15 +13,27 @@ public class LevelService(MainDbContext db) : ILevelService
         return db.SaveChangesAsync();
     }
 
+    public void SoftEditLevel(Level level)
+    {
+        db.Entry(level).Property(x => x.LastEdit).CurrentValue = DateTime.UtcNow;
+    }
+    public Task<int> EditLevel(Level level)
+    {
+        SoftEditLevel(level);
+        return db.SaveChangesAsync();
+    }
+
     public async Task<Level?> UpdateLevel(long levelId, string? newName, string? newDescription, bool? newPublished,
         float? newDifficulty, string[]? newTags)
     {
         var level = db.Levels?.FirstOrDefault(x=>x.Id == levelId);
-        if (!string.IsNullOrWhiteSpace(newName)) level?.Name = newName;
-        if (!string.IsNullOrWhiteSpace(newDescription)) level?.Description = newDescription;
-        if (newPublished.HasValue) level?.Published = newPublished.Value;
-        if (newDifficulty.HasValue) level?.Difficulty = newDifficulty.Value;
-        if (newTags != null) level?.Tags = newTags;
+        if (level == null) return null;
+        if (!string.IsNullOrWhiteSpace(newName)) level.Name = newName;
+        if (!string.IsNullOrWhiteSpace(newDescription)) level.Description = newDescription;
+        if (newPublished.HasValue) level.Published = newPublished.Value;
+        if (newDifficulty.HasValue) level.Difficulty = newDifficulty.Value;
+        if (newTags != null) level.Tags = newTags;
+        SoftEditLevel(level);
         await db.SaveChangesAsync();
         return level;
     }
@@ -43,17 +55,22 @@ public class LevelService(MainDbContext db) : ILevelService
         return db.Levels?.Where(x=>x.Published).ToArrayAsync()??Task.FromResult<Level[]>([]);
     }
 
-    public Task<int> InsertLevelFile(LevelFile file)
+    public async Task<int> InsertLevelFile(LevelFile file)
     {
         db.LevelFiles?.Add(file);
-        return db.SaveChangesAsync();
+        var level = await GetLevelById(file.LevelId);
+        if (level != null) SoftEditLevel(level);
+        return await db.SaveChangesAsync();
     }
 
     public async Task<LevelFile?> UpdateLevelFile(long levelId, long levelFileId, string? newFilename, string? newEntrypoint)
     {
         var levelFile = db.LevelFiles?.FirstOrDefault(x=>x.Id == levelFileId&&x.LevelId == levelId);
-        if (newFilename != null) levelFile?.FileName = newFilename;
-        if (newEntrypoint != null) levelFile?.EntryPoint = newEntrypoint;
+        if (levelFile == null) return null;
+        if (newFilename != null) levelFile.FileName = newFilename;
+        if (newEntrypoint != null) levelFile.EntryPoint = newEntrypoint;
+        var level = await GetLevelById(levelFile.LevelId);
+        if (level != null) SoftEditLevel(level);
         await db.SaveChangesAsync();
         return levelFile;
     }
@@ -64,23 +81,30 @@ public class LevelService(MainDbContext db) : ILevelService
 
     }
 
-    public Task<int> DeleteLevelFile(LevelFile levelFile)
+    public async Task<int> DeleteLevelFile(LevelFile levelFile)
     {
         db.LevelFiles?.Remove(levelFile);
-        return db.SaveChangesAsync();
+        var level = await GetLevelById(levelFile.LevelId);
+        if (level != null) SoftEditLevel(level);
+        return await db.SaveChangesAsync();
     }
 
-    public Task<int> InsertGalleryFile(GalleryFile file)
+    public async Task<int> InsertGalleryFile(GalleryFile file)
     {
         db.GalleryFiles?.Add(file);
-        return db.SaveChangesAsync();
+        var level = await GetLevelById(file.LevelId);
+        if (level != null) SoftEditLevel(level);
+        return await db.SaveChangesAsync();
     }
 
     public async Task<GalleryFile?> UpdateGalleryFile(long levelId, long galleryFileId, string? newFilename, string? newDescription)
     {
         var galleryFile = db.GalleryFiles?.FirstOrDefault(x=>x.Id == galleryFileId&&x.LevelId == levelId);
-        if (newFilename != null) galleryFile?.FileName = newFilename;
-        if (newDescription != null) galleryFile?.Description = newDescription;
+        if (galleryFile == null) return null;
+        if (newFilename != null) galleryFile.FileName = newFilename;
+        if (newDescription != null) galleryFile.Description = newDescription;
+        var level = await GetLevelById(galleryFile.LevelId);
+        if (level != null) SoftEditLevel(level);
         await db.SaveChangesAsync();
         return galleryFile;
     }
@@ -90,11 +114,12 @@ public class LevelService(MainDbContext db) : ILevelService
         return db.GalleryFiles?.FirstOrDefaultAsync(x=>x.Id == galleryFileId&&x.LevelId == levelId)??Task.FromResult<GalleryFile?>(null);
     }
 
-    public Task<int> DeleteGalleryFile(GalleryFile galleryFile)
+    public async Task<int> DeleteGalleryFile(GalleryFile galleryFile)
     {
-        
         db.GalleryFiles?.Remove(galleryFile);
-        return db.SaveChangesAsync();
+        var level = await GetLevelById(galleryFile.LevelId);
+        if (level != null) SoftEditLevel(level);
+        return await db.SaveChangesAsync();
     }
 
     public async Task<bool> UserOwnsLevel(long userId, long levelId)

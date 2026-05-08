@@ -9,6 +9,7 @@ interface UserContextProps {
     user: User | null;
     setUser: (user:User | null) => void;
     pushLevel: (level: Level) => void;
+    updateLevel: (level: Level) => void;
 }
 
 export const UserContext = createContext<UserContextProps | null>(null);
@@ -40,6 +41,10 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
         ()=>({user, setUser, token, setToken, pushLevel: (level: Level) => {
             if (user) {
                 setUser({...user, levels: [...user.levels??[], level]});
+            }
+        }, updateLevel: (level: Level) => {
+            if (user) {
+                setUser({...user, levels: user.levels?.map(l => l.id === level.id ? level : l) ?? []});
             }
         }}),
         [user, setUser, token, setToken]

@@ -18,7 +18,7 @@ export default  function Page({
 }) {
   const { id } = use(params);
 
-  const {user, setUser, token} = useUserData();
+  const {user, setUser, token, updateLevel} = useUserData();
 
   const levelIndex = user?.levels?.findIndex(l=>l.id === id) ?? -1;
 
@@ -116,6 +116,8 @@ export default  function Page({
               res.json().then((data:LevelFile)=>{
                 setLoading(false);
                 levelData!.levelFiles = [...(levelData!.levelFiles ?? []), data];
+                levelData!.lastEdit = new Date().toString();
+                updateLevel(levelData!);
                 router.push(`/dashboard/levels/${id}`);
               });
             } else {

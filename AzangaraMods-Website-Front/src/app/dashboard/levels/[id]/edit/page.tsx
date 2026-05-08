@@ -28,7 +28,7 @@ export default  function Page({
 
   const router = useRouter();
 
-  const {user, setUser, token} = useUserData();
+  const {user, setUser, token, updateLevel} = useUserData();
 
   const levelIndex = user?.levels?.findIndex(l=>l.id === id) ?? -1;
 
@@ -76,6 +76,7 @@ export default  function Page({
             ).then(res=>{
               if (res.ok) {
                 res.json().then((data:Level)=>{
+                  updateLevel(data);
                   router.push("/dashboard/levels/"+data.id);
                 });
               } else {

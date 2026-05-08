@@ -19,7 +19,7 @@ export default  function Page({
 }) {
   const { id } = use(params);
 
-  const {user, setUser, token} = useUserData();
+  const {user, setUser, token, updateLevel} = useUserData();
 
   const levelIndex = user?.levels?.findIndex(l=>l.id === id) ?? -1;
 
@@ -61,6 +61,7 @@ export default  function Page({
           if (res.ok) {
             res.json().then((data:Level)=>{
               setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
+              updateLevel(levelData!);
             });
           }
         });
@@ -91,6 +92,9 @@ export default  function Page({
                   );
                   levelData.levelFiles = levelData.levelFiles?.filter(file=>file.id !== f.id);
                   setLevelData({...levelData});
+                  levelData.lastEdit = new Date().toString();
+                  setLevelData({...levelData});
+                  updateLevel(levelData);
                 }}>Delete</Button>
               </div>
             ))
@@ -119,6 +123,9 @@ export default  function Page({
                 );
                 levelData.galleryFiles = levelData.galleryFiles?.filter(file=>file.id !== f.id);
                 setLevelData({...levelData});
+                levelData.lastEdit = new Date().toString();
+                setLevelData({...levelData});
+                updateLevel(levelData);
               }}>Delete</Button>
             </div>
           ))
