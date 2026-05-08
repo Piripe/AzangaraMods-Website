@@ -14,7 +14,15 @@ export function LevelsList() {
             {
                 user?.levels?.map(level => (
                     <Link key={level.id} href={`/dashboard/levels/${level.id}`} className={styles.levelItem}>
-                        {level.name} <Icon size={18} icon={level.published ? IconType.LockOpen : IconType.LockClosed} alt={level.published ? "Published" : "Not published"} />
+                        {level.galleryFiles?.length??0 > 0 ? <img className={styles.levelThumbnail} src={process.env.NEXT_PUBLIC_API_URL + "/download/level/" + level.id + "/gallery/" + level.galleryFiles?.[0]?.id} alt={level.name} /> : <></>} 
+                        <div className={styles.levelInfo}>
+                            <div className={styles.levelName}>
+                                {level.name} <Icon size={18} icon={level.published ? IconType.LockOpen : IconType.LockClosed} alt={level.published ? "Published" : "Not published"} />
+                            </div>
+                            <div className={styles.levelMeta}>
+                                {"Last edit at " + new Date(level.lastEdit).toLocaleString()}
+                            </div>
+                        </div>
                     </Link>
                 ))
             }

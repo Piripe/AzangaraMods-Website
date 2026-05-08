@@ -34,7 +34,7 @@ public class UserService(MainDbContext db) : IUserService
 
     public async Task<User> FetchLevels(User user)
     {
-        user.Levels = await db.Levels!.Where(x => x.AuthorId == user.Id).ToArrayAsync();
+        user.Levels = await db.Levels!.Where(x => x.AuthorId == user.Id).Include(x=>x.LevelFiles).Include(x=>x.GalleryFiles).ToArrayAsync();
         return user;
     }
 

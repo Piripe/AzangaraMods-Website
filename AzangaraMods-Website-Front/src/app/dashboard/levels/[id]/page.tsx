@@ -79,7 +79,7 @@ export default  function Page({
           </div>
           {
             levelData?.levelFiles?.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()).map(f=>(
-              <div key={f.id} className={styles.listItem}>
+              <div key={f.id} className={styles.fileListItem}>
                 <div className={styles.galleryImageContainer}>
                   <p>{f.fileName} ({formatBytes(f.fileSize)}) {new Date(f.uploadDate).toLocaleString()}</p>
                 </div>
@@ -103,7 +103,7 @@ export default  function Page({
         </div>
         {
           levelData?.galleryFiles?.map(f=>(
-            <div key={f.id} className={styles.listItem}>
+            <div key={f.id} className={styles.galleryListItem}>
               <div className={styles.galleryImageContainer}>
                 <img className={styles.galleryImage} src={process.env.NEXT_PUBLIC_API_URL + "/download/level/" + levelData.id + "/gallery/" + f.id} alt={f.fileName} />
                 <div>
