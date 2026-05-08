@@ -1,7 +1,12 @@
 .container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+
+    background-color: var(--back-1);
+    border-radius: var(--radius-3);
+    border: solid var(--border-1) 1px;
+    backdrop-filter: blur(8px);
+    padding: 1em;
 }
 .topBar {
     display: flex;

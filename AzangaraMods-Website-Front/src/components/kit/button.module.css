@@ -11,6 +11,8 @@
     transition: background-color 0.15s ease-in-out;
     font-size: var(--font-size-1);
 
+    border: solid var(--border-3) 1px;
+
     &:hover {
         background-color: var(--control-back-1);
     }

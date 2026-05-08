@@ -2,13 +2,17 @@
     position: fixed;
     top: 3em;
     right: .5em;
-    background-color: var(--control-back-2);
-    backdrop-filter: blur(8px) brightness(var(--backdrop-brightness));
-    border-radius: 8px;
+    background-color: var(--back-1);
+    backdrop-filter: blur(8px);
     gap: 2px;
     display: flex;
     flex-direction: column;
     transform-origin: top right;
+    z-index: 20;
+
+    border-radius: var(--radius-3);
+    border: solid var(--border-1) 1px;
+    backdrop-filter: blur(8px);
 
     animation: menu-in 0.15s ease-out;
 

@@ -6,7 +6,16 @@
 .container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+
+    gap: 0.5em;
+}
+.topContainer {
+
+    background-color: var(--back-1);
+    border-radius: var(--radius-3);
+    border: solid var(--border-1) 1px;
+    backdrop-filter: blur(8px);
+    padding: 1em;
 }
 .topBar {
     display: flex;
@@ -28,15 +37,17 @@
     gap: 0.5em;
 }
 .description {
-    background-color: var(--back-2);
+    background-color: var(--control-back-0);
     border-radius: var(--radius-3);
     padding: 1em;
-    margin: 1em 0;
+    margin: 0.5em 0;
+    border: solid var(--border-2) 1px;
+    /*backdrop-filter: blur(8px);*/
 }
 .twoColumns {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1em;
+    gap: 0.5em;
 }
 @media (min-width: 900px) {
     .twoColumns {
@@ -44,8 +55,10 @@
     }
 }
 .listContainer {
-    background-color: var(--back-2);
+    background-color: var(--back-1);
     border-radius: var(--radius-3);
+    border: solid var(--border-1) 1px;
+    backdrop-filter: blur(8px);
     padding: 1em;
     display: flex;
     flex-direction: column;
@@ -71,6 +84,7 @@
     padding: 0.5em 0.75em 0.5em 1em;
     border-radius: var(--radius-3);
     background-color: var(--control-back-0);
+    border: solid var(--border-2) 1px;
     gap:1em;
 
     transition: background-color 0.3s ease-in-out;
@@ -88,6 +102,7 @@
     padding: 4px 0.75em 4px 4px;
     border-radius: var(--radius-3);
     background-color: var(--control-back-0);
+    border: solid var(--border-2) 1px;
     gap:1em;
 
     transition: background-color 0.3s ease-in-out;

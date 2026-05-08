@@ -3,8 +3,8 @@ import { JSX } from "react";
 import styles from "./icon.module.css";
 
 export enum IconType {
-  LockOpen = "/icons/lock-open.svg",
-  LockClosed = "/icons/lock-closed.svg",
+  LockOpen = "/assets/icons/lock-open.svg",
+  LockClosed = "/assets/icons/lock-closed.svg",
 }
 
 export default function Icon({icon, alt, size=24}:{icon:IconType, alt?:string|undefined, size?:number}) {

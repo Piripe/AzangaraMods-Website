@@ -42,35 +42,37 @@ export default  function Page({
   
   return (
     <div className={styles.container}>
-      <div className={styles.headerButtons}>
-        <LinkButton href="/dashboard/levels">{"Back"}</LinkButton>
-      </div>
-      <div className={styles.topBar}>
-        <h1>{levelData?.name} <Icon size={22} icon={levelData?.published ? IconType.LockOpen : IconType.LockClosed} alt={levelData?.published ? "Published" : "Not published"} /></h1>
-        <div className={styles.levelActions}>
-          <LinkButton href={`/dashboard/levels/${id}/edit`}>Edit</LinkButton>
-          <Button click={()=>{
-        fetchApi(
-          "/levels/" + id,
-          token!,
-          "PATCH",
-          JSON.stringify({
-            published: !levelData?.published
-          })
-        ).then(res=>{
-          if (res.ok) {
-            res.json().then((data:Level)=>{
-              setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
-              updateLevel(levelData!);
-            });
-          }
-        });
-      }}>{levelData?.published ? "Unpublish" : "Publish"}</Button>
+      <div className={styles.topContainer}>
+        <div className={styles.headerButtons}>
+          <LinkButton href="/dashboard/levels">{"Back"}</LinkButton>
         </div>
-      </div>
-      <div className={styles.info}>
-      <Stars value={levelData?.difficulty ?? 0} alt={`Difficulty ${Math.round((levelData?.difficulty ?? 0)*100)/100}/10`}/>
-      <p className={styles.description}>{levelData?.description}</p>
+        <div className={styles.topBar}>
+          <h1>{levelData?.name} <Icon size={22} icon={levelData?.published ? IconType.LockOpen : IconType.LockClosed} alt={levelData?.published ? "Published" : "Not published"} /></h1>
+          <div className={styles.levelActions}>
+            <LinkButton href={`/dashboard/levels/${id}/edit`}>Edit</LinkButton>
+            <Button click={()=>{
+          fetchApi(
+            "/levels/" + id,
+            token!,
+            "PATCH",
+            JSON.stringify({
+              published: !levelData?.published
+            })
+          ).then(res=>{
+            if (res.ok) {
+              res.json().then((data:Level)=>{
+                setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
+                updateLevel(levelData!);
+              });
+            }
+          });
+        }}>{levelData?.published ? "Unpublish" : "Publish"}</Button>
+          </div>
+        </div>
+        <div className={styles.info}>
+        <Stars value={levelData?.difficulty ?? 0} alt={`Difficulty ${Math.round((levelData?.difficulty ?? 0)*100)/100}/10`}/>
+        <p className={styles.description}>{levelData?.description}</p>
+        </div>
       </div>
       <div className={styles.twoColumns}>
         <div className={styles.listContainer}>
