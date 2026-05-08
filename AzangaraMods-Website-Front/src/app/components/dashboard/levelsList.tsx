@@ -14,7 +14,7 @@ export function LevelsList() {
             {
                 user?.levels?.sort((a, b) => new Date(b.lastEdit).getTime() - new Date(a.lastEdit).getTime()).map(level => (
                     <Link key={level.id} href={`/dashboard/levels/${level.id}`} className={styles.levelItem}>
-                        {level.galleryFiles?.length??0 > 0 ? <img className={styles.levelThumbnail} src={process.env.NEXT_PUBLIC_API_URL + "/download/level/" + level.id + "/gallery/" + level.galleryFiles?.[0]?.id} alt={level.name} /> : <></>} 
+                        {level.galleryFiles?.length??0 > 0 ? <img className={styles.levelThumbnail} src={process.env.NEXT_PUBLIC_API_URL + "/download/level/" + level.id + "/gallery/" + level.galleryFiles?.[0]?.id} alt={level.name} /> : <span className={styles.levelNoThumbnail}/>} 
                         <div className={styles.levelInfo}>
                             <div className={styles.levelName}>
                                 {level.name} <Icon size={18} icon={level.published ? IconType.LockOpen : IconType.LockClosed} alt={level.published ? "Published" : "Not published"} />
