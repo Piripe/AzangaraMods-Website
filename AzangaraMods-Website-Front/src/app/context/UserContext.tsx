@@ -28,6 +28,9 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
                 );
                 if (res.ok) {
                     setUser(await res.json());
+                } else {
+                    setToken(null);
+                    localStorage.removeItem("token");
                 }
             })();
         }

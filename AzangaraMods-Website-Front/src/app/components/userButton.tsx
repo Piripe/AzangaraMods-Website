@@ -26,13 +26,13 @@ export default function UserButton() {
     setLoginBoxVisible(false);
   };
 
-  const {user} = useUserData();
+  const {user, token} = useUserData();
 
   return (
 
     <div>
-      {user ?
-        (<Button click={toggleMenu}>{user.username}</Button>)
+      {user || token ?
+        (<Button click={toggleMenu}>{user ? user.username : "User"}</Button>)
       :
         <div className={styles.buttons}>
           <Button click={toggleLoginBox}>{"Login"}</Button>
