@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Models;
@@ -13,6 +14,11 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
     private record SendWebhookMessageRequest(string username, string content, string thread_name, Embed[] embeds);
     private record EditWebhookMessageRequest(string content, Embed[] embeds);
     private record SendWebhookMessageResponse(string id, string channel_id);
+
+    private readonly string[] _discordEmotes =
+        (Environment.GetEnvironmentVariable("DISCORD_EMOTES") ??
+         @"<:star1:1502028362464628867>\<:star2:1502028387206696991>\<:star3:1502028404034113696>\<:star4:1502028423131037766>")
+        .Split('\\');
     
     public async Task UpdateDiscordForum(Level level)
     {
@@ -37,7 +43,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                 ?.Select(x => new Embed(new ($"{downloadUrl}/level/{x.LevelId}/gallery/{x.Id}"))).ToArray() ?? [];
             
             string title = $"{level.Name}";
-            string text = $"{level.Name} made by {level.Author?.Username}\n\n{level.Description}\n\nDownload: [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
+            string text = $"# {level.Name}\n{GetStarLine(level.Difficulty)}\n\n{level.Description}\n\n## Downloads:\n [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
             
             if (level is { DiscordForumMessage: not null, DiscordForumThread: not null })
             {
@@ -61,12 +67,23 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         }
         catch (Exception e)
         {
-            // ignored
+            Console.WriteLine("Discord service error: " + e.Message);
         }
     }
 
     private Uri GetDiscordRequestUri(string path)
     {
         return new Uri((Environment.GetEnvironmentVariable("DISCORD_WEBHOOK") ?? throw new Exception("Can't find webhook URL")) + path);
+    }
+
+    private string GetStarLine(float value)
+    {
+        var res = new StringBuilder();
+        for (int i = 0; i < 10; i++)
+        {
+            var val = 3-(int)((i < value-1 ? 0.999f : i < value ? (value-0.001)%1 : 0)*4);
+            res.Append(_discordEmotes[val]);
+        }
+        return res.ToString();
     }
 }

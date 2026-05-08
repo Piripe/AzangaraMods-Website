@@ -22,6 +22,7 @@
       FRONT_URL:  "http://127.0.0.1:3000"
       DOWNLOAD_URL:  "http://127.0.0.1:8080/download"
       DISCORD_WEBHOOK: "https://discord.com/api/webhooks/2400617248747574352/ExampleToken"
+      DISCORD_EMOTES: "<:star1:1502028362464628867>\\<:star2:1502028387206696991>\\<:star3:1502028404034113696>\\<:star4:1502028423131037766>"
     ports:
       - 8080:8080
     depends_on:
