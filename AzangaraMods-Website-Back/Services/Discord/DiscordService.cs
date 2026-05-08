@@ -11,7 +11,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
 
     private record EmbedImage(string url, int width = 1920, int height = 1080);
     private record Embed(EmbedImage image);
-    private record SendWebhookMessageRequest(string username, string content, string thread_name, Embed[] embeds);
+    private record SendWebhookMessageRequest(string username, string content, string? thread_name, Embed[] embeds);
     private record EditWebhookMessageRequest(string content, Embed[] embeds);
     private record SendWebhookMessageResponse(string id, string channel_id);
 
@@ -45,17 +45,13 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             string title = $"{level.Name}";
             string text = $"# {level.Name}\n{GetStarLine(level.Difficulty)}\n\n{level.Description}\n\n## Downloads:\n [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
             
-            if (level is { DiscordForumMessage: not null, DiscordForumThread: not null })
+            if (level.DiscordForumMessage.HasValue)
             {
                 var res = await _httpClient.PatchAsync(GetDiscordRequestUri( $"/messages/{level.DiscordForumMessage.Value}?thread_id={level.DiscordForumThread.Value}"), JsonContent.Create(new EditWebhookMessageRequest(text, embeds)));
-                Console.WriteLine(JsonSerializer.Serialize(new EditWebhookMessageRequest(text, embeds)));
-                Console.WriteLine(await res.Content.ReadAsStringAsync());
             }
             else
             {
-                var res = await _httpClient.PostAsync(GetDiscordRequestUri( $"?wait=true"), JsonContent.Create(new SendWebhookMessageRequest(level.Author?.Username ?? level.AuthorId.ToString(), text, title, embeds)));
-
-                Console.WriteLine(await res.Content.ReadAsStringAsync());
+                var res = await _httpClient.PostAsync(GetDiscordRequestUri( $"?wait=true" + (level.DiscordForumThread.HasValue ? $"&thread_id={level.DiscordForumThread.Value}" : "")), JsonContent.Create(new SendWebhookMessageRequest(level.Author?.Username ?? level.AuthorId.ToString(), text, level.DiscordForumThread.HasValue?null:title, embeds)));
 
                 var messageInfos = await res.Content.ReadFromJsonAsync<SendWebhookMessageResponse>();
                 if (messageInfos == null) return;
