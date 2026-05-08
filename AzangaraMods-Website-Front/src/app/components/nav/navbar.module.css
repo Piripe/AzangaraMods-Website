@@ -15,3 +15,18 @@
         }
     }
 }
+
+.highlightNav {
+    position: relative;
+}
+.highlightNav::after {
+    position: absolute;
+    content:"";
+    bottom:-.25em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    border-radius: 1px;
+    background-color: var(--accent-1);
+}

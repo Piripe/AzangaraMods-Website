@@ -9,7 +9,6 @@ export default function Stars({value, alt, size=24}:{value:number, alt?:string|u
         {
             [...Array(10)].map((e, i) => {
 
-                var color = i < value-1 ? "#fff" : i < value ? `linear-gradient(to right, #fff ${(100 * (value % 1))}%, #333 ${(100 * (value % 1))}%)` : "#333" 
                 var starValue = i < value-1 ? 1 : i < value ? (value-0.001) % 1*0.5+0.5 : 0.5;
                 var starSize = i < value-1 ? size : i < value ? size * ((value-0.001) % 1*0.75+0.25) : .25 * size;
 
