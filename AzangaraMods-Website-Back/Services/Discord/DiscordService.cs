@@ -77,7 +77,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         var res = new StringBuilder();
         for (int i = 0; i < 10; i++)
         {
-            var val = 3-(int)((i < value-1 ? 0.999f : i < value ? (value-0.001)%1 : 0)*4);
+            var val = 3-(int)Math.Round((i < value-1 ? 0.999f : i < value ? (value-0.001)%1 : 0)*3);
             res.Append(_discordEmotes[val]);
         }
         return res.ToString();
