@@ -50,11 +50,7 @@ export default  function Page({
         <div className={styles.headerButtons}>
           <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
         </div>
-      <h1>{levelData?.name} ({levelData?.id})</h1>
-      <p>{levelData?.published ? "Published" : "Not published"}</p>
-      <p>{levelData?.difficulty}/10</p>
-      <p>{levelData?.description}</p>
-
+      <h1>{levelData?.name}</h1>
       <h2>Upload Image:</h2>
       <FileSelect disabled={loading} accept="image/avif, image/jpeg, image/png, image/webp, image/tiff" onChange={(file) => {
         setSelectedFile(file);
