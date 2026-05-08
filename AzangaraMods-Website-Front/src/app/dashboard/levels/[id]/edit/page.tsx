@@ -12,6 +12,7 @@ import Slider from "@/app/components/kit/silder";
 import { useRouter } from "next/navigation";
 import BigTextBox from "@/app/components/kit/bigTextbox";
 import Stars from "@/app/components/kit/stars";
+import LinkButton from "@/app/components/kit/linkButton";
 
 export default  function Page({
   params,
@@ -51,6 +52,9 @@ export default  function Page({
   return (
     (!levelData) ? <p>Loading...</p> :
       <div>
+        <div className={styles.headerButtons}>
+          <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
+        </div>
         <p>Name</p>
         <TextBox onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
         <p>Description</p>

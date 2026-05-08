@@ -42,6 +42,9 @@ export default  function Page({
   
   return (
     <div className={styles.container}>
+      <div className={styles.headerButtons}>
+        <LinkButton href="/dashboard/levels">{"Back"}</LinkButton>
+      </div>
       <div className={styles.topBar}>
         <h1>{levelData?.name} <Icon size={22} icon={levelData?.published ? IconType.LockOpen : IconType.LockClosed} alt={levelData?.published ? "Published" : "Not published"} /></h1>
         <div className={styles.levelActions}>

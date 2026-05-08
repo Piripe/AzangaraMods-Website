@@ -9,6 +9,7 @@ import Link from "next/link";
 import Button from "@/app/components/kit/button";
 import FileSelect from "@/app/components/kit/fileSelect";
 import { useRouter } from "next/navigation";
+import LinkButton from "@/app/components/kit/linkButton";
 
 export default  function Page({
   params,
@@ -50,6 +51,9 @@ export default  function Page({
   
   return (
     <div>
+        <div className={styles.headerButtons}>
+          <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
+        </div>
       <h1>{levelData?.name} ({levelData?.id})</h1>
       <p>{levelData?.published ? "Published" : "Not published"}</p>
       <p>{levelData?.difficulty}/10</p>
