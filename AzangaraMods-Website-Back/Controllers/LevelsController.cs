@@ -94,6 +94,8 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             try
             {
                 pakFiles = PakHelper.Read(file.OpenReadStream());
+                if (pakFiles.Sum(x=>(long)x.Size) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big"));
+                
             }
             catch (Exception e)
             {
