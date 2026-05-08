@@ -12,7 +12,7 @@ export function LevelsList() {
     return (
         <div className={styles.container}>
             {
-                user?.levels?.map(level => (
+                user?.levels?.sort((a, b) => new Date(b.lastEdit).getTime() - new Date(a.lastEdit).getTime()).map(level => (
                     <Link key={level.id} href={`/dashboard/levels/${level.id}`} className={styles.levelItem}>
                         {level.galleryFiles?.length??0 > 0 ? <img className={styles.levelThumbnail} src={process.env.NEXT_PUBLIC_API_URL + "/download/level/" + level.id + "/gallery/" + level.galleryFiles?.[0]?.id} alt={level.name} /> : <></>} 
                         <div className={styles.levelInfo}>
