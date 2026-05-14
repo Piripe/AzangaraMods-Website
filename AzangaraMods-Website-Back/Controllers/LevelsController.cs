@@ -88,30 +88,34 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
 
         IFile[] pakFiles;
         
-        if (file.ContentType == "application/octet-stream")
+        switch (file.ContentType)
         {
-            // .pak
-            try
-            {
-                pakFiles = PakHelper.Read(file.OpenReadStream());
-                if (pakFiles.Sum(x=>(long)x.Size) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big"));
+            case "application/octet-stream":
+                // .pak
+                try
+                {
+                    pakFiles = PakHelper.Read(file.OpenReadStream());
+                    if (pakFiles.Sum(x=>(long)x.Size) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big"));
                 
-            }
-            catch (Exception e)
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(new ErrorResponseModel(e.Message));
+                }
+
+                break;
+            case "application/zip":
+            case "application/x-zip-compressed":
             {
-                return BadRequest(new ErrorResponseModel(e.Message));
+                // .zip
+                var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
+                if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)"));
+                if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big"));
+                pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray();
+                break;
             }
-        } else if (file.ContentType == "application/zip")
-        {
-            // .zip
-            var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
-            if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)"));
-            if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big"));
-            pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray();
-        }
-        else
-        {
-            return BadRequest(new ErrorResponseModel("Invalid file type"));
+            default:
+                return BadRequest(new ErrorResponseModel("Invalid file type"));
         }
 
         var levelFileId = await IdUtils.GenerateId();
