@@ -43,7 +43,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                 ?.Select(x => new Embed(new ($"{downloadUrl}/level/{x.LevelId}/gallery/{x.Id}"))).ToArray() ?? [];
             
             string title = $"{level.Name}";
-            string text = $"# {level.Name}\n{GetStarLine(level.Difficulty)}\n\n{level.Description}\n\n## How to run:\nEnter this command in the game's console:\n```\n{(string.IsNullOrWhiteSpace(latestFile?.EntryPoint) ? "No entry point specified." : latestFile.EntryPoint.EndsWith(".exec") ? "exec " + latestFile.EntryPoint : "level" + latestFile.EntryPoint)}\n```\n\n## Downloads:\n [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
+            string text = $"# {level.Name}\n{GetStarLine(level.Difficulty)}\n\n{level.Description}\n\n## How to run:\nEnter this command in the game's console:\n```\n{(string.IsNullOrWhiteSpace(latestFile?.EntryPoint) ? "No entry point specified." : latestFile.EntryPoint.EndsWith(".exec") ? "exec " + latestFile.EntryPoint : "level " + latestFile.EntryPoint)}\n```\n\n## Downloads:\n [{latestFile?.FileName}.pak]({downloadPath}) // [{latestFile?.FileName}.zip]({downloadPath}?ext=zip)";
             
             if (level.DiscordForumMessage.HasValue)
             {
