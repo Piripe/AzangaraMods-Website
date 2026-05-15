@@ -7,6 +7,7 @@ import { use, useEffect, useState } from "react";
 import useUserData from "@/hooks/useUserData";
 import Link from "next/link";
 import Button from "@/components/kit/button";
+import errorAlert from "@/utils/errorAlert";
 
 export default  function Page({
   params,
@@ -28,8 +29,11 @@ export default  function Page({
           "/levels/" + id,
           token
         );
+        var data = await res.json();
         if (res.ok) {
-          setLevelData(await res.json());
+          setLevelData(data);
+        } else {
+          errorAlert(data);
         }
       })();
     }

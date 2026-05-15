@@ -37,7 +37,7 @@ export function LoginBox() {
                         setUser(loginData.user);
                         router.push("/dashboard");
                     } else {
-                        setError((body as ErrorResponse).error);
+                        setError((body as ErrorResponse).error + ` (${(body as ErrorResponse).errorCode})`);
                     }
                     setLoading(false);
 

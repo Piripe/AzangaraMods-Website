@@ -33,7 +33,7 @@ export function RegisterBox() {
                         if (res.ok) {
                             setShowLogin(true);
                         } else {
-                            setError((body as ErrorResponse).error);
+                            setError((body as ErrorResponse).error + ` (${(body as ErrorResponse).errorCode})`);
                         }
                         setLoading(false);
                 

@@ -11,6 +11,7 @@ import LinkButton from "@/components/kit/linkButton";
 import Icon, { IconType } from "@/components/kit/icon";
 import Stars from "@/components/kit/stars";
 import formatBytes from "@/utils/fileSize";
+import errorAlert from "@/utils/errorAlert";
 
 export default  function Page({
   params,
@@ -32,8 +33,11 @@ export default  function Page({
           "/levels/" + id,
           token
         );
+        var data = await res.json();
         if (res.ok) {
-          setLevelData(await res.json());
+          setLevelData(data);
+        } else {
+          errorAlert(data);
         }
       })();
     }
@@ -64,6 +68,8 @@ export default  function Page({
                 setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
                 updateLevel(levelData!);
               });
+            } else {
+              res.json().then((data: ErrorResponse)=>errorAlert(data))
             }
           });
         }}>{levelData?.published ? "Unpublish" : "Publish"}</Button>

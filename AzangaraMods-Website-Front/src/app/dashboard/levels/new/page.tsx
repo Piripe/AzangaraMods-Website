@@ -10,6 +10,7 @@ import fetchApi from "@/utils/fetchApi";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./page.module.css"
+import errorAlert from "@/utils/errorAlert";
 
 export default function Page() {
   const [name, setName] = useState("");
@@ -75,7 +76,7 @@ export default function Page() {
                 router.push("/dashboard/levels/"+data.id);
               });
             } else {
-              alert("Failed to create level");
+              res.json().then((data:ErrorResponse)=>errorAlert(data));
             }
           });
         }}>

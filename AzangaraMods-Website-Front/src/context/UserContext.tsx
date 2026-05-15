@@ -2,6 +2,7 @@
 
 import { createContext, useEffect, useMemo, useState } from "react";
 import fetchApi from "../utils/fetchApi";
+import errorAlert from "@/utils/errorAlert";
 
 interface UserContextProps {
     token: string | null;
@@ -28,9 +29,11 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
                 "/users/@me",
                 token
                 );
+                var data = await res.json();
                 if (res.ok) {
-                    setUser(await res.json());
+                    setUser(data);
                 } else {
+                    errorAlert(data);
                     setToken(null);
                     localStorage.removeItem("token");
                 }

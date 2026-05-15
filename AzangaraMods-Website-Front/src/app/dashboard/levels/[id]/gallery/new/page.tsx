@@ -10,6 +10,7 @@ import Button from "@/components/kit/button";
 import FileSelect from "@/components/kit/fileSelect";
 import { useRouter } from "next/navigation";
 import LinkButton from "@/components/kit/linkButton";
+import errorAlert from "@/utils/errorAlert";
 
 export default  function Page({
   params,
@@ -37,8 +38,11 @@ export default  function Page({
           "/levels/" + id,
           token
         );
+        var data = await res.json();
         if (res.ok) {
-          setLevelData(await res.json());
+          setLevelData(data);
+        } else {
+          errorAlert(data);
         }
       })();
     }
@@ -76,7 +80,7 @@ export default  function Page({
               router.push("/dashboard/levels/"+id);
             });
           } else {
-            alert("Failed to upload image");
+            res.json().then((data:ErrorResponse)=>errorAlert(data));
             setLoading(false);
           }
         });

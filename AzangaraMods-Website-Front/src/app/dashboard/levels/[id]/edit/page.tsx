@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import BigTextBox from "@/components/kit/bigTextbox";
 import Stars from "@/components/kit/stars";
 import LinkButton from "@/components/kit/linkButton";
+import errorAlert from "@/utils/errorAlert";
 
 export default  function Page({
   params,
@@ -41,8 +42,11 @@ export default  function Page({
           "/levels/" + id,
           token
         );
+        var data = await res.json();
         if (res.ok) {
-          setLevelData(await res.json());
+          setLevelData(data);
+        } else {
+          errorAlert(data);
         }
       })();
     }
@@ -80,7 +84,7 @@ export default  function Page({
                   router.push("/dashboard/levels/"+data.id);
                 });
               } else {
-                alert("Failed to update level");
+                res.json().then((data:ErrorResponse)=>{errorAlert(data)});
               }
             });
           }}>
