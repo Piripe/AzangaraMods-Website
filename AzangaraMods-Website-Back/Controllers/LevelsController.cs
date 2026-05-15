@@ -103,7 +103,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
                 }
                 catch (Exception e)
                 {
-                    return BadRequest(new ErrorResponseModel("Error during pak analyse", ErrorCodes.LevelFilePutPakError, e.Message));
+                    return BadRequest(new ErrorResponseModel("Error during pak processing", ErrorCodes.LevelFilePutPakError, e.Message));
                 }
 
                 break;
@@ -111,10 +111,17 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             case "application/x-zip-compressed":
             {
                 // .zip
-                var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
-                if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)", ErrorCodes.LevelFilePutZipTooManyFiles));
-                if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big", ErrorCodes.LevelFilePutZipTooBig));
-                pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray();
+                try
+                {
+                    var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
+                    if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)", ErrorCodes.LevelFilePutZipTooManyFiles));
+                    if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big", ErrorCodes.LevelFilePutZipTooBig));
+                    pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray();
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(new ErrorResponseModel("Error during zip processing", ErrorCodes.LevelFilePutZipError, e.Message));
+                }
                 break;
             }
             default:
@@ -130,8 +137,15 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
 
         var finalZip = new ZipArchive(fileStream, ZipArchiveMode.Create);
         var pakEntry = finalZip.CreateEntry("level-data.pak");
-        var pakStream = pakEntry.Open();
-        PakHelper.Write(pakStream, pakFiles);
+        var pakStream = await pakEntry.OpenAsync();
+        try
+        {
+            PakHelper.Write(pakStream, pakFiles);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ErrorResponseModel("Error during file processing", ErrorCodes.LevelFilePutPakWriteError, e.Message));
+        }
 
         var levelFile = new LevelFile()
         {

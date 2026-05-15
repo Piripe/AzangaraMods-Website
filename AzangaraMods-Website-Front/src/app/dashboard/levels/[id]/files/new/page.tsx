@@ -91,6 +91,11 @@ export default  function Page({
                   case ErrorCodes.LevelFilePutInvalidFileType:
                     alert("Invalid file type: " + data.additionalData);
                     break;
+                  case ErrorCodes.LevelFilePutPakError:
+                  case ErrorCodes.LevelFilePutZipError:
+                  case ErrorCodes.LevelFilePutPakWriteError:
+                    alert(`Error during file processing: ${data.additionalData} (${data.errorCode})`);
+                    break;
                   default:
                     errorAlert(data);
                     break;

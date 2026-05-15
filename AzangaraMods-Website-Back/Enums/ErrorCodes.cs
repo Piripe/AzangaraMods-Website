@@ -35,5 +35,7 @@ public enum ErrorCodes
     LevelGalleryPutInvalidFileType = 0x1E,
     LevelGalleryDeleteNotFound = 0x1F,
     LevelGalleryDeleteLevelNotFound = 0x20,
-    UserMeNotFound = 0x21
+    UserMeNotFound = 0x21,
+    LevelFilePutZipError = 0x22,
+    LevelFilePutPakWriteError = 0x23,
 }
