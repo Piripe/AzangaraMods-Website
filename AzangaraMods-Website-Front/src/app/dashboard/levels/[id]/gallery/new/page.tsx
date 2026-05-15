@@ -80,7 +80,16 @@ export default  function Page({
               router.push("/dashboard/levels/"+id);
             });
           } else {
-            res.json().then((data:ErrorResponse)=>errorAlert(data));
+            res.json().then((data:ErrorResponse)=>{
+              switch (data.errorCode) {
+                case ErrorCodes.LevelFilePutInvalidFileType:
+                  alert("Invalid file type: " + data.additionalData);
+                  break;
+                default:
+                  errorAlert(data);
+                  break;
+              }
+            });
             setLoading(false);
           }
         });
