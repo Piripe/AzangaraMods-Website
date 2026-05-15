@@ -1,4 +1,5 @@
 using AzangaraMods_Website_Back.Attributes;
+using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
@@ -19,7 +20,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
 
         if (user == null || !await userService.Login(user, req.Password))
         {
-            return UnprocessableEntity(new ErrorResponseModel("Invalid username or password"));
+            return UnprocessableEntity(new ErrorResponseModel("Invalid username or password", ErrorCodes.AuthLoginInvalid));
         }
 
         return Ok(new LoginResponseData(await tokenService.GenerateToken(user), await userService.FetchLevels(user)));
@@ -31,7 +32,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
     [HttpPost("/register"), Public]
     public async Task<IActionResult> Register([FromBody] RegisterRequestData req)
     {
-        if (await userService.CheckUserExists(req.Email, req.Username)) return UnprocessableEntity(new ErrorResponseModel("Can't register user"));
+        if (await userService.CheckUserExists(req.Email, req.Username)) return UnprocessableEntity(new ErrorResponseModel("Can't register user", ErrorCodes.AuthRegisterUnknownError));
 
         await userService.Insert(new ()
         {
@@ -48,7 +49,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
     {
         if (await tokenService.RemoveToken(HttpContext.Request.Headers.Authorization.ToString()) == 0)
         {
-            return BadRequest("Can't logout this token"); // 0 row changed == not logged out
+            return BadRequest(new ErrorResponseModel("Can't logout this token", ErrorCodes.AuthLogoutNoChange)); // 0 row changed == not logged out
         }
         
         return Ok("Thank for your contribution"); // Thank the user for releasing some data from the db.

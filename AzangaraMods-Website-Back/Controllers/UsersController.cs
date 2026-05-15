@@ -1,4 +1,5 @@
 using AutoMapper;
+using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Models.Dto;
 using AzangaraMods_Website_Back.Services.Levels;
@@ -16,7 +17,7 @@ public class UsersController(IMapper mapper, IUserService userService) : Control
     public async Task<IActionResult> GetCurrentUser()
     {
         var user = HttpContext.Items[0] as User;
-        if (user == null) return NotFound(new ErrorResponseModel("User not found"));
+        if (user == null) return NotFound(new ErrorResponseModel("User not found", ErrorCodes.UserMeNotFound));
         
         return Ok(mapper.Map<UserPrivateDto>(await userService.FetchLevels(user)));
     }

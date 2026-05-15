@@ -1,5 +1,6 @@
 :root {
   --back-accent: #45324a;
+  --back-0: oklab(from var(--back-accent) calc(l - 0.15) calc(a * 0.2) calc(b * 0.2) / 0.3);
   --back-1: oklab(from var(--back-accent) l a b / 0.5);
   --back-2: oklab(from var(--back-accent) l a b / 0.5);
   --back-3: oklab(from var(--back-accent) l a b / 0.5);
