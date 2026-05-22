@@ -12,6 +12,7 @@ export function RegisterBox() {
     const [username, setUsername] = useState<string|null>(null);
     const [email, setEmail] = useState<string|null>(null);
     const [password, setPassword] = useState<string|null>(null);
+    const [confirmPassword, setConfirmPassword] = useState<string|null>(null);
     const [loading, setLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
 
@@ -24,8 +25,17 @@ export function RegisterBox() {
                     <TextBox placeholder="Username" onChange={(e) => setUsername(e)}/>
                     <TextBox placeholder="Email" onChange={(e) => setEmail(e)}/>
                     <TextBox placeholder="Password" password={true} newPassword={true} onChange={(e) => setPassword(e)}/>
+                    <TextBox placeholder="Confirm Password" password={true} newPassword={true} onChange={(e) => setConfirmPassword(e)}/>
                     <div>{error}</div>
                     <Button disabled={loading} click={async () => {            
+                        if (!username || !email || !password || !confirmPassword) {
+                            setError("Please fill in all fields.");
+                            return;
+                        }
+                        if (password !== confirmPassword) {
+                            setError("Passwords do not match.");
+                            return;
+                        }
                         setLoading(true);
                         let res = await fetchApi("/register","", "POST", JSON.stringify({username, email, password}));
                 
