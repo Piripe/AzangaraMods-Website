@@ -29,12 +29,11 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
                 "/users/@me",
                 token
                 );
-                var data = await res.json();
                 if (res.ok) {
-                    setUser(data);
+                    setUser(await res.json());
                 } else {
-                    errorAlert(data);
                     setToken(null);
+                    setUser(null);
                     localStorage.removeItem("token");
                 }
             })();

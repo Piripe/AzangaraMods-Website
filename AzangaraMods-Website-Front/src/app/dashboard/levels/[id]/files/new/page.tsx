@@ -20,7 +20,7 @@ export default  function Page({
 }) {
   const { id } = use(params);
 
-  const {user, setUser, token, updateLevel} = useUserData();
+  const {user, token, updateLevel} = useUserData();
 
   const levelIndex = user?.levels?.findIndex(l=>l.id === id) ?? -1;
 
