@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace AzangaraMods_Website_Back.Models;
@@ -19,6 +20,8 @@ public class LevelFile
     [MaxLength(128)]
     public required string FileName { get; set; }
     public required int FileSize { get; set; }
+    [NotNull]
+    public int Downloads { get; set; }
     
     [ForeignKey("LevelId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public virtual Level? Level { get; set; }

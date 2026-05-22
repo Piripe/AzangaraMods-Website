@@ -4,6 +4,8 @@ using AzangaraMods_Website_Back.Middlewares;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Models.Dto;
 using AzangaraMods_Website_Back.Services.Discord;
+using AzangaraMods_Website_Back.Services.LevelFiles;
+using AzangaraMods_Website_Back.Services.LevelGalleries;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
@@ -22,6 +24,8 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
+builder.Services.AddScoped<ILevelFileService, LevelFileService>();
+builder.Services.AddScoped<ILevelGalleryService, LevelGalleryService>();
 builder.Services.AddScoped<IDiscordService, DiscordService>();
 
 builder.Services.AddAutoMapper(cfg =>
