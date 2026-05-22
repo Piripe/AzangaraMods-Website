@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
 using AzangaraMods_Website_Back.Attributes;
@@ -12,9 +13,12 @@ using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
 using AzangaraTools;
 using AzangaraTools.Models.File;
+using AzangaraTools.Models.Script;
+using AzangaraTools.Script;
 using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Level = AzangaraMods_Website_Back.Models.Level;
 
 namespace AzangaraMods_Website_Back.Controllers;
 
@@ -81,7 +85,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
         return Ok(mapper.Map<LevelDto>(level));
     }
-    public record PutLevelFileResponseData(string id, string[] files);
+    public record PutLevelFileResponseData(string id, string[] files, string[] otherFiles);
     [HttpPut("{levelId}/files")]
     [RequestSizeLimit(20 * 1024 * 1024)]
     public async Task<IActionResult> PutLevelFile([FromForm] IFormFile? file, [FromRoute] long levelId)
@@ -116,7 +120,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
                     var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
                     if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)", ErrorCodes.LevelFilePutZipTooManyFiles));
                     if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big", ErrorCodes.LevelFilePutZipTooBig));
-                    pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray();
+                    pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray<IFile>();
                 }
                 catch (Exception e)
                 {
@@ -127,7 +131,56 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             default:
                 return BadRequest(new ErrorResponseModel("Invalid file type", ErrorCodes.LevelFilePutInvalidFileType, file.ContentType));
         }
+        
+        // Level analysis
+        List<AzangaraTools.Models.Script.Level> levelFiles = [];
 
+        var entryPoints = pakFiles.Where(x=>
+        {
+            if (x.Path.EndsWith(".exec")) return true;
+            if (!x.Path.EndsWith(".txt")) return false;
+            try
+            {
+                var level = ScriptSerializer.Deserialize<AzangaraTools.Models.Script.Level>(x.OpenRead());
+                if (level == null) return false;
+                levelFiles.Add(level);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return true;
+        }).Select(x=>x.Path).ToList();
+
+        string? missingPath = null;
+
+        foreach (AzangaraTools.Models.Script.Level level in levelFiles)
+        {
+            foreach (LevelRoom room in level.Rooms)
+            {
+                void FindMissingPath(string path)
+                {
+                    for (var i = 0; i < path.Length; i++)
+                    {
+                        var cropPath = path[0..i];
+                        if (pakFiles.All(x => cropPath + x.Path != path)) continue;
+
+                        if (!string.IsNullOrWhiteSpace(cropPath) && cropPath.Length > missingPath?.Length) missingPath = cropPath;
+                        return;
+                    }
+                }
+
+                FindMissingPath(room.RoomFile);
+            }
+        }
+
+        if (missingPath != null)
+        {
+            pakFiles = pakFiles.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead())).ToArray();
+            entryPoints = entryPoints.Select(x=>missingPath + x).ToList();
+        }
+        
+        // Save level
         var levelFileId = await IdUtils.GenerateId();
 
         var filePath = levelFileId.GetIdFilePath("zip");
@@ -153,7 +206,8 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             LevelId = levelId,
             FileName = string.Concat(Path.GetFileNameWithoutExtension(file.FileName)
                 .Split(Path.GetInvalidFileNameChars())),
-            FileSize = (int)pakStream.Position
+            FileSize = (int)pakStream.Position,
+            EntryPoint = entryPoints.Count > 0 ?  entryPoints[0] : null,
         };
         
         await levelService.InsertLevelFile(levelFile);
@@ -162,7 +216,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         await finalZip.DisposeAsync();
         fileStream.Close();
         
-        return Ok(new PutLevelFileResponseData(levelFileId.ToString(), pakFiles.Select(x=>x.Path).ToArray()));
+        return Ok(new PutLevelFileResponseData(levelFileId.ToString(), entryPoints.ToArray(), pakFiles.Where(x=>!entryPoints.Contains(x.Path)).Select(x=>x.Path).ToArray()));
     }
     
     public record PatchLevelFileRequestData(string? fileName, string? entryPoint);
