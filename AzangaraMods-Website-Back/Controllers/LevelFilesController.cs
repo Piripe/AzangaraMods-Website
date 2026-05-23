@@ -54,7 +54,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
                     var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
                     if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)", ErrorCodes.LevelFilePutZipTooManyFiles));
                     if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big", ErrorCodes.LevelFilePutZipTooBig));
-                    pakFiles = zip.Entries.Select(x => new ZipEntryFile(x)).ToArray<IFile>();
+                    pakFiles = zip.Entries.Where(x=>!(string.IsNullOrWhiteSpace(x.FullName) || x.FullName.EndsWith('/')) ).Select(x => new ZipEntryFile(x)).ToArray<IFile>();
                 }
                 catch (Exception e)
                 {
