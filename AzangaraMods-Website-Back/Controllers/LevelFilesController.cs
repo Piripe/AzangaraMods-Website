@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
 using AutoMapper;
 using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
@@ -75,7 +76,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             if (!x.Path.EndsWith(".txt")) return false;
             try
             {
-                var level = ScriptSerializer.Deserialize<AzangaraTools.Models.Script.Level>(x.OpenRead());
+                var level = ScriptSerializer.Deserialize<AzangaraTools.Models.Script.Level>(x is PakFile ? new MemoryStream(x.ReadAllBytes()) : x.OpenRead());
                 if (level == null) return false;
                 levelFiles.Add(level);
             }
