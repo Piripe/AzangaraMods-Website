@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using AzangaraMods_Website_Back.Data;
+using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
 
 namespace AzangaraMods_Website_Back.Services.Discord;
@@ -19,6 +20,16 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         (Environment.GetEnvironmentVariable("DISCORD_EMOTES") ??
          @"<:star1:1502028362464628867>\<:star2:1502028387206696991>\<:star3:1502028404034113696>\<:star4:1502028423131037766>")
         .Split('\\');
+
+    private readonly Dictionary<LevelDifficulties, string> _difficulties = new()
+    {
+        {LevelDifficulties.VeryEasy, "Very Easy"},
+        {LevelDifficulties.Easy, "Easy"},
+        {LevelDifficulties.Normal, "Normal"},
+        {LevelDifficulties.Hard, "Hard"},
+        {LevelDifficulties.VeryHard, "Very Hard"},
+        {LevelDifficulties.Expert, "Expert"},
+    };
     
     public async Task UpdateDiscordForum(Level level)
     {
@@ -45,7 +56,8 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             string title = $"{level.Name}";
             string text = $"""
                            # {level.Name}
-                           {GetStarLine(level.Difficulty)}
+                           **Difficulty:** {_difficulties[level.Difficulty]}
+                           **Size:** {level.RoomAmount} room{(level.RoomAmount == 1 ? "" : "s")} ({GetLevelSizeText(level.RoomAmount)})
 
                            {level.Description}
 
@@ -87,14 +99,15 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         return new Uri((Environment.GetEnvironmentVariable("DISCORD_WEBHOOK") ?? throw new Exception("Can't find webhook URL")) + path);
     }
 
-    private string GetStarLine(float value)
+    private string GetLevelSizeText(int levelSize)
     {
-        var res = new StringBuilder();
-        for (int i = 0; i < 10; i++)
+        return levelSize switch
         {
-            var val = 3-(int)Math.Round((i < value-1 ? 0.999f : i < value ? (value-0.001)%1 : 0)*3);
-            res.Append(_discordEmotes[val]);
-        }
-        return res.ToString();
+            < 8 => "Very Small",
+            < 16 => "Small",
+            < 24 => "Medium",
+            < 32 => "Large",
+            _ => "Very Large"
+        };
     }
 }

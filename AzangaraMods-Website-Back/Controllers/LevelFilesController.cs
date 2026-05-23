@@ -108,6 +108,11 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             }
         }
 
+        if (levelFiles.Count > 0)
+        {
+            _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)levelFiles.First().Rooms.Length, null);
+        }
+
         if (missingPath != null)
         {
             pakFiles = pakFiles.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead())).ToArray();

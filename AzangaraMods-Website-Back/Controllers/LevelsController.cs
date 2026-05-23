@@ -27,7 +27,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (level.Published || level.AuthorId == (HttpContext.Items[0] as User)!.Id) return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelFiles(level)));
         return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.LevelGetRestricted));
     }
-    public record PutLevelRequestData(string name, string description, float difficulty, string tags);
+    public record PutLevelRequestData(string name, string description, LevelDifficulties difficulty, string tags);
     [HttpPut("")]
     public async Task<IActionResult> PutLevel([FromBody] PutLevelRequestData partialLevel)
     {
@@ -51,7 +51,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         await levelService.Insert(level);
         return Ok(mapper.Map<LevelPartialDto>(level));
     }
-    public record PatchLevelRequestData(string? name, string? description, bool? published, float? difficulty, string[]? tags);
+    public record PatchLevelRequestData(string? name, string? description, bool? published, LevelDifficulties? difficulty, short? roomAmount, string[]? tags);
 
     [HttpPatch("{levelId}")]
     public async Task<IActionResult> PatchLevel([FromBody] PatchLevelRequestData partialLevel, [FromRoute] long levelId)
@@ -69,6 +69,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             partialLevel.description,
             partialLevel.published,
             partialLevel.difficulty,
+            partialLevel.roomAmount,
             partialLevel.tags);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelPatchNotFound));
         await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));

@@ -1,4 +1,5 @@
 using AzangaraMods_Website_Back.Data;
+using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Tokens;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ public class LevelService(MainDbContext db) : ILevelService
     }
 
     public async Task<Level?> UpdateLevel(long levelId, string? newName, string? newDescription, bool? newPublished,
-        float? newDifficulty, string[]? newTags)
+        LevelDifficulties? newDifficulty, short? newRoomAmount, string[]? newTags)
     {
         var level = db.Levels?.FirstOrDefault(x=>x.Id == levelId);
         if (level == null) return null;
@@ -32,6 +33,7 @@ public class LevelService(MainDbContext db) : ILevelService
         if (!string.IsNullOrWhiteSpace(newDescription)) level.Description = newDescription;
         if (newPublished.HasValue) level.Published = newPublished.Value;
         if (newDifficulty.HasValue) level.Difficulty = newDifficulty.Value;
+        if (newRoomAmount.HasValue) level.RoomAmount = newRoomAmount.Value;
         if (newTags != null) level.Tags = newTags;
         SoftEditLevel(level);
         await db.SaveChangesAsync();

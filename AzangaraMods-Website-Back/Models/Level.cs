@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using AzangaraMods_Website_Back.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Models;
@@ -18,14 +19,11 @@ public class Level
     public DateTime LastEdit { get; set; } = DateTime.UtcNow;
     [MaxLength(8192)]
     public required string Description { get; set; }
-    [Required, JsonIgnore]
-    public short RealDifficulty { get; set; }
-    [NotMapped]
-    public required float Difficulty
-    {
-        get => Math.Max(0, (float)RealDifficulty) / short.MaxValue * 10f;
-        set => RealDifficulty = (short)(Math.Clamp(value / 10f, 0, 1) * short.MaxValue);
-    }
+    [Required]
+    public LevelDifficulties Difficulty { get; set; }
+    
+    [Required]
+    public short RoomAmount { get; set; }
     
     [MaxLength(32)]
     [Column(TypeName = "varchar(32)[]")]
