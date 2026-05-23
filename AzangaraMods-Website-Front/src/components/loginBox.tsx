@@ -35,7 +35,7 @@ export function LoginBox() {
                         localStorage.setItem("token", loginData.token);
                         setToken(loginData.token);
                         setUser(loginData.user);
-                        router.push("/dashboard");
+                        router.push("/dashboard/levels");
                     } else {
                         setError((body as ErrorResponse).error + ` (${(body as ErrorResponse).errorCode})`);
                     }
