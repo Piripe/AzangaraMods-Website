@@ -51,7 +51,9 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             var downloadPath = $"{downloadUrl}/level/{level.Id}/files/{latestFile?.Id}";
 
             var embeds = level.GalleryFiles
-                ?.Select(x => new Embed(new ($"{downloadUrl}/level/{x.LevelId}/gallery/{x.Id}"))).ToArray() ?? [];
+                ?.Select(x => new Embed(new EmbedImage($"{downloadUrl}/level/{x.LevelId}/gallery/{x.Id}"))).ToArray() ?? [];
+
+            var downloadCount = level.LevelFiles?.Sum(x => x.Downloads) ?? 0;
             
             string title = $"{level.Name}";
             string text = $"""
@@ -69,7 +71,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                            {(string.IsNullOrWhiteSpace(latestFile?.EntryPoint) ? "No entry point specified." : latestFile.EntryPoint.EndsWith(".exec") ? "exec " + latestFile.EntryPoint : "level " + latestFile.EntryPoint)}
                            ```
                            ## Download:
-                            [{latestFile?.FileName}.pak]({downloadPath})
+                            [{latestFile?.FileName}.pak]({downloadPath}) [{downloadCount:#,##0} download{(downloadCount==1?"":"s")}]
                            """;
             
             if (level.DiscordForumMessage.HasValue)
