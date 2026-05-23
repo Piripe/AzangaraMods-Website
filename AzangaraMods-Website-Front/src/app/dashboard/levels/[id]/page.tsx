@@ -43,7 +43,23 @@ export default  function Page({
     }
   }, [user]);
 
+  const difficulties = {
+    10: "Very Easy",
+    20: "Easy",
+    30: "Normal",
+    40: "Hard",
+    50: "Very Hard",
+    60: "Expert"
+  };
   
+  const getLevelSizeText = (size: number) => {
+    if (size < 8) return "Very Small";
+    if (size < 16) return "Small";
+    if (size < 24) return "Medium";
+    if (size < 32) return "Large";
+    return "Very Large";
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.topContainer}>
@@ -76,7 +92,8 @@ export default  function Page({
           </div>
         </div>
         <div className={styles.info}>
-        <Stars value={levelData?.difficulty ?? 0} alt={`Difficulty ${Math.round((levelData?.difficulty ?? 0)*100)/100}/10`}/>
+        <p className={styles.infoLabel}><span className={styles.infoLabelTitle}>Difficulty: </span>{difficulties[levelData?.difficulty ?? 10]}</p>
+        <p className={styles.infoLabel}><span className={styles.infoLabelTitle}>Size: </span>{(levelData?.roomAmount ?? 0) <= 0 ? "No rooms" : `${levelData?.roomAmount} room${(levelData!.roomAmount == 1 ? "" : "s")} (${getLevelSizeText(levelData!.roomAmount)})`}</p>
         <p className={styles.description}>{levelData?.description}</p>
         </div>
       </div>

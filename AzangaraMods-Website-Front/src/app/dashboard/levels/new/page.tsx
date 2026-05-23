@@ -11,11 +11,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./page.module.css"
 import errorAlert from "@/utils/errorAlert";
+import { LevelDifficulties } from "@/enums";
+import ComboBox from "@/components/kit/combobox";
 
 export default function Page() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [difficulty, setDifficulty] = useState(0);
+  const [difficulty, setDifficulty] = useState(LevelDifficulties.VeryEasy);
   const [tags, setTags] = useState("");
   const {token, pushLevel} = useUserData();
 
@@ -31,8 +33,7 @@ export default function Page() {
       <p>Description</p>
       <BigTextBox onChange={(e)=>setDescription(e)} maxLength={8192}/>
       <p>Difficulty</p>
-      <Stars value={difficulty} size={14.3} alt={`Difficulty ${Math.round((difficulty ?? 0)*100)/100}/10`}/>
-      <Slider onChange={(e)=>setDifficulty(e)} min={0} max={10} step={0.01} defaultValue={0}/>
+      <ComboBox onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
       <p>Tags (max 10)</p>
       <TextBox onChange={(e)=>setTags(e)}/>
       <div>

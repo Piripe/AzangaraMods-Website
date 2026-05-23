@@ -1,3 +1,5 @@
+type LevelDifficulties = 10 | 20 | 30 | 40 | 50 | 60;
+
 type User = {
     id: string,
     username: string,
@@ -13,7 +15,8 @@ type Level = {
     description: string,
     authorId: string,
     lastEdit: string,
-    difficulty: number,
+    difficulty: LevelDifficulties,
+    roomAmount: number,
     published: boolean,
     author: User|null|undefined,
     tags: string[]|undefined,

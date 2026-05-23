@@ -123,3 +123,6 @@
 .ellipsis {
     word-break: break-all;
 }
+.infoLabelTitle {
+    font-weight: 600;
+}

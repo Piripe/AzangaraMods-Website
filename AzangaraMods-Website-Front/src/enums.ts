@@ -1,3 +1,13 @@
+export enum LevelDifficulties
+{
+    VeryEasy = 10,
+    Easy = 20,
+    Normal = 30,
+    Hard = 40,
+    VeryHard = 50,
+    Expert = 60
+}
+
 export enum ErrorCodes {
     AuthLoginInvalid = 0x00,
     AuthRegisterUnknownError = 0x01,

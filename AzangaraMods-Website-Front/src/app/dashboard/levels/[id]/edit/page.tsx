@@ -14,6 +14,8 @@ import BigTextBox from "@/components/kit/bigTextbox";
 import Stars from "@/components/kit/stars";
 import LinkButton from "@/components/kit/linkButton";
 import errorAlert from "@/utils/errorAlert";
+import ComboBox from "@/components/kit/combobox";
+import { LevelDifficulties } from "@/enums";
 
 export default  function Page({
   params,
@@ -24,7 +26,7 @@ export default  function Page({
 
   const [name, setName] = useState(null as string|null);
   const [description, setDescription] = useState(null as string|null);
-  const [difficulty, setDifficulty] = useState(null as number|null);
+    const [difficulty, setDifficulty] = useState(null as LevelDifficulties|null);
   const [tags, setTags] = useState(null as string|null);
 
   const router = useRouter();
@@ -52,6 +54,7 @@ export default  function Page({
     }
   }, [user]);
 
+  const difficulties = [10,20,30,40,50,60];
   
   return (
     (!levelData) ? <p>Loading...</p> :
@@ -64,8 +67,7 @@ export default  function Page({
         <p>Description</p>
         <BigTextBox onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
         <p>Difficulty</p>
-        <Stars value={difficulty??levelData?.difficulty ?? 0} size={14.3} alt={`Difficulty ${Math.round((difficulty??levelData?.difficulty ?? 0)*100)/100}/10`}/>
-        <Slider onChange={(e)=>setDifficulty(e)} min={0} max={10} step={0.01} defaultValue={levelData?.difficulty ?? 0}/>
+        <ComboBox onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
         <p>Tags (max 10)</p>
         <TextBox onChange={(e)=>setTags(e)} defaultValue={levelData?.tags?.join(" ")} />
         <div>
