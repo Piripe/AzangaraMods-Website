@@ -26,6 +26,8 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
 
         var zipFile = System.IO.File.OpenRead(levelFileId.GetIdFilePath("zip"));
         
+        _ = levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        
         switch (ext)
         {
             case "zip":
@@ -41,7 +43,7 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
     }
     
     [HttpGet("level/{levelId}/gallery/{galleryFileId}")]
-    public async Task<IActionResult> DownloadLevelFile([FromRoute] long levelId, [FromRoute] long galleryFileId)
+    public async Task<IActionResult> DownloadGalleryFile([FromRoute] long levelId, [FromRoute] long galleryFileId)
     {
         var level = await levelService.GetLevelById(levelId);
         if (level == null)  return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.DownloadLevelNotFound));

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Middlewares;
@@ -9,7 +10,9 @@ using AzangaraMods_Website_Back.Services.LevelGalleries;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +57,16 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+    options.KnownIPNetworks.Add(new (IPAddress.Parse("192.168.0.0"), 16));
+    
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -70,6 +83,8 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while migrating the database.");
     }
 }
+
+app.UseForwardedHeaders();
 
 app.UseRouting();
 

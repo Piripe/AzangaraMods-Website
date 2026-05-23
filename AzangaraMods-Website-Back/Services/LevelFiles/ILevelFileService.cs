@@ -8,4 +8,5 @@ public interface ILevelFileService
     public Task<LevelFile?> UpdateLevelFile(long levelId, long levelFileId, string? newFilename, string? newEntrypoint);
     public Task<LevelFile?> GetLevelFileById(long levelId, long levelFileId);
     public Task<int> DeleteLevelFile(LevelFile levelFile);
+    public Task<int> DownloadLevelFile(LevelFile levelFile, string ipAddress);
 }

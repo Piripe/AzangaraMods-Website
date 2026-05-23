@@ -1,6 +1,7 @@
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Levels;
+using AzangaraMods_Website_Back.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Services.LevelFiles;
@@ -38,6 +39,16 @@ public class LevelFileService(MainDbContext db, ILevelService levelService) : IL
         db.LevelFiles?.Remove(levelFile);
         var level = await levelService.GetLevelById(levelFile.LevelId);
         if (level != null) levelService.SoftEditLevel(level);
+        return await db.SaveChangesAsync();
+    }
+
+    private static readonly RateLimiter DownloadRateLimiter = new(1, TimeSpan.FromHours(1));
+    public async Task<int> DownloadLevelFile(LevelFile levelFile, string ipAddress)
+    {
+        if (DownloadRateLimiter.IsLimited(ipAddress)) return 0;
+        
+        db.Entry(levelFile).Property(x => x.Downloads).CurrentValue++;
+        
         return await db.SaveChangesAsync();
     }
 }
