@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AzangaraMods_Website_Back.Enums;
 
 namespace AzangaraMods_Website_Back.Models.Dto;
 
@@ -11,13 +12,8 @@ public class LevelPartialDto
     public long AuthorId  { get; set; }
     public DateTime LastEdit { get; set; } = DateTime.UtcNow;
     public required string Description { get; set; }
-    [JsonIgnore]
-    public short RealDifficulty { get; set; }
-    public required float Difficulty
-    {
-        get => Math.Max(0, (float)RealDifficulty) / short.MaxValue * 10f;
-        set => RealDifficulty = (short)(Math.Clamp(value / 10f, 0, 1) * short.MaxValue);
-    }
+    public required LevelDifficulties Difficulty { get; set; }
+    public required short RoomAmount { get; set; }
     public bool Published { get; set; } = false;
     
     public required string[] Tags { get; set; }
