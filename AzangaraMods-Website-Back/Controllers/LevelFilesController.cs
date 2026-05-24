@@ -21,145 +21,177 @@ namespace AzangaraMods_Website_Back.Controllers;
 public class LevelFilesController(IMapper mapper, ILevelService levelService, ILevelFileService levelFileService, IDiscordService discordService) : Controller
 {
     public record PutLevelFileResponseData(string id, string[] files, string[] otherFiles);
+
     [HttpPut("")]
     [RequestSizeLimit(20 * 1024 * 1024)]
     public async Task<IActionResult> PutLevelFile([FromForm] IFormFile? file, [FromRoute] long levelId)
     {
-        if (file is null) return BadRequest(new ErrorResponseModel("No file or file too big", ErrorCodes.LevelFilePutNull));
-        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
-
-        IFile[] pakFiles;
-        
-        switch (file.ContentType)
-        {
-            case "application/octet-stream":
-                // .pak
-                try
-                {
-                    pakFiles = PakHelper.Read(file.OpenReadStream());
-                    if (pakFiles.Sum(x=>(long)x.Size) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big", ErrorCodes.LevelFilePutPakTooBig));
-                
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(new ErrorResponseModel("Error during pak processing", ErrorCodes.LevelFilePutPakError, e.Message));
-                }
-
-                break;
-            case "application/zip":
-            case "application/x-zip-compressed":
-            {
-                // .zip
-                try
-                {
-                    var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false, new UTF8Encoding());
-                    if (zip.Entries.Count > 1000) return BadRequest(new ErrorResponseModel("Too many files in the zip archive (use .pak instead)", ErrorCodes.LevelFilePutZipTooManyFiles));
-                    if (zip.Entries.Sum(x=>x.Length) > 1024*1024*1024) return BadRequest(new ErrorResponseModel("Decompressed file too big", ErrorCodes.LevelFilePutZipTooBig));
-                    pakFiles = zip.Entries.Where(x=>!(string.IsNullOrWhiteSpace(x.FullName) || x.FullName.EndsWith('/')) ).Select(x => new ZipEntryFile(x)).ToArray<IFile>();
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(new ErrorResponseModel("Error during zip processing", ErrorCodes.LevelFilePutZipError, e.Message));
-                }
-                break;
-            }
-            default:
-                return BadRequest(new ErrorResponseModel("Invalid file type", ErrorCodes.LevelFilePutInvalidFileType, file.ContentType));
-        }
-        
-        // Level analysis
-        List<AzangaraTools.Models.Script.Level> levelFiles = [];
-
-        var entryPoints = pakFiles.Where(x=>
-        {
-            if (x.Path.EndsWith(".exec")) return true;
-            if (!x.Path.EndsWith(".txt")) return false;
-            try
-            {
-                var level = ScriptSerializer.Deserialize<AzangaraTools.Models.Script.Level>(x is PakFile ? new MemoryStream(x.ReadAllBytes()) : x.OpenRead());
-                if (level == null) return false;
-                levelFiles.Add(level);
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-            return true;
-        }).Select(x=>x.Path).ToList();
-
-        string missingPath = "";
-
-        foreach (AzangaraTools.Models.Script.Level level in levelFiles)
-        {
-            foreach (var room in level.Rooms)
-            {
-                void FindMissingPath(string path)
-                {
-                    if (pakFiles.Any(x => missingPath + x.Path == path)) return;
-                    for (var i = 0; i < path.Length; i++)
-                    {
-                        var cropPath = path[0..i];
-                        if (pakFiles.All(x => cropPath + x.Path != path)) continue;
-
-                        if ((!string.IsNullOrWhiteSpace(cropPath)) && (cropPath.Length > missingPath.Length)) missingPath = cropPath;
-                        return;
-                    }
-                }
-
-                FindMissingPath(room.RoomFile);
-            }
-        }
-
-        if (levelFiles.Count > 0)
-        {
-            _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)levelFiles.First().Rooms.Length, null);
-        }
-
-        if (!string.IsNullOrWhiteSpace(missingPath))
-        {
-            pakFiles = pakFiles.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead())).ToArray();
-            entryPoints = entryPoints.Select(x=>missingPath + x).ToList();
-        }
-        
-        // Save level
-        var levelFileId = await IdUtils.GenerateId();
-
-        var filePath = levelFileId.GetIdFilePath("zip");
-
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "");
-        var fileStream = System.IO.File.Create(filePath);
-
-        var finalZip = new ZipArchive(fileStream, ZipArchiveMode.Create);
-        var pakEntry = finalZip.CreateEntry("level-data.pak");
-        var pakStream = await pakEntry.OpenAsync();
         try
         {
-            PakHelper.Write(pakStream, pakFiles);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ErrorResponseModel("Error during file processing", ErrorCodes.LevelFilePutPakWriteError, e.Message));
-        }
+            if (file is null)
+                return BadRequest(new ErrorResponseModel("No file or file too big", ErrorCodes.LevelFilePutNull));
+            if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId))
+                return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
 
-        var levelFile = new LevelFile()
+            IFile[] pakFiles;
+
+            switch (file.ContentType)
+            {
+                case "application/octet-stream":
+                    // .pak
+                    try
+                    {
+                        pakFiles = PakHelper.Read(file.OpenReadStream());
+                        if (pakFiles.Sum(x => (long)x.Size) > 1024 * 1024 * 1024)
+                            return BadRequest(new ErrorResponseModel("Decompressed file too big",
+                                ErrorCodes.LevelFilePutPakTooBig));
+
+                    }
+                    catch (Exception e)
+                    {
+                        return BadRequest(new ErrorResponseModel("Error during pak processing",
+                            ErrorCodes.LevelFilePutPakError, e.Message));
+                    }
+
+                    break;
+                case "application/zip":
+                case "application/x-zip-compressed":
+                {
+                    // .zip
+                    try
+                    {
+                        var zip = await ZipArchive.CreateAsync(file.OpenReadStream(), ZipArchiveMode.Read, false,
+                            new UTF8Encoding());
+                        if (zip.Entries.Count > 1000)
+                            return BadRequest(new ErrorResponseModel(
+                                "Too many files in the zip archive (use .pak instead)",
+                                ErrorCodes.LevelFilePutZipTooManyFiles));
+                        if (zip.Entries.Sum(x => x.Length) > 1024 * 1024 * 1024)
+                            return BadRequest(new ErrorResponseModel("Decompressed file too big",
+                                ErrorCodes.LevelFilePutZipTooBig));
+                        pakFiles = zip.Entries
+                            .Where(x => !(string.IsNullOrWhiteSpace(x.FullName) || x.FullName.EndsWith('/')))
+                            .Select(x => new ZipEntryFile(x)).ToArray<IFile>();
+                    }
+                    catch (Exception e)
+                    {
+                        return BadRequest(new ErrorResponseModel("Error during zip processing",
+                            ErrorCodes.LevelFilePutZipError, e.Message));
+                    }
+
+                    break;
+                }
+                default:
+                    return BadRequest(new ErrorResponseModel("Invalid file type",
+                        ErrorCodes.LevelFilePutInvalidFileType, file.ContentType));
+            }
+
+            // Level analysis
+            List<AzangaraTools.Models.Script.Level> levelFiles = [];
+
+            var entryPoints = pakFiles.Where(x =>
+            {
+                if (x.Path.EndsWith(".exec")) return true;
+                if (!x.Path.EndsWith(".txt")) return false;
+                try
+                {
+                    var level = ScriptSerializer.Deserialize<AzangaraTools.Models.Script.Level>(x is PakFile
+                        ? new MemoryStream(x.ReadAllBytes())
+                        : x.OpenRead());
+                    if (level == null) return false;
+                    levelFiles.Add(level);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+
+                return true;
+            }).Select(x => x.Path).ToList();
+
+            string missingPath = "";
+
+            foreach (AzangaraTools.Models.Script.Level level in levelFiles)
+            {
+                foreach (var room in level.Rooms)
+                {
+                    void FindMissingPath(string path)
+                    {
+                        if (pakFiles.Any(x => missingPath + x.Path == path)) return;
+                        for (var i = 0; i < path.Length; i++)
+                        {
+                            var cropPath = path[0..i];
+                            if (pakFiles.All(x => cropPath + x.Path != path)) continue;
+
+                            if ((!string.IsNullOrWhiteSpace(cropPath)) && (cropPath.Length > missingPath.Length))
+                                missingPath = cropPath;
+                            return;
+                        }
+                    }
+
+                    FindMissingPath(room.RoomFile);
+                }
+            }
+
+            if (levelFiles.Count > 0)
+            {
+                _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)levelFiles.First().Rooms.Length,
+                    null);
+            }
+
+            if (!string.IsNullOrWhiteSpace(missingPath))
+            {
+                pakFiles = pakFiles.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead()))
+                    .ToArray();
+                entryPoints = entryPoints.Select(x => missingPath + x).ToList();
+            }
+
+            // Save level
+            var levelFileId = await IdUtils.GenerateId();
+
+            var filePath = levelFileId.GetIdFilePath("zip");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "");
+            var fileStream = System.IO.File.Create(filePath);
+
+            var finalZip = new ZipArchive(fileStream, ZipArchiveMode.Create);
+            var pakEntry = finalZip.CreateEntry("level-data.pak");
+            var pakStream = await pakEntry.OpenAsync();
+            try
+            {
+                PakHelper.Write(pakStream, pakFiles);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new ErrorResponseModel("Error during file processing",
+                    ErrorCodes.LevelFilePutPakWriteError, e.Message));
+            }
+
+            var levelFile = new LevelFile()
+            {
+                Id = levelFileId,
+                LevelId = levelId,
+                FileName = string.Concat(Path.GetFileNameWithoutExtension(file.FileName)
+                    .Split(Path.GetInvalidFileNameChars())),
+                FileSize = (int)pakStream.Position,
+                EntryPoint = entryPoints.Count > 0 ? entryPoints[0] : null,
+            };
+
+            await levelFileService.InsertLevelFile(levelFile);
+
+            pakStream.Close();
+            await finalZip.DisposeAsync();
+            fileStream.Close();
+
+            return Ok(new PutLevelFileResponseData(levelFileId.ToString(), entryPoints.ToArray(),
+                pakFiles.Where(x => !entryPoints.Contains(x.Path)).Select(x => x.Path).ToArray()));
+        }
+        catch (Exception ex)
         {
-            Id = levelFileId,
-            LevelId = levelId,
-            FileName = string.Concat(Path.GetFileNameWithoutExtension(file.FileName)
-                .Split(Path.GetInvalidFileNameChars())),
-            FileSize = (int)pakStream.Position,
-            EntryPoint = entryPoints.Count > 0 ?  entryPoints[0] : null,
-        };
-        
-        await levelFileService.InsertLevelFile(levelFile);
-        
-        pakStream.Close();
-        await finalZip.DisposeAsync();
-        fileStream.Close();
-        
-        return Ok(new PutLevelFileResponseData(levelFileId.ToString(), entryPoints.ToArray(), pakFiles.Where(x=>!entryPoints.Contains(x.Path)).Select(x=>x.Path).ToArray()));
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseModel(ex.ToString(), ErrorCodes.LevelFilePutError));
+        }
     }
-    
+
     public record PatchLevelFileRequestData(string? fileName, string? entryPoint);
 
     [HttpPatch("{levelFileId}")]

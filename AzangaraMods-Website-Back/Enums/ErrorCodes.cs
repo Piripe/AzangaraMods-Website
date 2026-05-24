@@ -38,4 +38,5 @@ public enum ErrorCodes
     UserMeNotFound = 0x21,
     LevelFilePutZipError = 0x22,
     LevelFilePutPakWriteError = 0x23,
+    LevelFilePutError = 0x24,
 }
