@@ -87,7 +87,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             return true;
         }).Select(x=>x.Path).ToList();
 
-        string? missingPath = null;
+        string missingPath = "";
 
         foreach (AzangaraTools.Models.Script.Level level in levelFiles)
         {
@@ -95,12 +95,13 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             {
                 void FindMissingPath(string path)
                 {
+                    if (pakFiles.Any(x => missingPath + x.Path == path)) return;
                     for (var i = 0; i < path.Length; i++)
                     {
                         var cropPath = path[0..i];
                         if (pakFiles.All(x => cropPath + x.Path != path)) continue;
 
-                        if (!string.IsNullOrWhiteSpace(cropPath) && cropPath.Length > missingPath?.Length) missingPath = cropPath;
+                        if ((!string.IsNullOrWhiteSpace(cropPath)) && (cropPath.Length > missingPath.Length)) missingPath = cropPath;
                         return;
                     }
                 }
@@ -114,7 +115,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)levelFiles.First().Rooms.Length, null);
         }
 
-        if (missingPath != null)
+        if (!string.IsNullOrWhiteSpace(missingPath))
         {
             pakFiles = pakFiles.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead())).ToArray();
             entryPoints = entryPoints.Select(x=>missingPath + x).ToList();
