@@ -84,11 +84,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseForwardedHeaders();
-
 app.UseRouting();
 
 app.UseCors();
+
+app.UseForwardedHeaders();
 
 app.UseMiddleware<AuthMiddleware>();
 
