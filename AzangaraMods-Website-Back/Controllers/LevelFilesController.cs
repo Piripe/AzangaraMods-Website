@@ -91,7 +91,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
 
         foreach (AzangaraTools.Models.Script.Level level in levelFiles)
         {
-            foreach (LevelRoom room in level.Rooms)
+            foreach (var room in level.Rooms)
             {
                 void FindMissingPath(string path)
                 {
