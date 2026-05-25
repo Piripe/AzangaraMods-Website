@@ -14,6 +14,7 @@ using AzangaraTools.Models.File;
 using AzangaraTools.Models.Script;
 using AzangaraTools.Script;
 using Microsoft.AspNetCore.Mvc;
+using Level = AzangaraTools.Models.Script.Level;
 
 namespace AzangaraMods_Website_Back.Controllers;
 
@@ -86,66 +87,10 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
                         ErrorCodes.LevelFilePutInvalidFileType, file.ContentType));
             }
 
-            // Level analysis
-            List<AzangaraTools.Models.Script.Level> levelFiles = [];
+            (List<string> entryPoints, List<Level> levels, pakFiles, _) = levelFileService.ProcessLevelFile(pakFiles, levelId);
 
-            var entryPoints = pakFiles.Where(x =>
-            {
-                if (x.Path.EndsWith(".exec")) return true;
-                if (!x.Path.EndsWith(".txt")) return false;
-                try
-                {
-                    var level = ScriptSerializer.Deserialize<AzangaraTools.Models.Script.Level>(x is PakFile
-                        ? new MemoryStream(x.ReadAllBytes())
-                        : x.OpenRead());
-                    if (level == null) return false;
-                    levelFiles.Add(level);
-                }
-                catch (Exception ex)
-                {
-                    return false;
-                }
-
-                return true;
-            }).Select(x => x.Path).ToList();
-
-            string missingPath = "";
-
-            foreach (AzangaraTools.Models.Script.Level level in levelFiles)
-            {
-                foreach (var room in level.Rooms)
-                {
-                    void FindMissingPath(string path)
-                    {
-                        if (pakFiles.Any(x => missingPath + x.Path == path)) return;
-                        for (var i = 0; i < path.Length; i++)
-                        {
-                            var cropPath = path[0..i];
-                            if (pakFiles.All(x => cropPath + x.Path != path)) continue;
-
-                            if ((!string.IsNullOrWhiteSpace(cropPath)) && (cropPath.Length > missingPath.Length))
-                                missingPath = cropPath;
-                            return;
-                        }
-                    }
-
-                    FindMissingPath(room.RoomFile);
-                }
-            }
-
-            if (levelFiles.Count > 0)
-            {
-                _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)levelFiles.First().Rooms.Length,
-                    null);
-            }
-
-            if (!string.IsNullOrWhiteSpace(missingPath))
-            {
-                pakFiles = pakFiles.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead()))
-                    .ToArray();
-                entryPoints = entryPoints.Select(x => missingPath + x).ToList();
-            }
-
+            levelFileService.UpdateRoomCount(levels, levelId);
+            
             // Save level
             var levelFileId = await IdUtils.GenerateId();
 
@@ -203,7 +148,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             levelId,
             levelFileId,
             partialLevelFile.fileName,
-            partialLevelFile.entryPoint);
+            partialLevelFile.entryPoint, null);
         if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found", ErrorCodes.LevelFilePatchLevelNotFound));
         
         var level = levelFile.Level ?? await levelService.GetLevelById(levelFile.LevelId);
