@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using AzangaraMods_Website_Back.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Models;
@@ -22,7 +23,7 @@ public class User()
     public required string Email { get; set; }
 
     public bool HasProfilePicture { get; set; } = false;
-    public bool VerifiedModder { get; set; } = false;
+    public UserFlags Flags { get; set; } = 0;
     [MaxLength(128), JsonIgnore, Required] public string Password { get; set; } = "";
     
     [InverseProperty("Author"), DeleteBehavior(DeleteBehavior.Cascade), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
