@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using AzangaraMods_Website_Back.Data;
@@ -31,7 +32,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         {LevelDifficulties.Expert, "Expert"},
     };
     
-    public async Task UpdateDiscordForum(Level level)
+    public async Task UpdateDiscordForum(Level level, bool onlyUpdate = false)
     {
         try
         {
@@ -46,20 +47,20 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             
             string title = $"{level.Name}";
             string text = $"""
-                           # {level.Name}
+                           **Level Name:** {level.Name}
+                           **Creator:** {level.Author?.Username ?? level.AuthorId.ToString()}
                            **Size:** {level.RoomAmount} room{(level.RoomAmount == 1 ? "" : "s")} ({GetLevelSizeText(level.RoomAmount)})
                            **Difficulty:** {_difficulties[level.Difficulty]}
+                           **Level Description:**  {level.Description}
 
-                           {level.Description}
-
-                           ## How to run:
+                           **How to run:**
                            1. Put `{latestFile?.FileName}.pak` in your game folder (next to `game.exe`)
                            2. If started, restart the game.
                            3. Enter this command in the game's console:
                            ```
                            {(string.IsNullOrWhiteSpace(latestFile?.EntryPoint) ? "No entry point specified." : latestFile.EntryPoint.EndsWith(".exec") ? "exec " + latestFile.EntryPoint : "level " + latestFile.EntryPoint)}
                            ```
-                           ## Download:
+                           **Download:**
                             [{latestFile?.FileName}.pak]({downloadPath}) [{downloadCount:#,##0} download{(downloadCount==1?"":"s")}]
                            """;
             
@@ -75,9 +76,9 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             {
                 var res = await _httpClient.PatchAsync(GetDiscordRequestUri( $"/messages/{level.DiscordForumMessage.Value}?thread_id={level.DiscordForumThread!.Value}"), JsonContent.Create(new EditWebhookMessageRequest(text, embeds)));
             }
-            else
+            else if (!onlyUpdate)
             {
-                var res = await _httpClient.PostAsync(GetDiscordRequestUri( $"?wait=true" + (level.DiscordForumThread.HasValue ? $"&thread_id={level.DiscordForumThread.Value}" : "")), JsonContent.Create(new SendWebhookMessageRequest(level.Author?.Username ?? level.AuthorId.ToString(), text, level.DiscordForumThread.HasValue?null:title, embeds)));
+                var res = await _httpClient.PostAsync(GetDiscordRequestUri( $"?wait=true" + (level.DiscordForumThread.HasValue ? $"&thread_id={level.DiscordForumThread.Value}" : "")), JsonContent.Create(new SendWebhookMessageRequest("Azanbot", text, level.DiscordForumThread.HasValue?null:title, embeds)));
 
                 var messageInfos = await res.Content.ReadFromJsonAsync<SendWebhookMessageResponse>();
                 if (messageInfos == null) return;
@@ -85,6 +86,10 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                 db.Entry(level).Property(x => x.DiscordForumMessage).CurrentValue = long.Parse(messageInfos.id);
                 db.Entry(level).Property(x => x.DiscordForumThread).CurrentValue = long.Parse(messageInfos.channel_id);
                 await db.SaveChangesAsync();
+            }
+            else
+            {
+                Console.WriteLine("Updating Discord forum...\n"+text);
             }
         }
         catch (Exception e)
@@ -108,5 +113,24 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             < 32 => "Large",
             _ => "Very Large"
         };
+    }
+
+    private static ConcurrentDictionary<long, CancellationTokenSource> _cancellations = [];
+    public async Task PushWebhookUpdateTask(Level level)
+    {
+        if (_cancellations.TryRemove(level.Id, out var tokenSource))
+        {
+            await tokenSource.CancelAsync();
+        }
+
+        var cts = new CancellationTokenSource();
+        _cancellations.TryAdd(level.Id, cts);
+        
+        await Task.Delay(60000, cts.Token).ContinueWith((_) =>{});
+        
+        if (cts.IsCancellationRequested) return;
+        
+        _cancellations.TryRemove(level.Id, out var _);
+        await UpdateDiscordForum(level, true);
     }
 }

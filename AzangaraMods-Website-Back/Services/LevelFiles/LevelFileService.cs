@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Models;
+using AzangaraMods_Website_Back.Services.Discord;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
 using AzangaraTools.Models.File;
@@ -10,7 +11,7 @@ using Level = AzangaraTools.Models.Script.Level;
 
 namespace AzangaraMods_Website_Back.Services.LevelFiles;
 
-public class LevelFileService(MainDbContext db, ILevelService levelService) : ILevelFileService
+public class LevelFileService(MainDbContext db, ILevelService levelService, IDiscordService discordService) : ILevelFileService
 {
     private ILevelFileService _levelFileServiceImplementation;
 
@@ -55,6 +56,8 @@ public class LevelFileService(MainDbContext db, ILevelService levelService) : IL
         if (DownloadRateLimiter.IsLimited(ipAddress)) return 0;
         
         db.Entry(levelFile).Property(x => x.Downloads).CurrentValue++;
+
+        _ = discordService.PushWebhookUpdateTask(levelFile.Level!);
         
         return await db.SaveChangesAsync();
     }
