@@ -45,6 +45,12 @@ public class LevelService(MainDbContext db) : ILevelService
         return db.Levels?.FirstOrDefaultAsync(x=>x.Id == levelId)??Task.FromResult<Level?>(null);
     }
 
+    public async Task<Level> FetchLevelGallery(Level level)
+    {
+        level.GalleryFiles = await db.GalleryFiles!.Where(x => x.LevelId == level.Id).ToArrayAsync();
+        return level;
+    }
+
     public async Task<Level> FetchLevelFiles(Level level)
     {
         level.LevelFiles = await db.LevelFiles!.Where(x => x.LevelId == level.Id).ToArrayAsync();

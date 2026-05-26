@@ -20,7 +20,7 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
     {
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.DownloadLevelNotFound));
-        level = await levelService.FetchLevelAuthor(level);
+        level = await levelService.FetchLevelGallery(await levelService.FetchLevelAuthor(level));
         if (!level.Published && (HttpContext.Items[0] as User)!.Id != level.AuthorId) return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.DownloadLevelRestricted));
         var levelFile = level?.LevelFiles?.FirstOrDefault(x=>x.Id == levelFileId) ?? await levelFileService.GetLevelFileById(levelId, levelFileId);
         if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found", ErrorCodes.DownloadLevelFileNotFound));

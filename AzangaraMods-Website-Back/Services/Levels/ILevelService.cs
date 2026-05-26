@@ -11,6 +11,7 @@ public interface ILevelService
     public Task<Level?> UpdateLevel(long levelId, string? newName, string? newDescription, bool? newPublished,
         LevelDifficulties? newDifficulty, short? newRoomAmount, string[]? newTags);
     public Task<Level?> GetLevelById(long levelId);
+    public Task<Level> FetchLevelGallery(Level level);
     public Task<Level> FetchLevelFiles(Level level);
     public Task<Level> FetchLevelAuthor(Level level);
     public Task<Level[]> GetPublicLevels();
