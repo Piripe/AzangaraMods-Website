@@ -53,7 +53,7 @@ public class LevelsController(ILevelService levelService, ILevelFileService leve
         if (levelFile.Id == level.LevelFiles?.OrderByDescending(x => x.Id).First().Id)
         {        
             Console.WriteLine($"It's latest file, updating room amount...");
-            levelFileService.UpdateRoomCount(levels, levelId);
+            await levelFileService.UpdateRoomCount(levels, levelId);
         }
         
         Console.WriteLine($"Saving level file {filePath}...");

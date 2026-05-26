@@ -120,7 +120,7 @@ public class LevelFileService(MainDbContext db, ILevelService levelService) : IL
         return (entryPoints, levelFiles, files.ToArray(), missingPath);
     }
 
-    public void UpdateRoomCount(List<Level> levels, long levelId)
+    public async Task UpdateRoomCount(List<Level> levels, long levelId)
     {
         if (levels.Count <= 0) return;
         
@@ -131,7 +131,7 @@ public class LevelFileService(MainDbContext db, ILevelService levelService) : IL
                     .Count(x => int.TryParse(x, out var mazeRoomId) && levelFile.Rooms.Any(y => y.Id == mazeRoomId))
             );
         Console.WriteLine($"Room Amount: {roomAmount}");
-        _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)roomAmount,
+        await levelService.UpdateLevel(levelId, null, null, null, null, (short)roomAmount,
             null);
     }
 }
