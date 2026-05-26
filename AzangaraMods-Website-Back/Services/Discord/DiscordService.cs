@@ -35,17 +35,6 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
     {
         try
         {
-            if (!level.Published || level.LevelFiles?.Count <= 0)
-            {
-                if (level is { DiscordForumMessage: not null, DiscordForumThread: not null })
-                {
-                    await _httpClient.DeleteAsync(GetDiscordRequestUri($"/messages/{level.DiscordForumMessage.Value}?thread_id={level.DiscordForumThread.Value}"));
-                    db.Entry(level).Property(x => x.DiscordForumMessage).CurrentValue = null;
-                    await db.SaveChangesAsync();
-                }
-                return;
-            }
-            
             var latestFile = level.LevelFiles?.OrderByDescending(x=>x.UploadDate).FirstOrDefault();
             var downloadUrl = Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080";
             var downloadPath = $"{downloadUrl}/level/{level.Id}/files/{latestFile?.Id}";
@@ -73,6 +62,14 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                            ## Download:
                             [{latestFile?.FileName}.pak]({downloadPath}) [{downloadCount:#,##0} download{(downloadCount==1?"":"s")}]
                            """;
+            
+            if (!level.Published || level.LevelFiles?.Count <= 0)
+            {
+                if (level.DiscordForumMessage == null || level.DiscordForumThread == null) return;
+
+                embeds = [];
+                text = "Unpublished level";
+            }
             
             if (level.DiscordForumMessage.HasValue)
             {
