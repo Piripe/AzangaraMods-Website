@@ -48,7 +48,7 @@ public class LevelsController(ILevelService levelService, ILevelFileService leve
         
         if (levelFile.Id == level.LevelFiles?.OrderByDescending(x => x.Id).First().Id)
         {        
-            levelFileService.UpdateRoomCount(levels, levelId);
+            await levelFileService.UpdateRoomCount(levels, levelId);
         }
         
         
