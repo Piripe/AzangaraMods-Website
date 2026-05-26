@@ -50,12 +50,12 @@ public class LevelFileService(MainDbContext db, ILevelService levelService, IDis
         return await db.SaveChangesAsync();
     }
 
-    private static readonly RateLimiter UsersDownloadRateLimiter = new(1, TimeSpan.FromHours(1));
-    private static readonly RateLimiter DownloadRateLimiter = new(10, TimeSpan.FromHours(1));
+    private static readonly RateLimiter UsersDownloadRateLimiter = new(10, TimeSpan.FromHours(1));
+    private static readonly RateLimiter DownloadRateLimiter = new(1, TimeSpan.FromHours(1));
     public async Task<int> DownloadLevelFile(LevelFile levelFile, string ipAddress)
     {
         if (UsersDownloadRateLimiter.IsLimited(ipAddress)) return 0;
-        if (DownloadRateLimiter.IsLimited(levelFile.Id + ipAddress)) return 0;
+        if (DownloadRateLimiter.IsLimited(levelFile.LevelId + ipAddress)) return 0;
         
         db.Entry(levelFile).Property(x => x.Downloads).CurrentValue++;
 
