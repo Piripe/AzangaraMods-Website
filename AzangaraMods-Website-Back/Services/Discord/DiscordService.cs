@@ -58,8 +58,8 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             string title = $"{level.Name}";
             string text = $"""
                            # {level.Name}
-                           **Difficulty:** {_difficulties[level.Difficulty]}
                            **Size:** {level.RoomAmount} room{(level.RoomAmount == 1 ? "" : "s")} ({GetLevelSizeText(level.RoomAmount)})
+                           **Difficulty:** {_difficulties[level.Difficulty]}
 
                            {level.Description}
 
