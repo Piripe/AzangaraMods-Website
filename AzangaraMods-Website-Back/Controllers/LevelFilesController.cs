@@ -71,7 +71,6 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
                             return BadRequest(new ErrorResponseModel("Decompressed file too big",
                                 ErrorCodes.LevelFilePutZipTooBig));
                         pakFiles = zip.Entries
-                            .Where(x => !(string.IsNullOrWhiteSpace(x.FullName) || x.FullName.EndsWith('/')))
                             .Select(x => new ZipEntryFile(x)).ToArray<IFile>();
                     }
                     catch (Exception e)

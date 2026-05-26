@@ -66,7 +66,7 @@ public class LevelFileService(MainDbContext db, ILevelService levelService, IDis
 
     public (List<string>, List<Level>, IFile[], string) ProcessLevelFile(IFile[] files, long levelId)
     {
-
+        files = files.Where(x=>!(string.IsNullOrWhiteSpace(x.Path) || x.Path.EndsWith('/'))).ToArray();
         // Level analysis
         List<AzangaraTools.Models.Script.Level> levelFiles = [];
 
@@ -117,8 +117,10 @@ public class LevelFileService(MainDbContext db, ILevelService levelService, IDis
 
         if (!string.IsNullOrWhiteSpace(missingPath))
         {
-            files = files.Select(IFile (x) => new VirtualStreamFile(missingPath + x.Path, x.OpenRead()))
-                .ToArray();
+            foreach (var file in files)
+            {
+                file.Rename(missingPath + file.Path);
+            }
             entryPoints = entryPoints.Select(x => missingPath + x).ToList();
         }
 
