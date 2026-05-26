@@ -44,13 +44,19 @@ public class LevelsController(ILevelService levelService, ILevelFileService leve
             await (zip.Entries.FirstOrDefault()?.OpenAsync() ?? Task.FromResult<Stream>(new MemoryStream()));
         var pakFiles = PakHelper.Read(new SubStream(pakStream, zip.Entries.FirstOrDefault()?.Length??0));
 
+        Console.WriteLine($"Processing level file {filePath}...");
+        
         (List<string> entryPoints, List<Level> levels, pakFiles, string missingPath) = levelFileService.ProcessLevelFile(pakFiles, levelId);
         
+        Console.WriteLine($"Processed level file. Levels in it: {levels.Count}\tUnique rooms in it: {levels.SelectMany(x => x.Rooms).Count()}");
+        
         if (levelFile.Id == level.LevelFiles?.OrderByDescending(x => x.Id).First().Id)
-        {
+        {        
+            Console.WriteLine($"It's latest file, updating room amount...");
             levelFileService.UpdateRoomCount(levels, levelId);
         }
         
+        Console.WriteLine($"Saving level file {filePath}...");
         
         // Save level
         var fileStream = System.IO.File.Create(filePath);
