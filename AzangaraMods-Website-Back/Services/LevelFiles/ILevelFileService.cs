@@ -12,5 +12,5 @@ public interface ILevelFileService
     public Task<int> DeleteLevelFile(LevelFile levelFile);
     public Task<int> DownloadLevelFile(LevelFile levelFile, string ipAddress);
     public (List<string>, List<Level>, IFile[], string) ProcessLevelFile(IFile[] files, long levelId);
-    public Task UpdateRoomCount(List<Level> levels, long levelId);
+    public void UpdateRoomCount(List<Level> levels, long levelId);
 }

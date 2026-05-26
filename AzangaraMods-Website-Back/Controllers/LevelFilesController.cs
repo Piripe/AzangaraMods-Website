@@ -89,7 +89,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
 
             (List<string> entryPoints, List<Level> levels, pakFiles, _) = levelFileService.ProcessLevelFile(pakFiles, levelId);
 
-            await levelFileService.UpdateRoomCount(levels, levelId);
+            levelFileService.UpdateRoomCount(levels, levelId);
             
             // Save level
             var levelFileId = await IdUtils.GenerateId();

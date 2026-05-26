@@ -36,15 +36,6 @@ public class LevelService(MainDbContext db) : ILevelService
         if (newRoomAmount.HasValue) level.RoomAmount = newRoomAmount.Value;
         if (newTags != null) level.Tags = newTags;
         SoftEditLevel(level);
-        foreach (var entry in db.ChangeTracker.Entries())
-        {
-            Console.WriteLine($"Entity: {entry.Entity.GetType().Name}, State: {entry.State}");
-            foreach (var prop in entry.Properties)
-            {
-                if (prop.IsModified)
-                    Console.WriteLine($"  Modified: {prop.Metadata.Name} | Original: {prop.OriginalValue} | Current: {prop.CurrentValue}");
-            }
-        }
         await db.SaveChangesAsync();
         return level;
     }
