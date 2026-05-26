@@ -27,7 +27,7 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
 
         var zipFile = System.IO.File.OpenRead(levelFileId.GetIdFilePath("zip"));
         
-        _ = levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        await levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
         
         switch (ext)
         {
