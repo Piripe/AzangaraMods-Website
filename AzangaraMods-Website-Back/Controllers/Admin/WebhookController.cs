@@ -24,7 +24,7 @@ public class WebhookController(ILevelService levelService, IDiscordService disco
             {
                 Console.WriteLine($"Reloading webhook messages {levels.IndexOf(level) + 1}/{levels.Length}");
 
-                await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+                await discordService.UpdateDiscordForum(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level)));
             }
             catch (Exception e)
             {

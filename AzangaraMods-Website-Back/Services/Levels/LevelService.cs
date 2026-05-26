@@ -52,6 +52,12 @@ public class LevelService(MainDbContext db) : ILevelService
         return level;
     }
 
+    public async Task<Level> FetchLevelAuthor(Level level)
+    {
+        level.Author = await db.Users!.FirstAsync(x => x.Id == level.AuthorId);
+        return level;
+    }
+
     public Task<Level[]> GetPublicLevels()
     {
         return db.Levels?.Where(x=>x.Published).ToArrayAsync()??Task.FromResult<Level[]>([]);

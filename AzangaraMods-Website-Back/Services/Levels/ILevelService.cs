@@ -12,6 +12,7 @@ public interface ILevelService
         LevelDifficulties? newDifficulty, short? newRoomAmount, string[]? newTags);
     public Task<Level?> GetLevelById(long levelId);
     public Task<Level> FetchLevelFiles(Level level);
+    public Task<Level> FetchLevelAuthor(Level level);
     public Task<Level[]> GetPublicLevels();
     public Task<bool> UserOwnsLevel(long userId, long levelId);
 }

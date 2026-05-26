@@ -29,7 +29,7 @@ public class LevelsController(ILevelService levelService, ILevelFileService leve
         
         if (level == null || levelFile == null) return NotFound("Level or file not found");
 
-        level = await levelService.FetchLevelFiles(level);
+        level = await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level));
 
         var filePath = levelFileId.GetIdFilePath("zip");
         var tempPath = filePath + ".temp";
