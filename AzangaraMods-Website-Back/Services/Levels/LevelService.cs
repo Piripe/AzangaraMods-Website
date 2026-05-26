@@ -16,7 +16,7 @@ public class LevelService(MainDbContext db) : ILevelService
 
     public void SoftEditLevel(Level level)
     {
-        db.Entry(level).Property(x => x.LastEdit).CurrentValue = DateTime.UtcNow;
+        level.LastEdit = DateTime.UtcNow;
     }
     public Task<int> EditLevel(Level level)
     {

@@ -122,16 +122,15 @@ public class LevelFileService(MainDbContext db, ILevelService levelService) : IL
 
     public void UpdateRoomCount(List<Level> levels, long levelId)
     {
-        if (levels.Count > 0)
-        {
-            var roomAmount = levels
-                .Sum(levelFile => 
-                    levelFile.Maze
-                        .SelectMany(x=>x.Split(','))
-                        .Count(x => int.TryParse(x, out var mazeRoomId) && levelFile.Rooms.Any(y => y.Id == mazeRoomId))
-                );
-            _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)roomAmount,
-                null);
-        }
+        if (levels.Count <= 0) return;
+        
+        var roomAmount = levels
+            .Sum(levelFile => 
+                levelFile.Maze
+                    .SelectMany(x=>x.Split(','))
+                    .Count(x => int.TryParse(x, out var mazeRoomId) && levelFile.Rooms.Any(y => y.Id == mazeRoomId))
+            );
+        _ = levelService.UpdateLevel(levelId, null, null, null, null, (short)roomAmount,
+            null);
     }
 }
