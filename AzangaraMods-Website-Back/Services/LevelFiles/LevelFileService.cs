@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Discord;
@@ -67,6 +68,73 @@ public class LevelFileService(MainDbContext db, ILevelService levelService, IDis
     public (List<string>, List<Level>, IFile[], string) ProcessLevelFile(IFile[] files, long levelId)
     {
         files = files.Where(x=>!(string.IsNullOrWhiteSpace(x.Path) || x.Path.EndsWith('/'))).ToArray();
+        
+        // Fix caps path
+        
+        var upperPaths = files
+            .Where(x=>x.Path.Any(char.IsUpper))
+            .Select(x=>(
+                Encoding.ASCII.GetBytes(x.Path),
+                Encoding.ASCII.GetBytes(x.Path.ToLowerInvariant()),
+                x.Path)
+            ).ToList();
+
+        if (upperPaths.Count > 0)
+        {
+            files = files.Select(file =>
+            {
+                if (file.Path.EndsWith(".room") || file.Path.EndsWith(".sav"))
+                {
+                    var data = file.ReadAllBytes();
+
+                    foreach (var paths in upperPaths)
+                    {
+                        int i = 0;
+                        while (i <= data.Length - paths.Item1.Length)
+                        {
+                            // Check if searchBytes matches at position i
+                            bool match = true;
+                            for (int j = 0; j < paths.Item1.Length; j++)
+                            {
+                                if (data[i + j] != paths.Item1[j])
+                                {
+                                    match = false;
+                                    break;
+                                }
+                            }
+
+                            if (match)
+                            {
+                                Array.Copy(paths.Item2, 0, data, i, paths.Item2.Length);
+                                i += paths.Item2.Length;
+                            }
+                            else
+                            {
+                                i++;
+                            }
+                        }
+                    }
+
+                    return new VirtualFile(file.Path.ToLowerInvariant(), data);
+                }
+                if (file.Path.EndsWith(".txt") || file.Path.EndsWith(".exec") || file.Path.EndsWith(".part"))
+                {
+                    return new VirtualFile(
+                        file.Path.ToLowerInvariant(),
+                        Encoding.ASCII.GetBytes(
+                            upperPaths.Aggregate(
+                                Encoding.ASCII.GetString(file.ReadAllBytes()),
+                                (current, path) => current.Replace(path.Path, path.Path.ToLowerInvariant())
+                                )
+                            )
+                        );
+                }
+
+                file.Rename(file.Path.ToLowerInvariant());
+                return file;
+            }).ToArray();
+        }
+
         // Level analysis
         List<AzangaraTools.Models.Script.Level> levelFiles = [];
 
