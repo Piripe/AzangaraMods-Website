@@ -65,8 +65,8 @@ export default  function Page({
       <div>
         <PageHeader backHref={"/dashboard/levels/" + id} title="Edit level" subtitle={levelData.name}/>
         <Card className={styles.form}>
-        <TextBox label="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
-        <BigTextBox label="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
+        <TextBox placeholder="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
+        <BigTextBox placeholder="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
         <ComboBox label="Difficulty" onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
         <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags} />
         <div className={styles.formActions}>

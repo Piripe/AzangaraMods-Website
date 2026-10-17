@@ -29,8 +29,8 @@ export default function Page() {
     <div>
       <PageHeader backHref="/dashboard/levels" title="New level" subtitle="You can upload files and screenshots once it's created"/>
       <Card className={styles.form}>
-      <TextBox label="Name" onChange={(e)=>setName(e)} maxLength={64}/>
-      <BigTextBox label="Description" onChange={(e)=>setDescription(e)} maxLength={8192}/>
+      <TextBox placeholder="Name" onChange={(e)=>setName(e)} maxLength={64}/>
+      <BigTextBox placeholder="Description" onChange={(e)=>setDescription(e)} maxLength={8192}/>
       <ComboBox label="Difficulty" onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
       <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)}/>
       <div className={styles.formActions}>

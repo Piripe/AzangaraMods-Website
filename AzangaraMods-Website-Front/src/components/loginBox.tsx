@@ -21,8 +21,8 @@ export function LoginBox() {
     return (
         <>
             <div className={styles.form}>
-                <TextBox label="Email" onChange={(e) => setEmail(e)}/>
-                <TextBox label="Password" password={true} onChange={(e) => setPassword(e)}/>
+                <TextBox placeholder="Email" onChange={(e) => setEmail(e)}/>
+                <TextBox placeholder="Password" password={true} onChange={(e) => setPassword(e)}/>
                 {error && <div className={styles.error}>{error}</div>}
                 <Button variant="filled" disabled={loading} click={async () => {
                     setLoading(true);

@@ -23,10 +23,10 @@ export function RegisterBox() {
                 <LoginBox/>
             :
                 <div className={styles.form}>
-                    <TextBox label="Username" usernameEntry={true} onChange={(e) => setUsername(e)}/>
-                    <TextBox label="Email" onChange={(e) => setEmail(e)}/>
-                    <TextBox label="Password" password={true} newPassword={true} onChange={(e) => setPassword(e)}/>
-                    <TextBox label="Confirm Password" password={true} newPassword={true} onChange={(e) => setConfirmPassword(e)}/>
+                    <TextBox placeholder="Username" usernameEntry={true} onChange={(e) => setUsername(e)}/>
+                    <TextBox placeholder="Email" onChange={(e) => setEmail(e)}/>
+                    <TextBox placeholder="Password" password={true} newPassword={true} onChange={(e) => setPassword(e)}/>
+                    <TextBox placeholder="Confirm Password" password={true} newPassword={true} onChange={(e) => setConfirmPassword(e)}/>
                     {error && <div className={styles.error}>{error}</div>}
                     <Button variant="filled" disabled={loading} click={async () => {            
                         if (!username || !email || !password || !confirmPassword) {

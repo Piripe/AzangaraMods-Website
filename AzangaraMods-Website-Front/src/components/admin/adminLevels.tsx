@@ -249,7 +249,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
       }
 
       <div className={styles.toolbar}>
-        <TextBox className={styles.search} label="Search levels" placeholder="Name or description" onChange={search}/>
+        <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
         {status !== "pending" &&
           <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
             setSortIndex(i);
@@ -344,7 +344,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
         <Popup title="Reject verification?" closeCallback={()=>setRejecting(null)}>
           <div className={styles.dialog}>
             <p>&quot;{rejecting.name}&quot; by {rejecting.author?.username ?? "unknown"} stays a draft. The author sees your reason and can ask again.</p>
-            <BigTextBox label="Reason (optional)" maxLength={1024} onChange={setRejectNote}/>
+            <BigTextBox placeholder="Reason (optional)" maxLength={1024} onChange={setRejectNote}/>
             <div className={styles.dialogActions}>
               <Button variant="text" click={()=>setRejecting(null)}>Cancel</Button>
               <Button variant="filled" click={()=>{

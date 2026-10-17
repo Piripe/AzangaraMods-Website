@@ -159,7 +159,7 @@ export default function LevelBrowser() {
 
       <div className={styles.main}>
         <div className={styles.toolbar}>
-          <TextBox className={styles.search} label="Search levels" placeholder="Name or description" defaultValue={query} onChange={search}/>
+          <TextBox className={styles.search} icon="search" placeholder="Search levels…" defaultValue={query} onChange={search}/>
           <ComboBox key={sortIndex} label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>updateFilters(p=>{
             if (i === 0) p.delete("sort");
             else p.set("sort", sortOptions[i].id);

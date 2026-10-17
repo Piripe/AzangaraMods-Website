@@ -211,3 +211,43 @@ select.input ~ .outline > legend {
 .filled > .outline > legend {
     max-width: 100%;
 }
+
+/* Plain box used by text boxes: filled background, thin border, placeholder instead of a label */
+.box {
+    background-color: var(--surface-container-high);
+    border: 1px solid var(--outline-variant);
+    transition:
+        border-color var(--duration-short) var(--ease-standard),
+        background-color var(--duration-short) var(--ease-standard),
+        box-shadow var(--duration-short) var(--ease-standard);
+
+    &:hover {
+        border-color: var(--outline);
+    }
+    &:focus-within {
+        background-color: var(--surface-container-highest);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgb(from var(--primary) r g b / 0.2);
+    }
+    & > .input {
+        padding: 0 14px;
+    }
+    & > textarea.input {
+        padding: 12px 14px;
+    }
+    & > .leadingIcon + .input {
+        padding-left: 8px;
+    }
+}
+
+.leadingIcon {
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    color: var(--on-surface-variant);
+    pointer-events: none;
+    transition: color var(--duration-short) var(--ease-standard);
+}
+.box:focus-within > .leadingIcon {
+    color: var(--primary);
+}
