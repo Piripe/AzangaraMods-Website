@@ -15,6 +15,7 @@ import errorAlert from "@/utils/errorAlert";
 import { LevelDifficulties } from "@/enums";
 import ComboBox from "@/components/kit/combobox";
 import TagsInput from "@/components/kit/tagsInput";
+import { markdownHint } from "@/utils/markdown";
 
 export default function Page() {
   const [name, setName] = useState("");
@@ -31,7 +32,7 @@ export default function Page() {
       <PageHeader backHref="/dashboard/levels" title="New level" subtitle="You can upload files and screenshots once it's created"/>
       <Card className={styles.form}>
       <TextBox placeholder="Name" onChange={(e)=>setName(e)} maxLength={64}/>
-      <BigTextBox placeholder="Description" onChange={(e)=>setDescription(e)} maxLength={8192}/>
+      <BigTextBox placeholder="Description" supportingText={markdownHint} onChange={(e)=>setDescription(e)} maxLength={8192}/>
       <ComboBox label="Difficulty" onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
       <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)}/>
       <div className={styles.formActions}>

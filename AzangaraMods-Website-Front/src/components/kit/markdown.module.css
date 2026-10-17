@@ -1,0 +1,109 @@
+.markdown {
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.heading1, .heading2, .heading3 {
+    margin: 8px 0 4px;
+    font-weight: 600;
+    line-height: 1.3;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.heading1 {
+    font-size: 24px;
+}
+
+.heading2 {
+    font-size: 20px;
+}
+
+.heading3 {
+    font-size: var(--font-size-2);
+}
+
+.subtext {
+    display: block;
+    color: var(--on-surface-variant);
+    font-size: 13px;
+}
+
+.quote {
+    margin: 4px 0;
+    padding-left: 12px;
+    border-left: 4px solid var(--outline-variant);
+}
+
+.list {
+    margin: 4px 0;
+    padding-left: 24px;
+    white-space: normal;
+
+    & li {
+        white-space: pre-wrap;
+    }
+}
+
+.inlineCode, .codeBlock {
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.875em;
+    background: var(--surface-container-highest);
+    border-radius: var(--shape-xs);
+}
+
+.inlineCode {
+    padding: 0.1em 0.3em;
+}
+
+.codeBlock {
+    margin: 4px 0;
+    padding: 8px 12px;
+    border: 1px solid var(--outline-variant);
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.link {
+    color: var(--primary);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.emoji {
+    width: 1.375em;
+    height: 1.375em;
+    vertical-align: bottom;
+    object-fit: contain;
+}
+
+.timestamp {
+    padding: 0 2px;
+    background: var(--surface-container-highest);
+    border-radius: var(--shape-xs);
+}
+
+.spoiler {
+    padding: 0 2px;
+    border-radius: var(--shape-xs);
+    background: var(--scrim);
+    cursor: pointer;
+
+    &:not(.revealed) > span {
+        visibility: hidden;
+    }
+
+    &:not(.revealed):hover {
+        background: rgb(0 0 0 / 0.65);
+    }
+
+    &.revealed {
+        cursor: auto;
+        background: var(--surface-container-highest);
+    }
+}

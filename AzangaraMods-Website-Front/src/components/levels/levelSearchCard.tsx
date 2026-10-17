@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "./levelSearchCard.module.css";
 import Chip from "../kit/chip";
 import SvgIcon from "../kit/svgIcon";
+import { markdownToText, parseMarkdown } from "@/utils/markdown";
 import { difficultyNames, formatCount, formatRelativeDate, galleryImageUrl, getRoomsText } from "@/utils/levelLabels";
 
 export default function LevelSearchCard({level}:{level:LevelSearchHit}) {
@@ -22,7 +23,7 @@ export default function LevelSearchCard({level}:{level:LevelSearchHit}) {
           <span className={styles.name}>{level.name}</span>
           {level.author && <span className={styles.author}>by {level.author.username}</span>}
         </p>
-        <p className={styles.description}>{level.description}</p>
+        <p className={styles.description}>{markdownToText(parseMarkdown(level.description))}</p>
         <div className={styles.chips}>
           <Chip small icon="terrain">{difficultyNames[level.difficulty] ?? "Unknown"}</Chip>
           {level.roomAmount > 0 && <Chip small icon="rooms">{getRoomsText(level.roomAmount)}</Chip>}

@@ -19,6 +19,7 @@ import TextBox from "@/components/kit/textbox";
 import IconButton from "@/components/kit/iconButton";
 import EmptyState from "@/components/kit/emptyState";
 import Lightbox from "@/components/kit/lightbox";
+import Markdown from "@/components/kit/markdown";
 import LinkButton from "@/components/kit/linkButton";
 import Menu from "@/components/kit/menu";
 import Popup from "@/components/kit/popup";
@@ -27,6 +28,7 @@ import Avatar from "@/components/kit/avatar";
 import SvgIcon, { SvgIconName } from "@/components/kit/svgIcon";
 import Tabs from "@/components/kit/tabs";
 import formatBytes from "@/utils/fileSize";
+import { markdownHint } from "@/utils/markdown";
 import { difficultyNames, formatCount, formatRelativeDate, galleryImageUrl, getRoomsText, levelFileDownloadUrl } from "@/utils/levelLabels";
 import LevelFileUploadPopup from "@/components/dashboard/levelFileUploadPopup";
 import GalleryUploadPopup from "@/components/dashboard/galleryUploadPopup";
@@ -383,11 +385,17 @@ export default function Page({
           {tab === "description" && (draft ?
             <Card className={styles.descriptionEdit}>
               <BigTextBox label="Description" placeholder="Tell players what your level is about" maxLength={8192}
-                defaultValue={draft.description} error={descriptionError} onChange={description=>editDraft({ description })}/>
+                supportingText={markdownHint} defaultValue={draft.description} error={descriptionError} onChange={description=>editDraft({ description })}/>
+              {draft.description.trim() !== "" &&
+                <div className={styles.descriptionPreview}>
+                  <span className={styles.descriptionPreviewLabel}>Preview</span>
+                  <Markdown>{draft.description}</Markdown>
+                </div>
+              }
             </Card>
           :
             <Card>
-              <p className={styles.description}>{level.description}</p>
+              <Markdown>{level.description}</Markdown>
             </Card>
           )}
 
