@@ -16,7 +16,7 @@ import Pagination from "../kit/pagination";
 import Popup from "../kit/popup";
 import Spinner from "../kit/spinner";
 import SvgIcon from "../kit/svgIcon";
-import Tabs from "../kit/tabs";
+import Tabs, { TabPanel } from "../kit/tabs";
 import TextBox from "../kit/textbox";
 import AdminReports from "./adminReports";
 import AdminUsers from "./adminUsers";
@@ -260,105 +260,109 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
         </Card>
       }
 
-      {isLevels &&
-        <div className={styles.toolbar}>
-          <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
-          {status !== "pending" &&
-            <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
-              setSortIndex(i);
-              setPage(1);
-            }}/>
-          }
-        </div>
-      }
       <Tabs tabs={statusTabs.map(t=>({...t, count: t.id === "reports" ? reportCount : t.id === status ? result?.totalHits : t.id === "pending" ? pendingCount : undefined}))} value={status} onChange={s=>{
         setStatus(s);
         setPage(1);
-        // The search box is unmounted on the reports and users tabs, so its text would be lost
-        if (s === "reports" || s === "users") setQuery("");
+        // The search box is remounted with each tab, so its text would be lost
+        clearTimeout(searchTimeout.current);
+        setQuery("");
       }}/>
 
-      {isReports ?
-        <AdminReports onChanged={()=>setReloadKey(k=>k + 1)}/>
-      : isUsers ?
-        <AdminUsers/>
-      : failed ?
-        <EmptyState icon="map" title="Couldn't load levels" text="The server didn't answer. Try again in a moment."/>
-      : !result ?
-        <Spinner/>
-      : result.hits.length === 0 ?
-        status === "pending" && !query ?
-          <EmptyState icon="check" title="No pending verifications" text="Every verification request has been reviewed."/>
+      <TabPanel tabs={statusTabs} value={status}>
+        {isLevels &&
+          <div className={styles.toolbar}>
+            <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
+            {status !== "pending" &&
+              <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
+                setSortIndex(i);
+                setPage(1);
+              }}/>
+            }
+          </div>
+        }
+
+        {isReports ?
+          <AdminReports onChanged={()=>setReloadKey(k=>k + 1)}/>
+        : isUsers ?
+          <AdminUsers/>
+        : failed ?
+          <EmptyState icon="map" title="Couldn't load levels" text="The server didn't answer. Try again in a moment."/>
+        : !result ?
+          <Spinner/>
+        : result.hits.length === 0 ?
+          status === "pending" && !query ?
+            <EmptyState icon="check" title="No pending verifications" text="Every verification request has been reviewed."/>
+          :
+            <EmptyState icon="search" title="No levels found" text={query ? "Try another search." : "There are no levels here yet."}/>
         :
-          <EmptyState icon="search" title="No levels found" text={query ? "Try another search." : "There are no levels here yet."}/>
-      :
-        <>
-          <Card className={styles.list}>
-            {result.hits.map(level=>(
-              <div key={level.id} className={`${styles.row} ${busy[level.id] ? styles.busy : ""}`} aria-busy={!!busy[level.id]}>
-                <div className={styles.thumbnail}>
-                  {level.thumbnailId ?
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={galleryImageUrl(level.id, level.thumbnailId)} alt="" loading="lazy"/>
-                  :
-                    <SvgIcon name="image" size={24}/>
-                  }
-                </div>
-                <div className={styles.info}>
-                  <p className={styles.title}>
-                    <Link href={`/levels/${level.id}`} className={styles.name}>{level.name}</Link>
-                    <span className={styles.author}>by {level.author?.username ?? "unknown"}</span>
-                  </p>
-                  <p className={styles.meta}>
-                    <span><SvgIcon name="file" size={14}/>{level.fileCount} file{level.fileCount === 1 ? "" : "s"}</span>
-                    <span title={`${level.downloads} downloads`}><SvgIcon name="download" size={14}/>{formatCount(level.downloads)}</span>
-                    <span title={new Date(level.lastEdit).toLocaleString()}><SvgIcon name="history" size={14}/>{formatRelativeDate(level.lastEdit)}</span>
-                    {level.verification === LevelVerificationStatus.Pending && level.verificationRequested &&
-                      <span title={new Date(level.verificationRequested).toLocaleString()}><SvgIcon name="schedule" size={14}/>Requested {formatRelativeDate(level.verificationRequested)}</span>
-                    }
-                  </p>
-                </div>
-                <div className={styles.chips}>
-                  {busy[level.id] ?
-                    <Chip small variant="highlight" icon="schedule">{busy[level.id]}</Chip>
-                  : status === "pending" && level.verification === LevelVerificationStatus.Pending ? <>
-                    <Button variant="outlined" icon="download" disabled={!level.latestFileId} click={()=>download(level)}>Download</Button>
-                    <Button variant="text" icon="close" click={()=>openReject(level)}>Reject</Button>
-                    <Button variant="filled" icon="check" click={()=>approve(level)}>Approve</Button>
-                  </> : <>
-                    {level.published ?
-                      <Chip small variant="success" icon="public">Published</Chip>
-                    : level.verification === LevelVerificationStatus.Pending ?
-                      <Chip small variant="highlight" icon="schedule">Pending review</Chip>
+          <>
+            <Card className={styles.list}>
+              {result.hits.map(level=>(
+                <div key={level.id} className={`${styles.row} ${busy[level.id] ? styles.busy : ""}`} aria-busy={!!busy[level.id]}>
+                  <div className={styles.thumbnail}>
+                    {level.thumbnailId ?
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={galleryImageUrl(level.id, level.thumbnailId)} alt="" loading="lazy"/>
                     :
-                      <Chip small variant="highlight" icon="lock">Draft</Chip>
+                      <SvgIcon name="image" size={24}/>
                     }
-                    {!level.published && level.verification === LevelVerificationStatus.Rejected && <Chip small icon="close">Rejected</Chip>}
-                    {level.published && !level.hasDiscordMessage && <Chip small icon="forum">No Discord post</Chip>}
-                  </>}
-                </div>
-                <Menu items={[
-                  { label: "Open level page", icon: "openInNew", href: `/levels/${level.id}` },
-                  { label: "Edit", icon: "edit", href: `/levels/${level.id}?edit` },
-                  { label: "Download latest file", icon: "download", click: ()=>download(level), disabled: !level.latestFileId },
-                  "divider",
-                  ...(level.verification === LevelVerificationStatus.Pending ? [
-                    { label: "Approve and publish", icon: "check", click: ()=>approve(level), disabled: !!busy[level.id] },
-                    { label: "Reject", icon: "close", click: ()=>openReject(level), disabled: !!busy[level.id] },
+                  </div>
+                  <div className={styles.info}>
+                    <p className={styles.title}>
+                      <Link href={`/levels/${level.id}`} className={styles.name}>{level.name}</Link>
+                      <span className={styles.author}>by {level.author?.username ?? "unknown"}</span>
+                    </p>
+                    <p className={styles.meta}>
+                      <span><SvgIcon name="file" size={14}/>{level.fileCount} file{level.fileCount === 1 ? "" : "s"}</span>
+                      <span title={`${level.downloads} downloads`}><SvgIcon name="download" size={14}/>{formatCount(level.downloads)}</span>
+                      <span title={new Date(level.lastEdit).toLocaleString()}><SvgIcon name="history" size={14}/>{formatRelativeDate(level.lastEdit)}</span>
+                      {level.verification === LevelVerificationStatus.Pending && level.verificationRequested &&
+                        <span title={new Date(level.verificationRequested).toLocaleString()}><SvgIcon name="schedule" size={14}/>Requested {formatRelativeDate(level.verificationRequested)}</span>
+                      }
+                    </p>
+                  </div>
+                  <div className={styles.chips}>
+                    {busy[level.id] ?
+                      <Chip small variant="highlight" icon="schedule">{busy[level.id]}</Chip>
+                    : status === "pending" && level.verification === LevelVerificationStatus.Pending ? <>
+                      <Button variant="outlined" icon="download" disabled={!level.latestFileId} click={()=>download(level)}>Download</Button>
+                      <Button variant="text" icon="close" click={()=>openReject(level)}>Reject</Button>
+                      <Button variant="filled" icon="check" click={()=>approve(level)}>Approve</Button>
+                    </> : <>
+                      {level.published ?
+                        <Chip small variant="success" icon="public">Published</Chip>
+                      : level.verification === LevelVerificationStatus.Pending ?
+                        <Chip small variant="highlight" icon="schedule">Pending review</Chip>
+                      :
+                        <Chip small variant="highlight" icon="lock">Draft</Chip>
+                      }
+                      {!level.published && level.verification === LevelVerificationStatus.Rejected && <Chip small icon="close">Rejected</Chip>}
+                      {level.published && !level.hasDiscordMessage && <Chip small icon="forum">No Discord post</Chip>}
+                    </>}
+                  </div>
+                  <Menu items={[
+                    { label: "Open level page", icon: "openInNew", href: `/levels/${level.id}` },
+                    { label: "Edit", icon: "edit", href: `/levels/${level.id}?edit` },
+                    { label: "Download latest file", icon: "download", click: ()=>download(level), disabled: !level.latestFileId },
                     "divider",
-                  ] as const : []),
-                  { label: level.published ? "Unpublish" : "Publish", icon: level.published ? "lock" : "public", click: ()=>togglePublished(level), disabled: !!busy[level.id] },
-                  { label: "Reprocess files", icon: "refresh", click: ()=>reprocess(level), disabled: !!busy[level.id] || level.fileCount === 0 },
-                  { label: "Refresh Discord message", icon: "forum", click: ()=>refreshDiscord(level), disabled: !!busy[level.id] },
-                  "divider",
-                  { label: "Delete", icon: "delete", click: ()=>deleteLevel(level), disabled: !!busy[level.id] },
-                ]}/>
-              </div>
-            ))}
-          </Card>
-          <Pagination page={page} pageCount={pageCount} onChange={setPage}/>
-        </>
-      }
+                    ...(level.verification === LevelVerificationStatus.Pending ? [
+                      { label: "Approve and publish", icon: "check", click: ()=>approve(level), disabled: !!busy[level.id] },
+                      { label: "Reject", icon: "close", click: ()=>openReject(level), disabled: !!busy[level.id] },
+                      "divider",
+                    ] as const : []),
+                    { label: level.published ? "Unpublish" : "Publish", icon: level.published ? "lock" : "public", click: ()=>togglePublished(level), disabled: !!busy[level.id] },
+                    { label: "Reprocess files", icon: "refresh", click: ()=>reprocess(level), disabled: !!busy[level.id] || level.fileCount === 0 },
+                    { label: "Refresh Discord message", icon: "forum", click: ()=>refreshDiscord(level), disabled: !!busy[level.id] },
+                    "divider",
+                    { label: "Delete", icon: "delete", click: ()=>deleteLevel(level), disabled: !!busy[level.id] },
+                  ]}/>
+                </div>
+              ))}
+            </Card>
+            <Pagination page={page} pageCount={pageCount} onChange={setPage}/>
+          </>
+        }
+      </TabPanel>
 
       {rejecting &&
         <Popup title="Reject verification?" closeCallback={()=>setRejecting(null)}>

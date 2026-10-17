@@ -67,3 +67,33 @@
     line-height: 20px;
     text-align: center;
 }
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.left, .right {
+    animation: panel-in var(--duration-medium) var(--ease-emphasized-decelerate);
+}
+.left { --panel-offset: -24px; }
+.right { --panel-offset: 24px; }
+
+@keyframes panel-in {
+    from {
+        opacity: 0;
+        transform: translateX(var(--panel-offset));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .left, .right {
+        animation-name: fade-in;
+    }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+}

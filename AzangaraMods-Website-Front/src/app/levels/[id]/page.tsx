@@ -27,7 +27,7 @@ import Popup from "@/components/kit/popup";
 import Spinner from "@/components/kit/spinner";
 import Avatar from "@/components/kit/avatar";
 import SvgIcon, { SvgIconName } from "@/components/kit/svgIcon";
-import Tabs from "@/components/kit/tabs";
+import Tabs, { Tab, TabPanel } from "@/components/kit/tabs";
 import formatBytes from "@/utils/fileSize";
 import { markdownHint } from "@/utils/markdown";
 import { difficultyNames, formatCount, formatRelativeDate, galleryImageUrl, getRoomsText, levelFileDownloadUrl } from "@/utils/levelLabels";
@@ -237,6 +237,12 @@ export default function Page({
     ["history", "Updated", formatRelativeDate(level.lastEdit), new Date(level.lastEdit).toLocaleString()],
   ];
 
+  const tabs: Tab<LevelTab>[] = [
+    { id: "description", label: "Description", icon: "article" },
+    { id: "gallery", label: "Gallery", icon: "image", count: gallery.length },
+    { id: "versions", label: "Versions", icon: "file", count: files.length },
+  ];
+
   // A title only where the chip next to the level name doesn't already say it
   const [statusIcon, statusTitle, statusText]: [SvgIconName, string | null, string] =
     pending ? ["schedule", "Waiting for review", isAuthor
@@ -372,102 +378,96 @@ export default function Page({
 
       <div className={styles.columns}>
         <div className={styles.main}>
-          <Tabs<LevelTab>
-            value={tab}
-            onChange={setTab}
-            tabs={[
-              { id: "description", label: "Description", icon: "article" },
-              { id: "gallery", label: "Gallery", icon: "image", count: gallery.length },
-              { id: "versions", label: "Versions", icon: "file", count: files.length },
-            ]}
-          />
+          <Tabs<LevelTab> value={tab} onChange={setTab} tabs={tabs}/>
 
-          {tab === "description" && (draft ?
-            <Card className={styles.descriptionEdit}>
-              <MarkdownTextBox label="Description" placeholder="Tell players what your level is about" maxLength={8192}
-                supportingText={markdownHint} defaultValue={draft.description} error={descriptionError} onChange={description=>editDraft({ description })}/>
-            </Card>
-          :
-            <Card>
-              <Markdown>{level.description}</Markdown>
-            </Card>
-          )}
+          <TabPanel tabs={tabs} value={tab}>
+            {tab === "description" && (draft ?
+              <Card className={styles.descriptionEdit}>
+                <MarkdownTextBox label="Description" placeholder="Tell players what your level is about" maxLength={8192}
+                  supportingText={markdownHint} defaultValue={draft.description} error={descriptionError} onChange={description=>editDraft({ description })}/>
+              </Card>
+            :
+              <Card>
+                <Markdown>{level.description}</Markdown>
+              </Card>
+            )}
 
-          {(tab === "gallery" || tab === "versions") && isAuthor &&
-            <div className={styles.tabToolbar}>
-              {tab === "gallery" ?
-                <Button variant="filled" icon="image" click={()=>setUploadPopup("gallery")}>Add screenshot</Button>
-              :
-                <Button variant="filled" icon="upload" click={()=>setUploadPopup("file")}>Upload file</Button>
-              }
-            </div>
-          }
+            {(tab === "gallery" || tab === "versions") && isAuthor &&
+              <div className={styles.tabToolbar}>
+                {tab === "gallery" ?
+                  <Button variant="filled" icon="image" click={()=>setUploadPopup("gallery")}>Add screenshot</Button>
+                :
+                  <Button variant="filled" icon="upload" click={()=>setUploadPopup("file")}>Upload file</Button>
+                }
+              </div>
+            }
 
-          {tab === "gallery" && (gallery.length > 0 ?
-            <div className={styles.gallery}>
-              {gallery.map((f, i)=>(
-                <figure key={f.id} className={styles.galleryItem}>
-                  <button type="button" onClick={()=>setLightboxIndex(i)} aria-label={`Open ${f.description || f.fileName}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={galleryImageUrl(level.id, f.id)} alt={f.description || f.fileName} loading="lazy"/>
-                  </button>
-                  {isAuthor &&
-                    <span className={styles.galleryDelete}>
-                      <IconButton icon="delete" label="Delete" variant="tonal" click={()=>deleteGalleryFile(f)}/>
-                    </span>
-                  }
-                  {f.description && <figcaption>{f.description}</figcaption>}
-                </figure>
-              ))}
-            </div>
-          :
-            <Card>
-              <EmptyState icon="image" title="No screenshots yet" text={isAuthor ? "Screenshots show players what your level looks like." : undefined}/>
-            </Card>
-          )}
+            {tab === "gallery" && (gallery.length > 0 ?
+              <div className={styles.gallery}>
+                {gallery.map((f, i)=>(
+                  <figure key={f.id} className={styles.galleryItem}>
+                    <button type="button" onClick={()=>setLightboxIndex(i)} aria-label={`Open ${f.description || f.fileName}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={galleryImageUrl(level.id, f.id)} alt={f.description || f.fileName} loading="lazy"/>
+                    </button>
+                    {isAuthor &&
+                      <span className={styles.galleryDelete}>
+                        <IconButton icon="delete" label="Delete" variant="tonal" click={()=>deleteGalleryFile(f)}/>
+                      </span>
+                    }
+                    {f.description && <figcaption>{f.description}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            :
+              <Card>
+                <EmptyState icon="image" title="No screenshots yet" text={isAuthor ? "Screenshots show players what your level looks like." : undefined}/>
+              </Card>
+            )}
 
-          {tab === "versions" &&
-            <Card>
-              {files.length > 0 ?
-                <ul className={styles.versions}>
-                  {files.map(f=>(
-                    <li key={f.id} className={styles.version}>
-                      <span className={styles.versionIcon}><SvgIcon name="file"/></span>
-                      <div className={styles.versionText}>
-                        <p className={styles.versionName}>
-                          <span>{f.fileName}</span>
-                          {f === latest && <Chip small variant="success">Latest</Chip>}
-                        </p>
-                        <p className={styles.versionMeta}>
-                          <span title={new Date(f.uploadDate).toLocaleString()}>{formatRelativeDate(f.uploadDate)}</span>
-                          <span>{formatBytes(f.fileSize)}</span>
-                          <span>{(f.downloads ?? 0).toLocaleString()} download{f.downloads === 1 ? "" : "s"}</span>
-                        </p>
-                      </div>
-                      <div className={styles.versionActions}>
-                        {level.published ?
-                          <a className={buttonClass("tonal", true)} href={levelFileDownloadUrl(level.id, f.id)} download>
-                            <SvgIcon name="download" size={18}/>.pak
-                          </a>
-                        :
-                          <Button icon="download" click={()=>download(f)}>.pak</Button>
-                        }
-                        <Menu items={[
-                          { label: "Download .pak.zip", icon: "download", href: levelFileDownloadUrl(level.id, f.id, "zip"), download: true, disabled: !level.published },
-                          "divider",
-                          { label: "Copy link", icon: "link", click: ()=>navigator.clipboard.writeText(levelFileDownloadUrl(level.id, f.id)) },
-                          { label: "Report", icon: "flag", click: ()=>setReportFile(f) },
-                          ...(isAuthor ? ["divider", { label: "Delete", icon: "delete", click: ()=>deleteFile(f) }] as const : []),
-                        ]}/>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              :
-                <EmptyState icon="file" title="No files yet" text={isAuthor ? "Upload a .pak or .zip of your level." : "The author hasn't uploaded this level's files yet."}/>
-              }
-            </Card>
-          }
+            {tab === "versions" &&
+              <Card>
+                {files.length > 0 ?
+                  <ul className={styles.versions}>
+                    {files.map(f=>(
+                      <li key={f.id} className={styles.version}>
+                        <span className={styles.versionIcon}><SvgIcon name="file"/></span>
+                        <div className={styles.versionText}>
+                          <p className={styles.versionName}>
+                            <span>{f.fileName}</span>
+                            {f === latest && <Chip small variant="success">Latest</Chip>}
+                          </p>
+                          <p className={styles.versionMeta}>
+                            <span title={new Date(f.uploadDate).toLocaleString()}>{formatRelativeDate(f.uploadDate)}</span>
+                            <span>{formatBytes(f.fileSize)}</span>
+                            <span>{(f.downloads ?? 0).toLocaleString()} download{f.downloads === 1 ? "" : "s"}</span>
+                          </p>
+                        </div>
+                        <div className={styles.versionActions}>
+                          {level.published ?
+                            <a className={buttonClass("tonal", true)} href={levelFileDownloadUrl(level.id, f.id)} download>
+                              <SvgIcon name="download" size={18}/>.pak
+                            </a>
+                          :
+                            <Button icon="download" click={()=>download(f)}>.pak</Button>
+                          }
+                          <Menu items={[
+                            { label: "Download .pak.zip", icon: "download", href: levelFileDownloadUrl(level.id, f.id, "zip"), download: true, disabled: !level.published },
+                            "divider",
+                            { label: "Copy link", icon: "link", click: ()=>navigator.clipboard.writeText(levelFileDownloadUrl(level.id, f.id)) },
+                            { label: "Report", icon: "flag", click: ()=>setReportFile(f) },
+                            ...(isAuthor ? ["divider", { label: "Delete", icon: "delete", click: ()=>deleteFile(f) }] as const : []),
+                          ]}/>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                :
+                  <EmptyState icon="file" title="No files yet" text={isAuthor ? "Upload a .pak or .zip of your level." : "The author hasn't uploaded this level's files yet."}/>
+                }
+              </Card>
+            }
+          </TabPanel>
         </div>
 
         <aside className={styles.sidebar}>
