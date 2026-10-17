@@ -11,7 +11,7 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
     const ref = useRef<HTMLDivElement>(null);
     useClickOutside(ref, closeCallback ?? (()=>{}));
 
-    const {user, setUser} = useUserData();
+    const {user, setUser, token, setToken} = useUserData();
 
     return (
         <div ref={ref} className={styles.menu}>
@@ -21,9 +21,11 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
             {/* <Link href="/dashboard">Dashboard</Link> */}
             <div className={styles.divider}/>
             <Link href="/" onNavigate={()=>{
-                fetchApi("/logout", localStorage.getItem("token") ?? "");
+                if (token) fetchApi("/logout", token);
                 localStorage.removeItem("token");
+                setToken(null);
                 setUser(null);
+                closeCallback?.();
             }}><SvgIcon name="logout" size={20}/>Log out</Link>
         </div>
     );
