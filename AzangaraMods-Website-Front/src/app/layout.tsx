@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import { UserContextProvider } from "../context/UserContext";
+import NavigationTracker from "@/components/navigationTracker";
 
 const interSans = Inter({
   variable: "--font-inter",
@@ -22,6 +24,7 @@ export default function RootLayout({
     <html className={interSans.className}>
       <body>
         <UserContextProvider>{children}</UserContextProvider>
+        <Suspense fallback={null}><NavigationTracker/></Suspense>
         <div id="portal"/>
       </body>
     </html>

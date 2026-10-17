@@ -63,4 +63,5 @@ public enum ErrorCodes
     DownloadAvatarNotFound = 0x3A,
     UserGetNotFound = 0x3B,
     LevelPatchInvalidRoomAmount = 0x3C,
+    LevelDeleteNotFound = 0x3D,
 }

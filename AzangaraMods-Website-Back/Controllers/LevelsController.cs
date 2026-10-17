@@ -138,4 +138,16 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         await discordService.DeleteVerificationRequest(level);
         return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level))));
     }
+
+    // Deletes the level with all its files and screenshots
+    [HttpDelete("{levelId}")]
+    public async Task<IActionResult> DeleteLevel([FromRoute] long levelId)
+    {
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelDeleteNotFound));
+        await levelService.PurgeLevel(level);
+
+        return Ok(mapper.Map<LevelPartialDto>(level));
+    }
 }

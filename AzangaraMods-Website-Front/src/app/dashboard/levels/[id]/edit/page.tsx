@@ -70,7 +70,7 @@ export default  function Page({
   return (
     (!levelData) ? <Spinner/> :
       <div>
-        <PageHeader backHref={"/dashboard/levels/" + id} title="Edit level" subtitle={levelData.name}/>
+        <PageHeader backHref={"/levels/" + id} title="Edit level" subtitle={levelData.name}/>
         <Card className={styles.form}>
         <TextBox placeholder="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
         <BigTextBox placeholder="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
@@ -78,7 +78,7 @@ export default  function Page({
         <TextBox placeholder="Rooms" type="number" min={0} max={32767} onChange={(e)=>setRoomAmount(e)} defaultValue={levelData?.roomAmount?.toString()} error={roomAmountError} supportingText="Counted automatically from your latest upload. Uploading a new file counts it again."/>
         <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags} />
         <div className={styles.formActions}>
-          <LinkButton variant="text" href={"/dashboard/levels/" + id}>Cancel</LinkButton>
+          <LinkButton variant="text" href={"/levels/" + id}>Cancel</LinkButton>
           <Button variant="filled" disabled={roomAmountError !== null} click={()=>{
             fetchApi("/levels/" + id, token!, "PATCH",
               JSON.stringify({
@@ -92,7 +92,7 @@ export default  function Page({
               if (res.ok) {
                 res.json().then((data:Level)=>{
                   updateLevel(data);
-                  router.push("/dashboard/levels/"+data.id);
+                  router.push("/levels/"+data.id);
                 });
               } else {
                 res.json().then((data:ErrorResponse)=>{errorAlert(data)});

@@ -2,23 +2,34 @@
 import styles from "./page.module.css";
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import useUserData from "@/hooks/useUserData";
 import fetchApi from "@/utils/fetchApi";
-import { buttonClass } from "@/components/kit/button";
+import errorAlert from "@/utils/errorAlert";
+import downloadLevelFile from "@/utils/downloadLevelFile";
+import { useBackTarget } from "@/utils/backTarget";
+import { LevelVerificationStatus } from "@/enums";
+import BigTextBox from "@/components/kit/bigTextbox";
+import Button, { buttonClass } from "@/components/kit/button";
 import Card from "@/components/kit/card";
 import Chip from "@/components/kit/chip";
+import IconButton from "@/components/kit/iconButton";
 import EmptyState from "@/components/kit/emptyState";
 import Lightbox from "@/components/kit/lightbox";
 import LinkButton from "@/components/kit/linkButton";
 import Menu from "@/components/kit/menu";
+import Popup from "@/components/kit/popup";
 import Spinner from "@/components/kit/spinner";
 import Avatar from "@/components/kit/avatar";
 import SvgIcon, { SvgIconName } from "@/components/kit/svgIcon";
 import Tabs from "@/components/kit/tabs";
 import formatBytes from "@/utils/fileSize";
 import { difficultyNames, formatCount, formatRelativeDate, galleryImageUrl, getRoomsText, levelFileDownloadUrl } from "@/utils/levelLabels";
+import LevelFileUploadPopup from "@/components/dashboard/levelFileUploadPopup";
+import GalleryUploadPopup from "@/components/dashboard/galleryUploadPopup";
 
 type LevelTab = "description" | "gallery" | "versions";
+type LevelAction = "publish" | "verification" | "approve" | "reject" | "delete";
 
 export default function Page({
   params,
@@ -26,12 +37,19 @@ export default function Page({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params);
-  const { user, token } = useUserData();
+  const { user, setUser, token, updateLevel } = useUserData();
+  const router = useRouter();
+  const backTarget = useBackTarget();
 
   const [level, setLevel] = useState<Level|null>(null);
   const [failed, setFailed] = useState(false);
   const [tab, setTab] = useState<LevelTab>("description");
   const [lightboxIndex, setLightboxIndex] = useState<number|null>(null);
+  const [uploadPopup, setUploadPopup] = useState<"file"|"gallery"|null>(null);
+  const [dialog, setDialog] = useState<"delete"|"reject"|null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  // The management action whose request is running, and the label its button shows meanwhile
+  const [busy, setBusy] = useState<{ action: LevelAction, label: string }|null>(null);
 
   // Refetched once the token is loaded, so authors can preview their unpublished levels
   useEffect(()=>{
@@ -50,6 +68,52 @@ export default function Page({
     return ()=>{ cancelled = true; };
   }, [id, token]);
 
+  const saveLevel = (data: Level) => {
+    setLevel(data);
+    updateLevel(data);
+  };
+
+  // Reloads the level after an upload or a deletion changed its files or room count
+  const reloadLevel = async () => {
+    const res = await fetchApi("/levels/" + id, token!);
+    const data = await res.json();
+    if (res.ok) saveLevel(data);
+    else errorAlert(data);
+  };
+
+  // Runs a management request while its button shows `label`. Publish and verification responses leave out
+  // the files, gallery and author, so those are kept from the loaded level
+  const levelRequest = async (action: LevelAction, label: string, path: string, method: string, body: BodyInit | null = null, onSuccess?: () => void) => {
+    setBusy({ action, label });
+    try {
+      const res = await fetchApi(path, token!, method, body);
+      const data = await res.json();
+      if (!res.ok) {
+        errorAlert(data);
+      } else if (onSuccess) {
+        onSuccess();
+      } else if (level) {
+        saveLevel({ ...level, ...data, levelFiles: level.levelFiles, galleryFiles: level.galleryFiles, author: level.author, downloads: level.downloads });
+      }
+    } catch {
+      alert("The server didn't answer.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteFile = async (f: LevelFile) => {
+    const res = await fetchApi(`/levels/${id}/files/${f.id}`, token!, "DELETE");
+    if (res.ok) await reloadLevel();
+    else errorAlert(await res.json());
+  };
+
+  const deleteGalleryFile = async (f: GalleryFile) => {
+    const res = await fetchApi(`/levels/${id}/gallery/${f.id}`, token!, "DELETE");
+    if (res.ok) await reloadLevel();
+    else errorAlert(await res.json());
+  };
+
   if (!level) {
     if (!failed) return <Spinner/>;
     return (
@@ -67,6 +131,14 @@ export default function Page({
   const gallery = [...level.galleryFiles ?? []].sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime());
   const latest = files[0];
   const isAuthor = user != null && user.id === level.authorId;
+  const isAdmin = user?.admin ?? false;
+  const canEdit = isAuthor || isAdmin;
+  // Authors who aren't Verified Modders need an admin to verify the level before publishing it
+  const canPublish = level.published || user?.verifiedModder || isAdmin || level.verification === LevelVerificationStatus.Verified;
+  const pending = !level.published && level.verification === LevelVerificationStatus.Pending;
+  const rejected = !level.published && level.verification === LevelVerificationStatus.Rejected;
+  // Drafts only download with the token, which a plain link doesn't send
+  const download = (f: LevelFile) => downloadLevelFile(level.id, f.id, f.fileName, token!);
   const downloads = level.downloads ?? 0;
 
   const details: [SvgIconName, string, string, string?][] = [
@@ -77,8 +149,35 @@ export default function Page({
     ["history", "Updated", formatRelativeDate(level.lastEdit), new Date(level.lastEdit).toLocaleString()],
   ];
 
+  const [statusTitle, statusText] =
+    pending ? ["Waiting for review", isAuthor
+      ? "An admin will check your level soon. It is published as soon as they approve it."
+      : `${level.author?.username ?? "The author"} asked for this level to be verified${level.verificationRequested ? " " + formatRelativeDate(level.verificationRequested) : ""}.`]
+    : rejected ? ["Review rejected", isAuthor
+      ? "An admin didn't approve this level. Fix what they asked, then submit it again."
+      : "This level was rejected. The author can submit it again."]
+    : !isAuthor ? ["Draft", "Only the author and admins can see this level."]
+    : canPublish ? ["Draft", "Only you and admins can see this level. Publish it when it's ready."]
+    : files.length > 0 ? ["Review required", "Your first levels are checked by an admin before they go public. Submit this level when it is ready, and it is published once approved."]
+    : ["Review required", "Your first levels are checked by an admin before they go public. Upload a file, then submit the level for review."];
+
+  // Goes back to the list the user came from, or to the level browser
+  const back = backTarget ?? "/levels";
+  const backPath = back.split("?")[0];
+  const backLabel =
+    backPath === "/" ? "Home"
+    : backPath === "/dashboard/levels" ? "My levels"
+    : backPath === "/dashboard/admin" ? "Admin levels"
+    : backPath.startsWith("/users/") ? (backPath === `/users/${level.authorId}` && level.author ? `${level.author.username}'s levels` : "Author's levels")
+    : "Level browser";
+
+  const busyLabel = (action: LevelAction, label: string) => busy?.action === action ? busy.label : label;
+
   return (
     <div className={styles.container}>
+      <div className={styles.backLink}>
+        <LinkButton variant="text" icon="arrowBack" href={back}>{backLabel}</LinkButton>
+      </div>
       <header className={styles.header}>
         <div className={styles.thumbnail}>
           {gallery.length > 0 ?
@@ -93,7 +192,11 @@ export default function Page({
         <div className={styles.headerInfo}>
           <div className={styles.titleRow}>
             <h1>{level.name}</h1>
-            {!level.published && <Chip small variant="highlight" icon="lock">Draft</Chip>}
+            {pending ?
+              <Chip small variant="highlight" icon="schedule">Pending review</Chip>
+            : !level.published &&
+              <Chip small variant="highlight" icon="lock">Draft</Chip>
+            }
           </div>
           {level.author && <p className={styles.author}><SvgIcon name="person" size={16}/>by <Link href={`/users/${level.authorId}`} className={styles.authorLink}>{level.author.username}</Link></p>}
           <div className={styles.stats}>
@@ -108,16 +211,47 @@ export default function Page({
           </div>
         </div>
         <div className={styles.headerActions}>
-          {latest ?
+          {canEdit && <>
+            {isAuthor ?
+              canPublish ?
+                <Button variant="tonal" icon={level.published ? "lock" : "public"} disabled={busy !== null} click={()=>
+                  levelRequest("publish", level.published ? "Unpublishing…" : "Publishing…", "/levels/" + id, "PATCH", JSON.stringify({ published: !level.published }))
+                }>{busyLabel("publish", level.published ? "Unpublish" : "Publish")}</Button>
+              : pending ?
+                <Button variant="tonal" icon="close" disabled={busy !== null} click={()=>levelRequest("verification", "Cancelling…", `/levels/${id}/verification`, "DELETE")}>{busyLabel("verification", "Cancel review")}</Button>
+              :
+                <Button variant="tonal" icon="flag" disabled={busy !== null || files.length === 0} click={()=>levelRequest("verification", "Submitting…", `/levels/${id}/verification`, "POST")}>{busyLabel("verification", "Submit for review")}</Button>
+            : pending && <>
+              <Button variant="tonal" icon="close" disabled={busy !== null} click={()=>{
+                setRejectNote("");
+                setDialog("reject");
+              }}>{busyLabel("reject", "Reject")}</Button>
+              <Button variant="tonal" icon="check" disabled={busy !== null} click={()=>levelRequest("approve", "Approving…", `/admin/levels/${id}/verification/approve`, "POST")}>{busyLabel("approve", "Approve and publish")}</Button>
+            </>}
+            <LinkButton variant="outlined" icon="edit" href={`/dashboard/levels/${level.id}/edit`}>Edit</LinkButton>
+            <Button variant="text" icon="delete" disabled={busy !== null} click={()=>setDialog("delete")}>{busyLabel("delete", "Delete")}</Button>
+          </>}
+          {!latest ?
+            <span className={buttonClass("filled", true)} aria-disabled="true"><SvgIcon name="download" size={18}/>No files yet</span>
+          : level.published ?
             <a className={buttonClass("filled", true)} href={levelFileDownloadUrl(level.id, latest.id)} download>
               <SvgIcon name="download" size={18}/>Download
             </a>
           :
-            <span className={buttonClass("filled", true)} aria-disabled="true"><SvgIcon name="download" size={18}/>No files yet</span>
+            <Button variant="filled" icon="download" click={()=>download(latest)}>Download</Button>
           }
-          {isAuthor && <LinkButton variant="outlined" icon="edit" href={`/dashboard/levels/${level.id}`}>Manage</LinkButton>}
         </div>
       </header>
+
+      {canEdit && !level.published &&
+        <Card className={styles.manage}>
+          <div className={styles.manageText}>
+            <h2>{statusTitle}</h2>
+            <p>{statusText}</p>
+            {rejected && level.verificationNote && <p><strong>Reason:</strong> {level.verificationNote}</p>}
+          </div>
+        </Card>
+      }
 
       <div className={styles.columns}>
         <div className={styles.main}>
@@ -137,6 +271,16 @@ export default function Page({
             </Card>
           }
 
+          {(tab === "gallery" || tab === "versions") && isAuthor &&
+            <div className={styles.tabToolbar}>
+              {tab === "gallery" ?
+                <Button variant="filled" icon="image" click={()=>setUploadPopup("gallery")}>Add screenshot</Button>
+              :
+                <Button variant="filled" icon="upload" click={()=>setUploadPopup("file")}>Upload file</Button>
+              }
+            </div>
+          }
+
           {tab === "gallery" && (gallery.length > 0 ?
             <div className={styles.gallery}>
               {gallery.map((f, i)=>(
@@ -145,12 +289,19 @@ export default function Page({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={galleryImageUrl(level.id, f.id)} alt={f.description || f.fileName} loading="lazy"/>
                   </button>
+                  {isAuthor &&
+                    <span className={styles.galleryDelete}>
+                      <IconButton icon="delete" label="Delete" variant="tonal" click={()=>deleteGalleryFile(f)}/>
+                    </span>
+                  }
                   {f.description && <figcaption>{f.description}</figcaption>}
                 </figure>
               ))}
             </div>
           :
-            <Card><EmptyState icon="image" title="No screenshots yet"/></Card>
+            <Card>
+              <EmptyState icon="image" title="No screenshots yet" text={isAuthor ? "Screenshots show players what your level looks like." : undefined}/>
+            </Card>
           )}
 
           {tab === "versions" &&
@@ -172,22 +323,27 @@ export default function Page({
                         </p>
                       </div>
                       <div className={styles.versionActions}>
-                        <a className={buttonClass("tonal", true)} href={levelFileDownloadUrl(level.id, f.id)} download>
-                          <SvgIcon name="download" size={18}/>.pak
-                        </a>
+                        {level.published ?
+                          <a className={buttonClass("tonal", true)} href={levelFileDownloadUrl(level.id, f.id)} download>
+                            <SvgIcon name="download" size={18}/>.pak
+                          </a>
+                        :
+                          <Button icon="download" click={()=>download(f)}>.pak</Button>
+                        }
                         <Menu items={[
-                          { label: "Download .pak.zip", icon: "download", href: levelFileDownloadUrl(level.id, f.id, "zip"), download: true },
+                          { label: "Download .pak.zip", icon: "download", href: levelFileDownloadUrl(level.id, f.id, "zip"), download: true, disabled: !level.published },
                           "divider",
                           { label: "Copy link", icon: "link", click: ()=>navigator.clipboard.writeText(levelFileDownloadUrl(level.id, f.id)) },
                           // TODO: no report endpoint on the backend yet
                           { label: "Report", icon: "flag", click: ()=>{}, disabled: true },
+                          ...(isAuthor ? ["divider", { label: "Delete", icon: "delete", click: ()=>deleteFile(f) }] as const : []),
                         ]}/>
                       </div>
                     </li>
                   ))}
                 </ul>
               :
-                <EmptyState icon="file" title="No files yet" text="The author hasn't uploaded this level's files yet."/>
+                <EmptyState icon="file" title="No files yet" text={isAuthor ? "Upload a .pak or .zip of your level." : "The author hasn't uploaded this level's files yet."}/>
               }
             </Card>
           }
@@ -225,6 +381,47 @@ export default function Page({
           onChange={setLightboxIndex}
           onClose={()=>setLightboxIndex(null)}
         />
+      }
+
+      {uploadPopup === "file" &&
+        <LevelFileUploadPopup levelId={id} token={token!} onClose={()=>setUploadPopup(null)} onChanged={reloadLevel}/>
+      }
+      {uploadPopup === "gallery" &&
+        <GalleryUploadPopup levelId={id} token={token!} onClose={()=>setUploadPopup(null)} onUploaded={()=>reloadLevel()}/>
+      }
+
+      {dialog === "delete" &&
+        <Popup title="Delete level?" closeCallback={()=>setDialog(null)}>
+          <div className={styles.dialog}>
+            <p>&quot;{level.name}&quot; will be deleted with all its files and screenshots. This can&apos;t be undone.</p>
+            <div className={styles.dialogActions}>
+              <Button variant="text" click={()=>setDialog(null)}>Cancel</Button>
+              <Button variant="filled" click={()=>{
+                setDialog(null);
+                levelRequest("delete", "Deleting…", "/levels/" + id, "DELETE", null, ()=>{
+                  if (user) setUser({ ...user, levels: user.levels?.filter(l=>l.id !== id) });
+                  router.push(isAuthor ? "/dashboard/levels" : "/dashboard/admin");
+                });
+              }}>Delete</Button>
+            </div>
+          </div>
+        </Popup>
+      }
+
+      {dialog === "reject" &&
+        <Popup title="Reject verification?" closeCallback={()=>setDialog(null)}>
+          <div className={styles.dialog}>
+            <p>&quot;{level.name}&quot; stays a draft. The author sees your reason and can ask again.</p>
+            <BigTextBox placeholder="Reason (optional)" maxLength={1024} onChange={setRejectNote}/>
+            <div className={styles.dialogActions}>
+              <Button variant="text" click={()=>setDialog(null)}>Cancel</Button>
+              <Button variant="filled" click={()=>{
+                setDialog(null);
+                levelRequest("reject", "Rejecting…", `/admin/levels/${id}/verification/reject`, "POST", JSON.stringify({ note: rejectNote }));
+              }}>Reject</Button>
+            </div>
+          </div>
+        </Popup>
       }
     </div>
   );

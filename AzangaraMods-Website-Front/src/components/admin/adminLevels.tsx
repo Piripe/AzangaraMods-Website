@@ -286,7 +286,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
                 </div>
                 <div className={styles.info}>
                   <p className={styles.title}>
-                    <Link href={`/dashboard/levels/${level.id}`} className={styles.name}>{level.name}</Link>
+                    <Link href={`/levels/${level.id}`} className={styles.name}>{level.name}</Link>
                     <span className={styles.author}>by {level.author?.username ?? "unknown"}</span>
                   </p>
                   <p className={styles.meta}>
@@ -318,8 +318,8 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
                   </>}
                 </div>
                 <Menu items={[
-                  { label: "Open public page", icon: "openInNew", href: `/levels/${level.id}` },
-                  { label: "Edit", icon: "edit", href: `/dashboard/levels/${level.id}` },
+                  { label: "Open level page", icon: "openInNew", href: `/levels/${level.id}` },
+                  { label: "Edit", icon: "edit", href: `/dashboard/levels/${level.id}/edit` },
                   { label: "Download latest file", icon: "download", click: ()=>download(level), disabled: !level.latestFileId },
                   "divider",
                   ...(level.verification === LevelVerificationStatus.Pending ? [

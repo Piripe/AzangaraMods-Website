@@ -62,7 +62,7 @@ export default function Page() {
             if (res.ok) {
               res.json().then((data:Level)=>{
                 pushLevel(data);
-                router.push("/dashboard/levels/"+data.id);
+                router.push("/levels/"+data.id);
               });
             } else {
               res.json().then((data:ErrorResponse)=>errorAlert(data));

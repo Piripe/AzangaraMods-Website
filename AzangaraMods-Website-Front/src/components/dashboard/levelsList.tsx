@@ -30,7 +30,7 @@ export function LevelsList() {
         <div className={styles.container}>
             {
                 [...user.levels].sort((a, b) => new Date(b.lastEdit).getTime() - new Date(a.lastEdit).getTime()).map(level => (
-                    <Link key={level.id} href={`/dashboard/levels/${level.id}`} className={styles.levelItem}>
+                    <Link key={level.id} href={`/levels/${level.id}`} className={styles.levelItem}>
                         <div className={styles.thumbnailBox}>
                             {level.galleryFiles?.length ?
                                 // eslint-disable-next-line @next/next/no-img-element
