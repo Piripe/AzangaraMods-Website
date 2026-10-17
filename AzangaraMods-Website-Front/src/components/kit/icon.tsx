@@ -1,6 +1,7 @@
 
 import { JSX } from "react";
 import styles from "./icon.module.css";
+import tooltip from "./tooltip.module.css";
 
 export enum IconType {
   LockOpen = "/assets/icons/lock-open.svg",
@@ -10,9 +11,9 @@ export enum IconType {
 export default function Icon({icon, alt, size=24}:{icon:IconType, alt?:string|undefined, size?:number}) {
 
   return (
-    <div className={styles.icon}>
+    <div className={`${styles.icon} ${tooltip.anchor}`}>
         <img src={icon} alt={alt} style={{ width: size, height: size }}/>
-        <div className={styles.infoBubble}>{alt}</div>
+        {alt && <div className={tooltip.tooltip}>{alt}</div>}
     </div>
   );
 }

@@ -1,0 +1,83 @@
+.dropZone {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: min(100%, 32rem);
+    padding: 16px 20px;
+    border-radius: var(--shape-md);
+    border: 1px dashed var(--outline);
+    background-color: var(--surface-container);
+    color: var(--on-surface);
+    cursor: pointer;
+    transition:
+        background-color var(--duration-short) var(--ease-standard),
+        border-color var(--duration-short) var(--ease-standard);
+
+    &:hover {
+        background-color: var(--surface-container-high);
+    }
+    &:focus-within {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+}
+
+.dragging {
+    border-style: solid;
+    border-color: var(--primary);
+    background-color: rgb(from var(--primary) r g b / var(--state-hover));
+}
+
+.disabled {
+    opacity: 0.38;
+    pointer-events: none;
+}
+
+.input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.iconBox {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--shape-full);
+    background-color: var(--secondary-container);
+    fill: var(--on-secondary-container);
+
+    & > svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.selected .iconBox {
+    background-color: var(--primary);
+    fill: var(--on-primary);
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.title {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hint {
+    color: var(--on-surface-variant);
+    font-size: 12px;
+}

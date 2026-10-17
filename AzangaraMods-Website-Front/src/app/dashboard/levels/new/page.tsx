@@ -28,16 +28,13 @@ export default function Page() {
       <div className={styles.headerButtons}>
         <LinkButton href="/dashboard/levels">{"Back"}</LinkButton>
       </div>
-      <p>Name</p>
-      <TextBox onChange={(e)=>setName(e)} maxLength={64}/>
-      <p>Description</p>
-      <BigTextBox onChange={(e)=>setDescription(e)} maxLength={8192}/>
-      <p>Difficulty</p>
-      <ComboBox onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
-      <p>Tags (max 10)</p>
-      <TextBox onChange={(e)=>setTags(e)}/>
+      <div className={styles.form}>
+      <TextBox label="Name" onChange={(e)=>setName(e)} maxLength={64}/>
+      <BigTextBox label="Description" onChange={(e)=>setDescription(e)} maxLength={8192}/>
+      <ComboBox label="Difficulty" onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
+      <TextBox label="Tags" supportingText="Space-separated, up to 10" onChange={(e)=>setTags(e)}/>
       <div>
-        <Button click={()=>{
+        <Button variant="filled" click={()=>{
           if (name.length === 0) {
             alert("Name cannot be empty");
             return;
@@ -83,6 +80,7 @@ export default function Page() {
         }}>
           Create Level
         </Button>
+      </div>
       </div>
     </div>
   );

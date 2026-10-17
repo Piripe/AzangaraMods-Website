@@ -4,10 +4,10 @@ import Link from "next/link";
 import Button from "./kit/button";
 import TextBox from "./kit/textbox";
 import { useState } from "react";
-import { Console } from "console";
 import fetchApi from "../utils/fetchApi";
 import useUserData from "../hooks/useUserData";
 import { useRouter } from "next/navigation";
+import styles from "./authBox.module.css";
 
 export function LoginBox() {
     const [error, setError] = useState<string|null>(null);
@@ -20,11 +20,11 @@ export function LoginBox() {
 
     return (
         <>
-            <div>
-                <TextBox placeholder="Email" onChange={(e) => setEmail(e)}/>
-                <TextBox placeholder="Password" password={true} onChange={(e) => setPassword(e)}/>
-                <div>{error}</div>
-                <Button disabled={loading} click={async () => {
+            <div className={styles.form}>
+                <TextBox label="Email" onChange={(e) => setEmail(e)}/>
+                <TextBox label="Password" password={true} onChange={(e) => setPassword(e)}/>
+                {error && <div className={styles.error}>{error}</div>}
+                <Button variant="filled" disabled={loading} click={async () => {
                     setLoading(true);
                     let res = await fetchApi("/login","", "POST", JSON.stringify({email, password}));
 

@@ -1,11 +1,11 @@
 import { JSX } from "react";
-import styles from "./button.module.css";
 import Link from "next/link";
+import { buttonClass, ButtonVariant } from "./button";
 
-export default function LinkButton({children="", href}:{children:string|JSX.Element, href:string}) {
+export default function LinkButton({children="", href, variant="tonal"}:{children:string|JSX.Element, href:string, variant?:ButtonVariant}) {
 
   return (
-    <Link href={href} className={styles.button}>
+    <Link href={href} className={buttonClass(variant)}>
       {children}
     </Link>
   );

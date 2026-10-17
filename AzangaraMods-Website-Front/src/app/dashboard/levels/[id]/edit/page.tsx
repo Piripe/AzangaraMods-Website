@@ -62,16 +62,13 @@ export default  function Page({
         <div className={styles.headerButtons}>
           <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
         </div>
-        <p>Name</p>
-        <TextBox onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
-        <p>Description</p>
-        <BigTextBox onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
-        <p>Difficulty</p>
-        <ComboBox onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
-        <p>Tags (max 10)</p>
-        <TextBox onChange={(e)=>setTags(e)} defaultValue={levelData?.tags?.join(" ")} />
+        <div className={styles.form}>
+        <TextBox label="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
+        <BigTextBox label="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
+        <ComboBox label="Difficulty" onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
+        <TextBox label="Tags" supportingText="Space-separated, up to 10" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags?.join(" ")} />
         <div>
-          <Button click={()=>{
+          <Button variant="filled" click={()=>{
             fetchApi("/levels/" + id, token!, "PATCH",
               JSON.stringify({
                 name,
@@ -92,6 +89,7 @@ export default  function Page({
           }}>
             Update Level
           </Button>
+        </div>
         </div>
       </div>
   );

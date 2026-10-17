@@ -68,7 +68,7 @@ export default  function Page({
           setSelectedFile(file);
         }} />
         
-        <Button disabled={loading || selectedFile == null} click={()=>{
+        <Button variant="filled" disabled={loading || selectedFile == null} click={()=>{
           setLoading(true);
           const formData = new FormData();
           formData.append("file", selectedFile!);
@@ -118,7 +118,7 @@ export default  function Page({
           ))}
         </select>
 
-        <Button disabled={loading || entryPoint == null} click={()=>{
+        <Button variant="filled" disabled={loading || entryPoint == null} click={()=>{
           setLoading(true);
           fetchApi(
             "/levels/" + id + "/files/" + fileId,

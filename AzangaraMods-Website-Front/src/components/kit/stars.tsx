@@ -1,11 +1,12 @@
 import { JSX } from "react";
 import styles from "./stars.module.css";
+import tooltip from "./tooltip.module.css";
 
 
 export default function Stars({value, alt, size=24}:{value:number, alt?:string|undefined, size?:number}) {
 
   return (
-    <div className={styles.stars} style={{ width: size*11, height: size }}>
+    <div className={`${styles.stars} ${tooltip.anchor}`} style={{ width: size*11, height: size }}>
         {
             [...Array(10)].map((e, i) => {
 
@@ -20,7 +21,7 @@ export default function Stars({value, alt, size=24}:{value:number, alt?:string|u
                 );
             })
         }
-        <div className={styles.infoBubble}>{alt}</div>
+        {alt && <div className={tooltip.tooltip}>{alt}</div>}
     </div>
   );
 }

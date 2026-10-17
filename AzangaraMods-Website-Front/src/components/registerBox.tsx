@@ -6,6 +6,7 @@ import useUserData from "../hooks/useUserData";
 import { useState } from "react";
 import fetchApi from "../utils/fetchApi";
 import { LoginBox } from "./loginBox";
+import styles from "./authBox.module.css";
 
 export function RegisterBox() {
     const [error, setError] = useState<string|null>(null);
@@ -21,13 +22,13 @@ export function RegisterBox() {
             {showLogin ?
                 <LoginBox/>
             :
-                <div>
-                    <TextBox placeholder="Username" onChange={(e) => setUsername(e)}/>
-                    <TextBox placeholder="Email" onChange={(e) => setEmail(e)}/>
-                    <TextBox placeholder="Password" password={true} newPassword={true} onChange={(e) => setPassword(e)}/>
-                    <TextBox placeholder="Confirm Password" password={true} newPassword={true} onChange={(e) => setConfirmPassword(e)}/>
-                    <div>{error}</div>
-                    <Button disabled={loading} click={async () => {            
+                <div className={styles.form}>
+                    <TextBox label="Username" usernameEntry={true} onChange={(e) => setUsername(e)}/>
+                    <TextBox label="Email" onChange={(e) => setEmail(e)}/>
+                    <TextBox label="Password" password={true} newPassword={true} onChange={(e) => setPassword(e)}/>
+                    <TextBox label="Confirm Password" password={true} newPassword={true} onChange={(e) => setConfirmPassword(e)}/>
+                    {error && <div className={styles.error}>{error}</div>}
+                    <Button variant="filled" disabled={loading} click={async () => {            
                         if (!username || !email || !password || !confirmPassword) {
                             setError("Please fill in all fields.");
                             return;

@@ -27,6 +27,48 @@
   --accent-3: oklab(from var(--accent-1) calc(l + 0.12) calc(a + 0.05) b);
 
   --backdrop-brightness: 0.2;
+
+  /* Material 3 inspired tokens, derived from the accents above */
+  --primary: oklab(from var(--accent-1) calc(l + 0.14) calc(a * 0.8) calc(b * 0.8));
+  --on-primary: oklab(from var(--accent-1) 0.25 calc(a * 0.5) calc(b * 0.5));
+  --primary-container: oklab(from var(--accent-1) calc(l - 0.28) calc(a * 0.6) calc(b * 0.6));
+  --on-primary-container: oklab(from var(--accent-1) 0.92 calc(a * 0.4) calc(b * 0.4));
+  --secondary-container: oklab(from var(--back-accent) calc(l + 0.04) a b);
+  --on-secondary-container: oklab(from var(--back-accent) 0.92 calc(a * 0.6) calc(b * 0.6));
+  --surface: oklab(from var(--back-accent) 0.19 calc(a * 0.3) calc(b * 0.3));
+  --surface-container: oklab(from var(--back-accent) 0.23 calc(a * 0.4) calc(b * 0.4));
+  --surface-container-high: oklab(from var(--back-accent) 0.27 calc(a * 0.45) calc(b * 0.45));
+  --surface-container-highest: oklab(from var(--back-accent) 0.31 calc(a * 0.5) calc(b * 0.5));
+  --on-surface: var(--front-1);
+  --on-surface-variant: oklab(from var(--back-accent) 0.82 calc(a * 0.35) calc(b * 0.35));
+  --outline: oklab(from var(--back-accent) 0.6 calc(a * 0.4) calc(b * 0.4));
+  --outline-variant: oklab(from var(--back-accent) 0.4 calc(a * 0.5) calc(b * 0.5));
+  --inverse-surface: oklab(from var(--back-accent) 0.9 calc(a * 0.15) calc(b * 0.15));
+  --inverse-on-surface: oklab(from var(--back-accent) 0.25 calc(a * 0.4) calc(b * 0.4));
+  --scrim: rgb(0 0 0 / 0.5);
+  --error: #ffb4ab;
+
+  --state-hover: 0.08;
+  --state-focus: 0.12;
+  --state-pressed: 0.12;
+
+  --shape-xs: 4px;
+  --shape-sm: 8px;
+  --shape-md: 12px;
+  --shape-lg: 16px;
+  --shape-xl: 28px;
+  --shape-full: 999px;
+
+  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
+  --elevation-2: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15);
+  --elevation-3: 0 4px 8px 3px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.3);
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-short: 150ms;
+  --duration-medium: 250ms;
+
+  color-scheme: dark;
 }
 
 html {

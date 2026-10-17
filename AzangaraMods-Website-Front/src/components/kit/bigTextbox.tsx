@@ -1,4 +1,6 @@
-import { JSX } from "react";
+import { useState } from "react";
+import styles from "./field.module.css";
+import { fieldClass, FieldLabel, SupportingText } from "./fieldParts";
 
 export default function BigTextBox(
   {
@@ -6,11 +8,20 @@ export default function BigTextBox(
   placeholder, 
   maxLength,
   defaultValue,
-  className
+  className,
+  label,
+  supportingText
 }:{
-  onChange?:(e:string)=>void, placeholder?:string|undefined, maxLength?:number|undefined, defaultValue?:string|undefined, className?:string|undefined}) {
+  onChange?:(e:string)=>void, placeholder?:string|undefined, maxLength?:number|undefined, defaultValue?:string|undefined, className?:string|undefined, label?:string|undefined, supportingText?:string|undefined}) {
+  const [length, setLength] = useState(defaultValue?.length ?? 0);
 
   return (
-    <textarea placeholder={placeholder} onChange={(e)=>onChange(e.target.value)} maxLength={maxLength} defaultValue={defaultValue} className={className}/>
+    <label className={`${styles.wrapper} ${styles.wide} ${className ?? ""}`}>
+      <span className={fieldClass(label)}>
+        <textarea className={styles.input} placeholder={label ? (placeholder ?? " ") : placeholder} onChange={(e)=>{setLength(e.target.value.length); onChange(e.target.value);}} maxLength={maxLength} defaultValue={defaultValue}/>
+        <FieldLabel label={label}/>
+      </span>
+      <SupportingText text={supportingText} length={length} maxLength={maxLength}/>
+    </label>
   );
 }

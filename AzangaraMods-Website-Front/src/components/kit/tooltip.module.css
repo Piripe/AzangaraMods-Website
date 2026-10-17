@@ -1,0 +1,31 @@
+.anchor {
+    position: relative;
+}
+
+/* Plain tooltip, shown on hover of the anchor */
+.tooltip {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    z-index: 100;
+    transform: translate(-50%, -4px);
+    padding: 4px 8px;
+    border-radius: var(--shape-xs);
+    background-color: var(--inverse-surface);
+    color: var(--inverse-on-surface);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition:
+        opacity var(--duration-short) var(--ease-standard),
+        transform var(--duration-short) var(--ease-standard);
+}
+
+.anchor:hover > .tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}

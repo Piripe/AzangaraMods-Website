@@ -1,0 +1,163 @@
+.wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    width: min(100%, 24rem);
+}
+
+.wide {
+    width: min(100%, 48rem);
+}
+
+.field {
+    position: relative;
+    display: flex;
+    border-radius: var(--shape-sm);
+}
+
+/* Outline drawn by a fieldset so the legend can cut a notch for the floated label */
+.outline {
+    position: absolute;
+    inset: -5px 0 0 0;
+    min-inline-size: 0;
+    padding: 0 12px;
+    border: 1px solid var(--outline);
+    border-radius: inherit;
+    pointer-events: none;
+    transition: border-color var(--duration-short) var(--ease-standard);
+
+    & > legend {
+        display: block;
+        height: 11px;
+        max-width: 0.01px;
+        padding: 0;
+        font-size: 12px;
+        visibility: hidden;
+        white-space: nowrap;
+        overflow: hidden;
+        transition: max-width var(--duration-short) var(--ease-standard);
+
+        & > span {
+            display: inline-block;
+            padding: 0 4px;
+        }
+    }
+}
+
+.field:hover > .outline {
+    border-color: var(--on-surface);
+}
+.field:focus-within > .outline {
+    border-width: 2px;
+    border-color: var(--primary);
+    padding: 0 11px;
+}
+.field:focus-within > .label {
+    color: var(--primary);
+}
+
+.input {
+    flex: 1;
+    min-width: 0;
+    height: 56px;
+    padding: 16px;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--on-surface);
+    caret-color: var(--primary);
+    font: inherit;
+    font-size: var(--font-size-2);
+
+    &::placeholder {
+        color: var(--on-surface-variant);
+        opacity: 1;
+    }
+    &:disabled {
+        color: rgb(from var(--on-surface) r g b / 0.38);
+    }
+}
+
+textarea.input {
+    height: auto;
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+select.input {
+    appearance: none;
+    padding-right: 48px;
+    cursor: pointer;
+
+    & > option {
+        background-color: var(--surface-container-high);
+        color: var(--on-surface);
+    }
+}
+
+.chevron {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translateY(-50%);
+    fill: var(--on-surface-variant);
+    pointer-events: none;
+}
+.field:focus-within > .chevron {
+    fill: var(--primary);
+}
+
+/* Floating label */
+.labelled > .input:not(:focus)::placeholder {
+    color: transparent;
+}
+
+.label {
+    position: absolute;
+    left: 16px;
+    top: 28px;
+    transform: translateY(-50%);
+    color: var(--on-surface-variant);
+    font-size: var(--font-size-2);
+    line-height: 16px;
+    pointer-events: none;
+    white-space: nowrap;
+    transition:
+        top var(--duration-short) var(--ease-standard),
+        font-size var(--duration-short) var(--ease-standard),
+        color var(--duration-short) var(--ease-standard);
+}
+
+.input:focus + .label,
+.input:not(:placeholder-shown) + .label,
+select.input + .label {
+    top: 0;
+    font-size: 12px;
+}
+
+.input:focus ~ .outline > legend,
+.input:not(:placeholder-shown) ~ .outline > legend,
+select.input ~ .outline > legend {
+    max-width: 100%;
+}
+
+.supporting {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 16px;
+    color: var(--on-surface-variant);
+    font-size: 12px;
+}
+
+.counter {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.field:not(.labelled) > .outline {
+    inset: 0;
+}

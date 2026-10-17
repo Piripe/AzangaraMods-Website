@@ -1,0 +1,18 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: min(320px, calc(100vw - 80px));
+
+    & > label {
+        width: 100%;
+    }
+    & > button {
+        align-self: flex-end;
+    }
+}
+
+.error {
+    color: var(--error);
+    font-size: var(--font-size-1);
+}

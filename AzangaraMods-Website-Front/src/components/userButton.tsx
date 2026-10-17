@@ -45,10 +45,10 @@ export default function UserButton() {
         )
       }
       {loginBoxVisible && 
-        <Popup title="Login box" closeCallback={toggleLoginBox}><LoginBox/></Popup>
+        <Popup title="Log in" closeCallback={toggleLoginBox}><LoginBox/></Popup>
       }
       {registerBoxVisible && 
-        <Popup title="Register box" closeCallback={toggleRegisterBox}><RegisterBox/></Popup>
+        <Popup title="Create account" closeCallback={toggleRegisterBox}><RegisterBox/></Popup>
       }
     </div>
   );
