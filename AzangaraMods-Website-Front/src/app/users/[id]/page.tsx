@@ -9,6 +9,7 @@ import LinkButton from "@/components/kit/linkButton";
 import PageHeader from "@/components/kit/pageHeader";
 import Spinner from "@/components/kit/spinner";
 import LevelBrowser from "@/components/levels/levelBrowser";
+import useUserData from "@/hooks/useUserData";
 import { formatCount, formatRelativeDate } from "@/utils/levelLabels";
 
 export default function Page({
@@ -17,6 +18,7 @@ export default function Page({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params);
+  const {user} = useUserData();
 
   const [author, setAuthor] = useState<UserProfile|null>(null);
   const [failed, setFailed] = useState(false);
@@ -57,6 +59,7 @@ export default function Page({
           title={author.username}
           subtitle={`${author.levelCount} level${author.levelCount === 1 ? "" : "s"} · ${formatCount(author.downloads)} downloads · Joined ${formatRelativeDate(author.creation)}`}
           badge={author.verifiedModder && <Chip small variant="success" icon="shield">Verified modder</Chip>}
+          actions={user?.id === author.id && <LinkButton variant="filled" icon="add" href="/dashboard/levels/new">New level</LinkButton>}
         />
       </div>
       {/* The browser reads its filters from the URL, so it renders on the client only */}

@@ -27,7 +27,10 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     {
         offset = Math.Max(offset, 0);
         limit = Math.Clamp(limit, 1, 100);
-        var (levels, total) = await levelService.SearchLevels(true, q, difficulty, tag.Take(10).ToArray(), sort, offset, limit, authorId: author, sizes: size);
+        // An author's own page, or any author's page seen by an admin, also lists drafts
+        var user = HttpContext.Items[0] as User;
+        bool? published = author.HasValue && user != null && (user.Id == author.Value || user.Flags.HasFlag(UserFlags.Admin)) ? null : true;
+        var (levels, total) = await levelService.SearchLevels(published, q, difficulty, tag.Take(10).ToArray(), sort, offset, limit, authorId: author, sizes: size);
         return Ok(new LevelSearchResultDto<LevelSearchHitDto>
         {
             Hits = mapper.Map<LevelSearchHitDto[]>(levels),

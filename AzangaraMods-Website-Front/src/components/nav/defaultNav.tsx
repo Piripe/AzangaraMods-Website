@@ -14,7 +14,7 @@ export function DefaultNav() {
             <Link className={pathname.startsWith("/levels") ? styles.highlightNav : undefined} href="/levels"><SvgIcon name="search" size={20}/>Levels</Link>
             {user && <>
                 <div className={styles.separator} role="separator" aria-orientation="vertical"/>
-                <Link className={pathname.startsWith("/dashboard/levels") ? styles.highlightNav : undefined} href="/dashboard/levels"><SvgIcon name="map" size={20}/>My Levels</Link>
+                <Link className={pathname === `/users/${user.id}` ? styles.highlightNav : undefined} href={`/users/${user.id}`}><SvgIcon name="person" size={20}/>Profile</Link>
                 {user.admin && <Link className={pathname.startsWith("/dashboard/admin") ? styles.highlightNav : undefined} href="/dashboard/admin"><SvgIcon name="shield" size={20}/>Admin</Link>}
             </>}
         </nav>

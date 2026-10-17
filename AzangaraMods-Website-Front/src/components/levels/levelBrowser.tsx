@@ -12,7 +12,9 @@ import Pagination from "../kit/pagination";
 import Spinner from "../kit/spinner";
 import SvgIcon from "../kit/svgIcon";
 import TextBox from "../kit/textbox";
+import LinkButton from "../kit/linkButton";
 import fetchApi from "@/utils/fetchApi";
+import useUserData from "@/hooks/useUserData";
 import { difficultyNames, levelSizes } from "@/utils/levelLabels";
 
 const sortOptions = [
@@ -25,8 +27,11 @@ const pageSize = 20;
 const shownTagsCount = 12;
 const difficulties = Object.keys(difficultyNames) as `${LevelDifficulties}`[];
 
-// authorId restricts the results to one author's levels (author page)
+// authorId restricts the results to one author's levels (author page).
+// The API adds drafts there when the viewer is that author or an admin, so the request carries the token.
 export default function LevelBrowser({authorId}:{authorId?:string}) {
+  const {user, token, tokenLoaded} = useUserData();
+  const ownPage = !!authorId && user?.id === authorId;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -57,9 +62,11 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  const requestToken = authorId ? token ?? "" : "";
   useEffect(()=>{
+    if (authorId && !tokenLoaded) return;
     let cancelled = false;
-    fetchApi("/levels?" + apiQuery, "").then(async res=>{
+    fetchApi("/levels?" + apiQuery, requestToken).then(async res=>{
       if (cancelled) return;
       if (res.ok) {
         setResult(await res.json());
@@ -72,7 +79,7 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
       if (!cancelled) setFailed(true);
     });
     return ()=>{ cancelled = true; };
-  }, [apiQuery]);
+  }, [apiQuery, authorId, requestToken, tokenLoaded]);
 
   useEffect(()=>{
     fetchApi("/levels/tags", "").then(async res=>{
@@ -193,9 +200,11 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
         : result.hits.length === 0 ?
           <EmptyState
             icon="search"
-            title="No levels found"
-            text={query || filterCount > 0 ? "Try another search or remove some filters." : authorId ? "This author hasn't published a level yet." : "Nobody has published a level yet."}
-            action={filterCount > 0 ? <Button variant="outlined" icon="close" click={clearFilters}>Clear filters</Button> : undefined}
+            title={!query && filterCount === 0 && ownPage ? "No levels yet" : "No levels found"}
+            text={query || filterCount > 0 ? "Try another search or remove some filters." : ownPage ? "Create your first level, then upload its files and a few screenshots." : authorId ? "This author hasn't published a level yet." : "Nobody has published a level yet."}
+            action={filterCount > 0 ? <Button variant="outlined" icon="close" click={clearFilters}>Clear filters</Button>
+              : ownPage && !query ? <LinkButton variant="filled" icon="add" href="/dashboard/levels/new">New level</LinkButton>
+              : undefined}
           />
         :
           <>

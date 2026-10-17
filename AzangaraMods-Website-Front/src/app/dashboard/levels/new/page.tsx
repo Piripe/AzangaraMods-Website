@@ -23,13 +23,13 @@ export default function Page() {
   const [difficulty, setDifficulty] = useState(LevelDifficulties.VeryEasy);
   const [tags, setTags] = useState([] as string[]);
   const [creating, setCreating] = useState(false);
-  const {token, pushLevel} = useUserData();
+  const {user, token, pushLevel} = useUserData();
 
   const router = useRouter();
     
   return (
     <div>
-      <PageHeader backHref="/dashboard/levels" title="New level" subtitle="You can upload files and screenshots once it's created"/>
+      <PageHeader backHref={user ? `/users/${user.id}` : "/levels"} title="New level" subtitle="You can upload files and screenshots once it's created"/>
       <Card className={styles.form}>
       <TextBox placeholder="Name" onChange={(e)=>setName(e)} maxLength={64}/>
       <MarkdownTextBox placeholder="Description" supportingText={markdownHint} onChange={(e)=>setDescription(e)} maxLength={8192}/>

@@ -3,6 +3,7 @@ import styles from "./levelSearchCard.module.css";
 import Chip from "../kit/chip";
 import SvgIcon from "../kit/svgIcon";
 import { markdownToText, parseMarkdown } from "@/utils/markdown";
+import { LevelVerificationStatus } from "@/enums";
 import { difficultyNames, formatCount, formatRelativeDate, galleryImageUrl, getRoomsText } from "@/utils/levelLabels";
 
 export default function LevelSearchCard({level}:{level:LevelSearchHit}) {
@@ -25,6 +26,12 @@ export default function LevelSearchCard({level}:{level:LevelSearchHit}) {
         </p>
         <p className={styles.description}>{markdownToText(parseMarkdown(level.description))}</p>
         <div className={styles.chips}>
+          {/* Drafts only come back on an author page seen by its author or an admin */}
+          {!level.published && (level.verification === LevelVerificationStatus.Pending ?
+            <Chip small variant="highlight" icon="schedule">Pending review</Chip>
+          :
+            <Chip small variant="highlight" icon="lock">Draft</Chip>
+          )}
           <Chip small icon="terrain">{difficultyNames[level.difficulty] ?? "Unknown"}</Chip>
           {level.roomAmount > 0 && <Chip small icon="rooms">{getRoomsText(level.roomAmount)}</Chip>}
           {tags.map(t=><Chip key={t} small icon="tag">{t}</Chip>)}

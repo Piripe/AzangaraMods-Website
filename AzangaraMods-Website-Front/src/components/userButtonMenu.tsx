@@ -15,7 +15,7 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
 
     return (
         <div ref={ref} className={styles.menu}>
-            <Link href="/dashboard/levels"><SvgIcon name="map" size={20}/>My Levels</Link>
+            {user && <Link href={`/users/${user.id}`}><SvgIcon name="person" size={20}/>Profile</Link>}
             {user?.admin && <Link href="/dashboard/admin"><SvgIcon name="shield" size={20}/>Admin</Link>}
             <Link href="/dashboard/settings"><SvgIcon name="settings" size={20}/>Settings</Link>
             {/* <Link href="/dashboard">Dashboard</Link> */}

@@ -255,9 +255,8 @@ export default function Page({
   const backPath = back.split("?")[0];
   const backLabel =
     backPath === "/" ? "Home"
-    : backPath === "/dashboard/levels" ? "My levels"
     : backPath === "/dashboard/admin" ? "Admin levels"
-    : backPath.startsWith("/users/") ? (backPath === `/users/${level.authorId}` && level.author ? `${level.author.username}'s levels` : "Author's levels")
+    : backPath.startsWith("/users/") ? (backPath !== `/users/${level.authorId}` ? "Author's levels" : isAuthor ? "Your levels" : level.author ? `${level.author.username}'s levels` : "Author's levels")
     : "Level browser";
 
   const busyLabel = (action: LevelAction, label: string) => busy?.action === action ? busy.label : label;
@@ -541,7 +540,7 @@ export default function Page({
                 setDialog(null);
                 levelRequest("delete", "Deleting…", "/levels/" + id, "DELETE", null, ()=>{
                   if (user) setUser({ ...user, levels: user.levels?.filter(l=>l.id !== id) });
-                  router.push(isAuthor ? "/dashboard/levels" : "/dashboard/admin");
+                  router.push(isAuthor ? `/users/${level.authorId}` : "/dashboard/admin");
                 });
               }}>Delete</Button>
             </div>
