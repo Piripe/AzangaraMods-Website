@@ -7,4 +7,5 @@ public interface IDiscordService
     public Task UpdateDiscordForum(Level level, bool onlyUpdate = false);
     public Task NotifyVerificationRequest(Level level);
     public Task DeleteVerificationRequest(Level level);
+    public Task NotifyReport(Level level, long reportId);
 }

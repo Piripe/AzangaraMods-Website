@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Services.Discord;
 
@@ -33,6 +34,14 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         (Environment.GetEnvironmentVariable("DISCORD_EMOTES") ??
          @"<:star1:1502028362464628867>\<:star2:1502028387206696991>\<:star3:1502028404034113696>\<:star4:1502028423131037766>")
         .Split('\\');
+
+    private readonly Dictionary<ReportCategories, string> _reportCategories = new()
+    {
+        {ReportCategories.NotAzangaraLevel, "Not an Azangara level"},
+        {ReportCategories.NotWorking, "Not working"},
+        {ReportCategories.Spam, "Spam"},
+        {ReportCategories.Other, "Other"},
+    };
 
     private readonly Dictionary<LevelDifficulties, string> _difficulties = new()
     {
@@ -188,6 +197,62 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
 
             db.Entry(level).Property(x => x.VerificationDiscordMessage).CurrentValue = null;
             await db.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Admin webhook error: " + e.Message);
+        }
+    }
+
+    // Posts a new report to the admin webhook (DISCORD_ADMIN_WEBHOOK), which is optional
+    public async Task NotifyReport(Level level, long reportId)
+    {
+        try
+        {
+            var webhook = Environment.GetEnvironmentVariable("DISCORD_ADMIN_WEBHOOK");
+            if (string.IsNullOrWhiteSpace(webhook))
+            {
+                Console.WriteLine($"No admin webhook set, report {reportId} sent for level {level.Id}");
+                return;
+            }
+
+            var report = await db.Reports!
+                .Include(x => x.LevelFile)
+                .Include(x => x.Reporter)
+                .FirstOrDefaultAsync(x => x.Id == reportId);
+            // Deleted by an admin before the job ran
+            if (report == null) return;
+
+            var frontUrl = Environment.GetEnvironmentVariable("FRONT_URL") ?? "";
+            var downloadUrl = Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080";
+            var reportsUrl = $"{frontUrl}/dashboard/admin?tab=reports";
+            var thumbnail = level.GalleryFiles?.OrderBy(x => x.Id).FirstOrDefault();
+
+            var fields = new List<EmbedField>
+            {
+                new("Category", _reportCategories[report.Category]),
+                new("Reporter", report.Reporter?.Username ?? "Anonymous"),
+                new("Creator", level.Author?.Username ?? level.AuthorId.ToString()),
+                new("File", $"`{report.LevelFile?.FileName ?? report.LevelFileId.ToString()}`"),
+            };
+            // Embed field values are limited to 1024 characters, which is also the message limit
+            if (report.Message != null) fields.Add(new EmbedField("Message", report.Message, false));
+            fields.Add(new EmbedField("Links", string.IsNullOrWhiteSpace(frontUrl)
+                ? "FRONT_URL isn't set"
+                : $"[Open the reports]({reportsUrl}) · [Level page]({frontUrl}/levels/{level.Id})", false));
+
+            var embed = new AdminEmbed(
+                "Level reported",
+                string.IsNullOrWhiteSpace(frontUrl) ? null : reportsUrl,
+                $"**{level.Name}**",
+                0xE74C3C,
+                fields.ToArray(),
+                thumbnail == null ? null : new EmbedThumbnail($"{downloadUrl}/level/{level.Id}/gallery/{thumbnail.Id}"),
+                report.Created.ToString("o"));
+
+            var res = await _httpClient.PostAsync(webhook, JsonContent.Create(new SendAdminWebhookMessageRequest("Azanbot", [embed])));
+            if (!res.IsSuccessStatusCode)
+                Console.WriteLine($"Admin webhook error: {(int)res.StatusCode} {await res.Content.ReadAsStringAsync()}");
         }
         catch (Exception e)
         {

@@ -64,4 +64,13 @@ public enum ErrorCodes
     UserGetNotFound = 0x3B,
     LevelPatchInvalidRoomAmount = 0x3C,
     LevelDeleteNotFound = 0x3D,
+    ReportLevelNotFound = 0x3E,
+    ReportLevelFileNotFound = 0x3F,
+    ReportAccountRequired = 0x40,
+    ReportInvalidCategory = 0x41,
+    ReportMessageRequired = 0x42,
+    ReportMessageTooLong = 0x43,
+    ReportRateLimited = 0x44,
+    ReportAlreadySent = 0x45,
+    AdminReportNotFound = 0x46,
 }

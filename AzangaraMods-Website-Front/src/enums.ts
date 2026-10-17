@@ -16,6 +16,21 @@ export enum LevelVerificationStatus
     Rejected = 30
 }
 
+export enum ReportCategories
+{
+    NotAzangaraLevel = 10,
+    NotWorking = 20,
+    Spam = 30,
+    Other = 40
+}
+
+export enum ReportStatus
+{
+    Open = 0,
+    Resolved = 10,
+    Dismissed = 20
+}
+
 export enum ErrorCodes {
     AuthLoginInvalid = 0x00,
     AuthRegisterUnknownError = 0x01,
@@ -79,4 +94,13 @@ export enum ErrorCodes {
     UserGetNotFound = 0x3B,
     LevelPatchInvalidRoomAmount = 0x3C,
     LevelDeleteNotFound = 0x3D,
+    ReportLevelNotFound = 0x3E,
+    ReportLevelFileNotFound = 0x3F,
+    ReportAccountRequired = 0x40,
+    ReportInvalidCategory = 0x41,
+    ReportMessageRequired = 0x42,
+    ReportMessageTooLong = 0x43,
+    ReportRateLimited = 0x44,
+    ReportAlreadySent = 0x45,
+    AdminReportNotFound = 0x46,
 }

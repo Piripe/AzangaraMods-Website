@@ -5,6 +5,7 @@ using AutoMapper;
 using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Models.Dto;
+using AzangaraMods_Website_Back.Services.Reports;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
 using AzangaraMods_Website_Back.Utils;
@@ -15,7 +16,7 @@ namespace AzangaraMods_Website_Back.Controllers;
 
 // Account settings of the logged in user
 [Route("users/@me")]
-public class UserSettingsController(IMapper mapper, IUserService userService, ITokenService tokenService) : Controller
+public class UserSettingsController(IMapper mapper, IUserService userService, ITokenService tokenService, IReportService reportService) : Controller
 {
     private const int AvatarSize = 256;
     private static readonly RateLimiter DataExportRateLimiter = new(3, TimeSpan.FromHours(1));
@@ -219,6 +220,18 @@ public class UserSettingsController(IMapper mapper, IUserService userService, IT
                 DiscordForumMessage = x.DiscordForumMessage?.ToString(),
                 Files = (x.LevelFiles ?? []).Select(f => new { Id = f.Id.ToString(), f.FileName, f.FileSize, f.EntryPoint, f.UploadDate, f.Downloads }),
                 Gallery = (x.GalleryFiles ?? []).Select(g => new { Id = g.Id.ToString(), g.FileName, g.Description, g.UploadDate }),
+            }));
+
+            await WriteJsonEntry(zip, "reports.json", (await reportService.GetUserReports(user.Id)).Select(x => new
+            {
+                Id = x.Id.ToString(),
+                LevelId = x.LevelId.ToString(),
+                LevelFileId = x.LevelFileId.ToString(),
+                x.Category,
+                x.Message,
+                x.IpAddress,
+                x.Created,
+                x.Status,
             }));
 
             if (user.HasProfilePicture) await AddFileEntry(zip, user.Id.GetIdFilePath("avatar.webp"), "avatar.webp");

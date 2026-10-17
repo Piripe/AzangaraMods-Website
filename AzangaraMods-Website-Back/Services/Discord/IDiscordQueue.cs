@@ -10,6 +10,7 @@ public interface IDiscordQueue
     public void QueueDebouncedForumUpdate(long levelId);
     public void QueueVerificationRequest(long levelId);
     public void QueueDeleteVerificationRequest(long levelId);
+    public void QueueReportNotification(long levelId, long reportId);
     // For a level about to be deleted: marks its post as unpublished and removes its verification request
     public void QueueLevelRemoval(Level level);
 }

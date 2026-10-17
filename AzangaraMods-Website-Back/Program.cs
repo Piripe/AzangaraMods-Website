@@ -9,6 +9,8 @@ using AzangaraMods_Website_Back.Services.Discord;
 using AzangaraMods_Website_Back.Services.LevelFiles;
 using AzangaraMods_Website_Back.Services.LevelGalleries;
 using AzangaraMods_Website_Back.Services.Levels;
+using AzangaraMods_Website_Back.Services.Reports;
+using AzangaraMods_Website_Back.Services.SiteSettings;
 using AzangaraMods_Website_Back.Services.Tokens;
 using AzangaraMods_Website_Back.Services.Users;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -31,6 +33,8 @@ builder.Services.AddScoped<ILevelService, LevelService>();
 builder.Services.AddScoped<ILevelFileService, LevelFileService>();
 builder.Services.AddScoped<ILevelGalleryService, LevelGalleryService>();
 builder.Services.AddScoped<IDiscordService, DiscordService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<ISiteSettingsService, SiteSettingsService>();
 builder.Services.AddSingleton<DiscordQueue>();
 builder.Services.AddSingleton<IDiscordQueue>(sp => sp.GetRequiredService<DiscordQueue>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DiscordQueue>());
@@ -47,6 +51,7 @@ builder.Services.AddAutoMapper(cfg =>
         .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)))
         .ForMember(d => d.Admin, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Admin)));
     cfg.CreateMap<Level, LevelPartialDto>();
+    cfg.CreateMap<Level, LevelPartialAuthorDto>();
     cfg.CreateMap<Level, LevelDto>();
     cfg.CreateMap<Level, LevelSearchHitDto>()
         .ForMember(d => d.Downloads, o => o.MapFrom(s => s.LevelFiles == null ? 0 : s.LevelFiles.Sum(f => f.Downloads)))
@@ -62,6 +67,9 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.CreateMap<LevelFile, LevelFileDto>();
     cfg.CreateMap<LevelFile, LevelFilePartialDto>();
     cfg.CreateMap<Token, SessionDto>();
+    cfg.CreateMap<Report, ReportDto>();
+    cfg.CreateMap<Report, AdminReportDto>();
+    cfg.CreateMap<SiteSettings, SiteSettingsDto>();
 });
 
 builder.Services.AddHttpClient();

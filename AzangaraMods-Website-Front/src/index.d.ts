@@ -1,5 +1,7 @@
 type LevelDifficulties = 10 | 20 | 30 | 40 | 50 | 60;
 type LevelVerificationStatus = 0 | 10 | 20 | 30;
+type ReportCategories = 10 | 20 | 30 | 40;
+type ReportStatus = 0 | 10 | 20;
 
 type User = {
     id: string,
@@ -105,4 +107,29 @@ type LevelFileUploadResponseData = {
     // Detected entry points; the first one is saved by default
     files: string[],
     otherFiles: string[],
+}
+type LevelReport = {
+    id: string,
+    levelId: string,
+    levelFileId: string,
+    category: ReportCategories,
+    message: string|null,
+    created: string,
+    status: ReportStatus,
+}
+type AdminLevelReport = LevelReport & {
+    ipAddress: string|null,
+    statusChanged: string|null,
+    level: Level|null,
+    levelFile: LevelFile|null,
+    reporter: User|null,
+}
+type LevelReportList = {
+    hits: AdminLevelReport[],
+    totalHits: number,
+    offset: number,
+    limit: number,
+}
+type SiteSettings = {
+    reportsRequireAccount: boolean,
 }

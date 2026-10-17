@@ -156,6 +156,76 @@ namespace AzangaraMods_Website_Back.Migrations
                     b.ToTable("level_files");
                 });
 
+            modelBuilder.Entity("AzangaraMods_Website_Back.Models.Report", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("LevelFileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LevelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<long?>("ReporterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("StatusChanged")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LevelFileId");
+
+                    b.HasIndex("LevelId");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("Status", "Created");
+
+                    b.ToTable("reports");
+                });
+
+            modelBuilder.Entity("AzangaraMods_Website_Back.Models.SiteSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ReportsRequireAccount")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("site_settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ReportsRequireAccount = false
+                        });
+                });
+
             modelBuilder.Entity("AzangaraMods_Website_Back.Models.Token", b =>
                 {
                     b.Property<long>("Id")
@@ -264,6 +334,32 @@ namespace AzangaraMods_Website_Back.Migrations
                         .IsRequired();
 
                     b.Navigation("Level");
+                });
+
+            modelBuilder.Entity("AzangaraMods_Website_Back.Models.Report", b =>
+                {
+                    b.HasOne("AzangaraMods_Website_Back.Models.LevelFile", "LevelFile")
+                        .WithMany()
+                        .HasForeignKey("LevelFileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AzangaraMods_Website_Back.Models.Level", "Level")
+                        .WithMany()
+                        .HasForeignKey("LevelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AzangaraMods_Website_Back.Models.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Level");
+
+                    b.Navigation("LevelFile");
+
+                    b.Navigation("Reporter");
                 });
 
             modelBuilder.Entity("AzangaraMods_Website_Back.Models.Token", b =>

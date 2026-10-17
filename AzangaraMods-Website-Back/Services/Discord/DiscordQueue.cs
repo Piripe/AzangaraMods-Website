@@ -52,6 +52,11 @@ public class DiscordQueue(IServiceScopeFactory scopeFactory) : BackgroundService
         Enqueue(new Job(levelId, (discord, level) => discord.DeleteVerificationRequest(level)));
     }
 
+    public void QueueReportNotification(long levelId, long reportId)
+    {
+        Enqueue(new Job(levelId, (discord, level) => discord.NotifyReport(level, reportId)));
+    }
+
     public void QueueLevelRemoval(Level level)
     {
         if (_debounces.TryRemove(level.Id, out var pending)) pending.Cancel();

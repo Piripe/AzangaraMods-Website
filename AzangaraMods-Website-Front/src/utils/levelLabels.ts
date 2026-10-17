@@ -7,6 +7,16 @@ export const difficultyNames: Record<LevelDifficulties, string> = {
   60: "Expert"
 };
 
+// Same order as the report form
+export const reportCategories: { id: ReportCategories, label: string, description: string }[] = [
+  { id: 10, label: "Not an Azangara level", description: "The file isn't a level for Azangara." },
+  { id: 20, label: "Not working", description: "The level doesn't load, crashes or can't be finished." },
+  { id: 30, label: "Spam", description: "Advertising, junk or a duplicate upload." },
+  { id: 40, label: "Other", description: "Tell us what's wrong." },
+];
+
+export const reportCategoryNames = Object.fromEntries(reportCategories.map(c=>[c.id, c.label])) as Record<ReportCategories, string>;
+
 export function getLevelSizeText(size: number) {
   if (size < 8) return "Very Small";
   if (size < 16) return "Small";

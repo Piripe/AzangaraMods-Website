@@ -159,3 +159,13 @@ section.list {
         justify-content: flex-start;
     }
 }
+
+.message {
+    margin-top: 4px;
+    padding: 8px 12px;
+    border-radius: var(--shape-md);
+    background-color: var(--surface-container-highest);
+    font-size: var(--font-size-1);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

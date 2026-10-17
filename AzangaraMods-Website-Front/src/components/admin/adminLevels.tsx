@@ -18,6 +18,7 @@ import Spinner from "../kit/spinner";
 import SvgIcon from "../kit/svgIcon";
 import Tabs from "../kit/tabs";
 import TextBox from "../kit/textbox";
+import AdminReports from "./adminReports";
 import useUserData from "@/hooks/useUserData";
 import fetchApi from "@/utils/fetchApi";
 import errorAlert from "@/utils/errorAlert";
@@ -25,12 +26,14 @@ import downloadLevelFile from "@/utils/downloadLevelFile";
 import { LevelVerificationStatus } from "@/enums";
 import { formatCount, formatRelativeDate, galleryImageUrl } from "@/utils/levelLabels";
 
-export type StatusFilter = "all" | "published" | "drafts" | "pending";
-const statusTabs: { id: StatusFilter, label: string, icon: "map" | "public" | "lock" | "schedule" }[] = [
+// "reports" swaps the level list for the user reports
+export type StatusFilter = "all" | "published" | "drafts" | "pending" | "reports";
+const statusTabs: { id: StatusFilter, label: string, icon: "map" | "public" | "lock" | "schedule" | "flag" }[] = [
   { id: "all", label: "All", icon: "map" },
   { id: "published", label: "Published", icon: "public" },
   { id: "drafts", label: "Drafts", icon: "lock" },
   { id: "pending", label: "Pending review", icon: "schedule" },
+  { id: "reports", label: "Reports", icon: "flag" },
 ];
 const sortOptions = [
   { id: "updated", label: "Recently updated" },
@@ -70,6 +73,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
   const [rejecting, setRejecting] = useState<AdminLevelHit|null>(null);
   const [rejectNote, setRejectNote] = useState("");
   const [pendingCount, setPendingCount] = useState<number|undefined>(undefined);
+  const [reportCount, setReportCount] = useState<number|undefined>(undefined);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const params = new URLSearchParams();
@@ -83,9 +87,10 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
   const apiQuery = params.toString();
 
   const isAdmin = user?.admin ?? false;
+  const isReports = status === "reports";
 
   useEffect(()=>{
-    if (!token || !isAdmin) return;
+    if (!token || !isAdmin || isReports) return;
     let cancelled = false;
     fetchApi("/admin/levels?" + apiQuery, token).then(async res=>{
       if (cancelled) return;
@@ -99,7 +104,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
       if (!cancelled) setFailed(true);
     });
     return ()=>{ cancelled = true; };
-  }, [apiQuery, token, isAdmin, reloadKey]);
+  }, [apiQuery, token, isAdmin, isReports, reloadKey]);
 
   // Shown on the "Pending review" tab whichever tab is open
   useEffect(()=>{
@@ -107,6 +112,9 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
     let cancelled = false;
     fetchApi("/admin/levels?verification=pending&limit=1", token).then(async res=>{
       if (!cancelled && res.ok) setPendingCount((await res.json() as LevelSearchResult).totalHits);
+    }).catch(()=>{});
+    fetchApi("/admin/reports/count", token).then(async res=>{
+      if (!cancelled && res.ok) setReportCount(await res.json() as number);
     }).catch(()=>{});
     return ()=>{ cancelled = true; };
   }, [token, isAdmin, reloadKey]);
@@ -215,7 +223,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
     <div className={styles.container}>
       <PageHeader
         title="Admin"
-        subtitle="Every level on the site, drafts included"
+        subtitle={isReports ? "Reports sent by users on level files" : "Every level on the site, drafts included"}
         actions={<>
           <Button variant="outlined" icon="forum" disabled={bulkBusy !== null} click={()=>setConfirm({
             title: "Refresh all Discord messages?",
@@ -248,21 +256,27 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
         </Card>
       }
 
-      <div className={styles.toolbar}>
-        <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
-        {status !== "pending" &&
-          <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
-            setSortIndex(i);
-            setPage(1);
-          }}/>
-        }
-      </div>
-      <Tabs tabs={statusTabs.map(t=>({...t, count: t.id === status ? result?.totalHits : t.id === "pending" ? pendingCount : undefined}))} value={status} onChange={s=>{
+      {!isReports &&
+        <div className={styles.toolbar}>
+          <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
+          {status !== "pending" &&
+            <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
+              setSortIndex(i);
+              setPage(1);
+            }}/>
+          }
+        </div>
+      }
+      <Tabs tabs={statusTabs.map(t=>({...t, count: t.id === "reports" ? reportCount : t.id === status ? result?.totalHits : t.id === "pending" ? pendingCount : undefined}))} value={status} onChange={s=>{
         setStatus(s);
         setPage(1);
+        // The search box is unmounted on the reports tab, so its text would be lost
+        if (s === "reports") setQuery("");
       }}/>
 
-      {failed ?
+      {isReports ?
+        <AdminReports onChanged={()=>setReloadKey(k=>k + 1)}/>
+      : failed ?
         <EmptyState icon="map" title="Couldn't load levels" text="The server didn't answer. Try again in a moment."/>
       : !result ?
         <Spinner/>

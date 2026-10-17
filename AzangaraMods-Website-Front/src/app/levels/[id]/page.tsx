@@ -27,6 +27,7 @@ import formatBytes from "@/utils/fileSize";
 import { difficultyNames, formatCount, formatRelativeDate, galleryImageUrl, getRoomsText, levelFileDownloadUrl } from "@/utils/levelLabels";
 import LevelFileUploadPopup from "@/components/dashboard/levelFileUploadPopup";
 import GalleryUploadPopup from "@/components/dashboard/galleryUploadPopup";
+import ReportPopup from "@/components/levels/reportPopup";
 
 type LevelTab = "description" | "gallery" | "versions";
 type LevelAction = "publish" | "verification" | "approve" | "reject" | "delete";
@@ -48,6 +49,7 @@ export default function Page({
   const [uploadPopup, setUploadPopup] = useState<"file"|"gallery"|null>(null);
   const [dialog, setDialog] = useState<"delete"|"reject"|null>(null);
   const [rejectNote, setRejectNote] = useState("");
+  const [reportFile, setReportFile] = useState<LevelFile|null>(null);
   // The management action whose request is running, and the label its button shows meanwhile
   const [busy, setBusy] = useState<{ action: LevelAction, label: string }|null>(null);
 
@@ -245,6 +247,9 @@ export default function Page({
             <LinkButton variant="outlined" icon="edit" href={`/dashboard/levels/${level.id}/edit`}>Edit</LinkButton>
             <Button variant="text" icon="delete" disabled={busy !== null} click={()=>setDialog("delete")}>{busyLabel("delete", "Delete")}</Button>
           </>}
+          {latest && !isAuthor &&
+            <Button variant="text" icon="flag" click={()=>setReportFile(latest)}>Report</Button>
+          }
           {!latest ?
             <span className={buttonClass("filled", true)} aria-disabled="true"><SvgIcon name="download" size={18}/>No files yet</span>
           : level.published ?
@@ -338,8 +343,7 @@ export default function Page({
                           { label: "Download .pak.zip", icon: "download", href: levelFileDownloadUrl(level.id, f.id, "zip"), download: true, disabled: !level.published },
                           "divider",
                           { label: "Copy link", icon: "link", click: ()=>navigator.clipboard.writeText(levelFileDownloadUrl(level.id, f.id)) },
-                          // TODO: no report endpoint on the backend yet
-                          { label: "Report", icon: "flag", click: ()=>{}, disabled: true },
+                          { label: "Report", icon: "flag", click: ()=>setReportFile(f) },
                           ...(isAuthor ? ["divider", { label: "Delete", icon: "delete", click: ()=>deleteFile(f) }] as const : []),
                         ]}/>
                       </div>
@@ -392,6 +396,10 @@ export default function Page({
       }
       {uploadPopup === "gallery" &&
         <GalleryUploadPopup levelId={id} token={token!} onClose={()=>setUploadPopup(null)} onUploaded={()=>reloadLevel()}/>
+      }
+
+      {reportFile &&
+        <ReportPopup levelId={level.id} file={reportFile} onClose={()=>setReportFile(null)}/>
       }
 
       {dialog === "delete" &&

@@ -13,11 +13,15 @@ public class MainDbContext : DbContext
     public virtual DbSet<Level>? Levels { get; set; }
     public virtual DbSet<GalleryFile>? GalleryFiles { get; set; }
     public virtual DbSet<LevelFile>? LevelFiles { get; set; }
+    public virtual DbSet<Report>? Reports { get; set; }
+    public virtual DbSet<SiteSettings>? SiteSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Level>()
             .ToTable(t => t.HasCheckConstraint("CK_Tags_MaxCount", "array_length(\"Tags\",1) <= 10"));
+        builder.Entity<Report>().HasIndex(x => new { x.Status, x.Created });
+        builder.Entity<SiteSettings>().HasData(new SiteSettings());
         /*builder.Entity<User>().Property(u => u.Creation).HasDefaultValueSql("now()");
         builder.Entity<User>().Property(u => u.LastLogin).HasDefaultValueSql("now()");*/
 
