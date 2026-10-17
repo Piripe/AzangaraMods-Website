@@ -14,12 +14,13 @@ import PageHeader from "@/components/kit/pageHeader";
 import errorAlert from "@/utils/errorAlert";
 import { LevelDifficulties } from "@/enums";
 import ComboBox from "@/components/kit/combobox";
+import TagsInput from "@/components/kit/tagsInput";
 
 export default function Page() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState(LevelDifficulties.VeryEasy);
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState([] as string[]);
   const {token, pushLevel} = useUserData();
 
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function Page() {
       <TextBox label="Name" onChange={(e)=>setName(e)} maxLength={64}/>
       <BigTextBox label="Description" onChange={(e)=>setDescription(e)} maxLength={8192}/>
       <ComboBox label="Difficulty" onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
-      <TextBox label="Tags" supportingText="Space-separated, up to 10" onChange={(e)=>setTags(e)}/>
+      <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)}/>
       <div className={styles.formActions}>
         <Button variant="filled" icon="add" click={()=>{
           if (name.length === 0) {
@@ -50,21 +51,12 @@ export default function Page() {
             alert("Description cannot be longer than 8192 characters");
             return;
           }
-          const tagsArray = tags.split(" ");
-          if (tagsArray.length > 10) {
-            alert("Too many tags (max 10)");
-            return;
-          }
-          if (tagsArray.some(t=>t.length>32)) {
-            alert("Tags must be less than 32 characters");
-            return;
-          }
           fetchApi("/levels", token!, "PUT",
             JSON.stringify({
               name,
               description,
               difficulty,
-              tags
+              tags: tags.join(" ")
             })
           ).then(res=>{
             if (res.ok) {

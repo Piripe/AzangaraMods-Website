@@ -36,8 +36,8 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (partialLevel.description.Length >= 8192) return BadRequest(new ErrorResponseModel("Description is too long", ErrorCodes.LevelPutDescriptionTooLong));
         if (partialLevel.description.Length <= 5) return BadRequest(new ErrorResponseModel("Description is too short", ErrorCodes.LevelPutDescriptionTooShort));
         var tags = partialLevel.tags.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (tags.Length >= 10) return BadRequest(new ErrorResponseModel("Too many tags", ErrorCodes.LevelPutTooManyTags));
-        if (tags.Length > 0 && tags.Max(x=>x.Length) >= 32) return BadRequest(new ErrorResponseModel("Tag name is too long", ErrorCodes.LevelPutTagTooLong));
+        if (tags.Length > 10) return BadRequest(new ErrorResponseModel("Too many tags", ErrorCodes.LevelPutTooManyTags));
+        if (tags.Length > 0 && tags.Max(x=>x.Length) > 32) return BadRequest(new ErrorResponseModel("Tag name is too long", ErrorCodes.LevelPutTagTooLong));
         var level = new Level
         {
             Id = await IdUtils.GenerateId(),

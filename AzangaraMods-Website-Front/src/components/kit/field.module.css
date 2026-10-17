@@ -161,3 +161,53 @@ select.input ~ .outline > legend {
 .field:not(.labelled) > .outline {
     inset: 0;
 }
+
+/* Tags input: chips and the entry wrap inside the outlined field */
+.tags {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 56px;
+    padding: 12px 16px;
+    cursor: text;
+}
+
+.tagsEntry {
+    flex: 1;
+    min-width: 8rem;
+    height: 32px;
+    padding: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--on-surface);
+    caret-color: var(--primary);
+    font: inherit;
+    font-size: var(--font-size-2);
+
+    &::placeholder {
+        color: var(--on-surface-variant);
+        opacity: 1;
+    }
+    &:read-only {
+        caret-color: transparent;
+    }
+}
+
+.labelled:not(:focus-within) .tagsEntry::placeholder {
+    color: transparent;
+}
+
+.labelled:focus-within > .label,
+.filled > .label {
+    top: 0;
+    font-size: 12px;
+}
+
+.labelled:focus-within > .outline > legend,
+.filled > .outline > legend {
+    max-width: 100%;
+}

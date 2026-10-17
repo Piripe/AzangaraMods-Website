@@ -18,6 +18,7 @@ import Stars from "@/components/kit/stars";
 import LinkButton from "@/components/kit/linkButton";
 import errorAlert from "@/utils/errorAlert";
 import ComboBox from "@/components/kit/combobox";
+import TagsInput from "@/components/kit/tagsInput";
 import { LevelDifficulties } from "@/enums";
 
 export default  function Page({
@@ -30,7 +31,7 @@ export default  function Page({
   const [name, setName] = useState(null as string|null);
   const [description, setDescription] = useState(null as string|null);
     const [difficulty, setDifficulty] = useState(null as LevelDifficulties|null);
-  const [tags, setTags] = useState(null as string|null);
+  const [tags, setTags] = useState(null as string[]|null);
 
   const router = useRouter();
 
@@ -67,7 +68,7 @@ export default  function Page({
         <TextBox label="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
         <BigTextBox label="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
         <ComboBox label="Difficulty" onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
-        <TextBox label="Tags" supportingText="Space-separated, up to 10" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags?.join(" ")} />
+        <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags} />
         <div className={styles.formActions}>
           <LinkButton variant="text" href={"/dashboard/levels/" + id}>Cancel</LinkButton>
           <Button variant="filled" click={()=>{
@@ -76,7 +77,7 @@ export default  function Page({
                 name,
                 description,
                 difficulty,
-                tags: tags?.split(" ") || null
+                tags
               })
             ).then(res=>{
               if (res.ok) {
