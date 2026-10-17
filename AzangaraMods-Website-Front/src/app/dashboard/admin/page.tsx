@@ -7,5 +7,5 @@ export default async function Page({
 }) {
   // The admin webhook links to ?tab=pending and ?tab=reports
   const { tab } = await searchParams;
-  return <AdminLevels initialStatus={tab === "pending" || tab === "reports" ? tab : "all"}/>;
+  return <AdminLevels initialStatus={tab === "pending" || tab === "reports" || tab === "users" ? tab : "all"}/>;
 }

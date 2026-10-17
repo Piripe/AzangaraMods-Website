@@ -36,3 +36,23 @@ public class UserPrivateDto : UserPublicDto
     
     public new ICollection<LevelDto>? Levels { get; set; }
 }
+
+// Admin panel row: the level counts include drafts
+public class AdminUserDto : UserPublicPartialDto
+{
+    public DateTime LastLogin { get; set; }
+    public required string Email { get; set; }
+    public bool Admin { get; set; }
+    public bool Disabled { get; set; }
+    public bool Suspended { get; set; }
+    public int LevelCount { get; set; }
+    public int PublishedLevelCount { get; set; }
+}
+
+public class AdminUserListDto
+{
+    public required AdminUserDto[] Hits { get; set; }
+    public required int TotalHits { get; set; }
+    public required int Offset { get; set; }
+    public required int Limit { get; set; }
+}

@@ -18,10 +18,15 @@ public class AuthController(IUserService userService, ITokenService tokenService
     {
         var user = await userService.GetUserByEmail(req.Email?.Trim() ?? "");
 
-        if (user == null || !await userService.Login(user, req.Password ?? ""))
+        if (user == null || !userService.CheckPassword(user, req.Password ?? ""))
         {
             return UnprocessableEntity(new ErrorResponseModel("Invalid email or password", ErrorCodes.AuthLoginInvalid));
         }
+        // Only told once the password is right, so it doesn't reveal which emails have an account
+        if (user.Flags.HasFlag(UserFlags.Suspended))
+            return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseModel("This account has been suspended by an admin", ErrorCodes.AuthLoginSuspended));
+
+        await userService.Login(user, req.Password ?? "");
 
         // Logging in brings back an account disabled from the settings
         if (user.Flags.HasFlag(UserFlags.Disabled)) await userService.SetDisabled(user, false);

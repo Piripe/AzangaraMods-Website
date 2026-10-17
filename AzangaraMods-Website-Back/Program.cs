@@ -50,6 +50,13 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.CreateMap<User, UserPrivateDto>()
         .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)))
         .ForMember(d => d.Admin, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Admin)));
+    cfg.CreateMap<User, AdminUserDto>()
+        .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)))
+        .ForMember(d => d.Admin, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Admin)))
+        .ForMember(d => d.Disabled, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Disabled)))
+        .ForMember(d => d.Suspended, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Suspended)))
+        .ForMember(d => d.LevelCount, o => o.Ignore())
+        .ForMember(d => d.PublishedLevelCount, o => o.Ignore());
     cfg.CreateMap<Level, LevelPartialDto>();
     cfg.CreateMap<Level, LevelPartialAuthorDto>();
     cfg.CreateMap<Level, LevelDto>();

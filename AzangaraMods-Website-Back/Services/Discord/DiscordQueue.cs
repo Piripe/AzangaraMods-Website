@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using AzangaraMods_Website_Back.Data;
+using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +13,9 @@ public class DiscordQueue(IServiceScopeFactory scopeFactory) : BackgroundService
 {
     private static readonly TimeSpan DebounceDelay = TimeSpan.FromMinutes(1);
 
-    // Snapshot is used instead of loading the level from the DB, for levels that are being deleted
-    private record Job(long LevelId, Func<IDiscordService, Level, Task> Run, Level? Snapshot = null);
+    // Snapshot is used instead of loading the level from the DB, for levels that are being deleted.
+    // Jobs without a level (LevelId null) get a null level
+    private record Job(long? LevelId, Func<IDiscordService, Level?, Task> Run, Level? Snapshot = null);
 
     private readonly Channel<Job> _jobs = Channel.CreateUnbounded<Job>(new UnboundedChannelOptions { SingleReader = true });
     private readonly ConcurrentDictionary<long, CancellationTokenSource> _debounces = [];
@@ -22,7 +24,7 @@ public class DiscordQueue(IServiceScopeFactory scopeFactory) : BackgroundService
     {
         // This update already carries the latest download count
         if (_debounces.TryRemove(levelId, out var pending)) pending.Cancel();
-        Enqueue(new Job(levelId, (discord, level) => discord.UpdateDiscordForum(level, onlyUpdate)));
+        Enqueue(new Job(levelId, (discord, level) => discord.UpdateDiscordForum(level!, onlyUpdate)));
     }
 
     public void QueueDebouncedForumUpdate(long levelId)
@@ -38,23 +40,31 @@ public class DiscordQueue(IServiceScopeFactory scopeFactory) : BackgroundService
         {
             // Only removed if no newer call replaced it in the meantime
             if (_debounces.TryRemove(new KeyValuePair<long, CancellationTokenSource>(levelId, cts)))
-                Enqueue(new Job(levelId, (discord, level) => discord.UpdateDiscordForum(level, true)));
+                Enqueue(new Job(levelId, (discord, level) => discord.UpdateDiscordForum(level!, true)));
         }, TaskContinuationOptions.OnlyOnRanToCompletion);
     }
 
     public void QueueVerificationRequest(long levelId)
     {
-        Enqueue(new Job(levelId, (discord, level) => discord.NotifyVerificationRequest(level)));
+        Enqueue(new Job(levelId, (discord, level) => discord.NotifyVerificationRequest(level!)));
     }
 
     public void QueueDeleteVerificationRequest(long levelId)
     {
-        Enqueue(new Job(levelId, (discord, level) => discord.DeleteVerificationRequest(level)));
+        Enqueue(new Job(levelId, (discord, level) => discord.DeleteVerificationRequest(level!)));
     }
 
     public void QueueReportNotification(long levelId, long reportId)
     {
-        Enqueue(new Job(levelId, (discord, level) => discord.NotifyReport(level, reportId)));
+        Enqueue(new Job(levelId, (discord, level) => discord.NotifyReport(level!, reportId)));
+    }
+
+    public void QueueRoleChangeNotification(User user, UserFlags role, bool granted, User changedBy)
+    {
+        // Copied now: the user can be renamed or deleted before the job runs
+        var target = new RoleChangeTarget(user.Id, user.Username, user.HasProfilePicture);
+        var changedByName = changedBy.Username;
+        Enqueue(new Job(null, (discord, _) => discord.NotifyRoleChange(target, role, granted, changedByName)));
     }
 
     public void QueueLevelRemoval(Level level)
@@ -78,8 +88,8 @@ public class DiscordQueue(IServiceScopeFactory scopeFactory) : BackgroundService
         };
         Enqueue(new Job(level.Id, async (discord, l) =>
         {
-            await discord.UpdateDiscordForum(l, true);
-            await discord.DeleteVerificationRequest(l);
+            await discord.UpdateDiscordForum(l!, true);
+            await discord.DeleteVerificationRequest(l!);
         }, snapshot));
     }
 
@@ -99,19 +109,23 @@ public class DiscordQueue(IServiceScopeFactory scopeFactory) : BackgroundService
                 var discord = scope.ServiceProvider.GetRequiredService<IDiscordService>();
 
                 // Loaded when the job runs, so the post shows the level as it is now
-                var level = job.Snapshot ?? await db.Levels!
-                    .Include(x => x.LevelFiles)
-                    .Include(x => x.GalleryFiles)
-                    .Include(x => x.Author)
-                    .AsSplitQuery()
-                    .FirstOrDefaultAsync(x => x.Id == job.LevelId, stoppingToken);
-                if (level == null) continue;
+                var level = job.Snapshot;
+                if (level == null && job.LevelId.HasValue)
+                {
+                    level = await db.Levels!
+                        .Include(x => x.LevelFiles)
+                        .Include(x => x.GalleryFiles)
+                        .Include(x => x.Author)
+                        .AsSplitQuery()
+                        .FirstOrDefaultAsync(x => x.Id == job.LevelId.Value, stoppingToken);
+                    if (level == null) continue;
+                }
 
                 await job.Run(discord, level);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Discord queue error for level {job.LevelId}: {e}");
+                Console.WriteLine(job.LevelId.HasValue ? $"Discord queue error for level {job.LevelId}: {e}" : $"Discord queue error: {e}");
             }
 
             // Keeps bulk reloads under Discord's webhook rate limit

@@ -19,6 +19,7 @@ import SvgIcon from "../kit/svgIcon";
 import Tabs from "../kit/tabs";
 import TextBox from "../kit/textbox";
 import AdminReports from "./adminReports";
+import AdminUsers from "./adminUsers";
 import useUserData from "@/hooks/useUserData";
 import fetchApi from "@/utils/fetchApi";
 import errorAlert from "@/utils/errorAlert";
@@ -26,14 +27,15 @@ import downloadLevelFile from "@/utils/downloadLevelFile";
 import { LevelVerificationStatus } from "@/enums";
 import { formatCount, formatRelativeDate, galleryImageUrl } from "@/utils/levelLabels";
 
-// "reports" swaps the level list for the user reports
-export type StatusFilter = "all" | "published" | "drafts" | "pending" | "reports";
-const statusTabs: { id: StatusFilter, label: string, icon: "map" | "public" | "lock" | "schedule" | "flag" }[] = [
+// "reports" and "users" swap the level list for the user reports and the user accounts
+export type StatusFilter = "all" | "published" | "drafts" | "pending" | "reports" | "users";
+const statusTabs: { id: StatusFilter, label: string, icon: "map" | "public" | "lock" | "schedule" | "flag" | "person" }[] = [
   { id: "all", label: "All", icon: "map" },
   { id: "published", label: "Published", icon: "public" },
   { id: "drafts", label: "Drafts", icon: "lock" },
   { id: "pending", label: "Pending review", icon: "schedule" },
   { id: "reports", label: "Reports", icon: "flag" },
+  { id: "users", label: "Users", icon: "person" },
 ];
 const sortOptions = [
   { id: "updated", label: "Recently updated" },
@@ -88,9 +90,11 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
 
   const isAdmin = user?.admin ?? false;
   const isReports = status === "reports";
+  const isUsers = status === "users";
+  const isLevels = !isReports && !isUsers;
 
   useEffect(()=>{
-    if (!token || !isAdmin || isReports) return;
+    if (!token || !isAdmin || !isLevels) return;
     let cancelled = false;
     fetchApi("/admin/levels?" + apiQuery, token).then(async res=>{
       if (cancelled) return;
@@ -104,7 +108,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
       if (!cancelled) setFailed(true);
     });
     return ()=>{ cancelled = true; };
-  }, [apiQuery, token, isAdmin, isReports, reloadKey]);
+  }, [apiQuery, token, isAdmin, isLevels, reloadKey]);
 
   // Shown on the "Pending review" tab whichever tab is open
   useEffect(()=>{
@@ -223,7 +227,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
     <div className={styles.container}>
       <PageHeader
         title="Admin"
-        subtitle={isReports ? "Reports sent by users on level files" : "Every level on the site, drafts included"}
+        subtitle={isReports ? "Reports sent by users on level files" : isUsers ? "Every account on the site" : "Every level on the site, drafts included"}
         actions={<>
           <Button variant="outlined" icon="forum" disabled={bulkBusy !== null} click={()=>setConfirm({
             title: "Refresh all Discord messages?",
@@ -256,7 +260,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
         </Card>
       }
 
-      {!isReports &&
+      {isLevels &&
         <div className={styles.toolbar}>
           <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
           {status !== "pending" &&
@@ -270,12 +274,14 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
       <Tabs tabs={statusTabs.map(t=>({...t, count: t.id === "reports" ? reportCount : t.id === status ? result?.totalHits : t.id === "pending" ? pendingCount : undefined}))} value={status} onChange={s=>{
         setStatus(s);
         setPage(1);
-        // The search box is unmounted on the reports tab, so its text would be lost
-        if (s === "reports") setQuery("");
+        // The search box is unmounted on the reports and users tabs, so its text would be lost
+        if (s === "reports" || s === "users") setQuery("");
       }}/>
 
       {isReports ?
         <AdminReports onChanged={()=>setReloadKey(k=>k + 1)}/>
+      : isUsers ?
+        <AdminUsers/>
       : failed ?
         <EmptyState icon="map" title="Couldn't load levels" text="The server didn't answer. Try again in a moment."/>
       : !result ?

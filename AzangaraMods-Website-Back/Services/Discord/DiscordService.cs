@@ -260,6 +260,49 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         }
     }
 
+    // Posts to the admin webhook (DISCORD_ADMIN_WEBHOOK), which is optional
+    public async Task NotifyRoleChange(RoleChangeTarget user, UserFlags role, bool granted, string changedBy)
+    {
+        try
+        {
+            var roleName = role == UserFlags.Admin ? "Admin" : "Verified modder";
+            var webhook = Environment.GetEnvironmentVariable("DISCORD_ADMIN_WEBHOOK");
+            if (string.IsNullOrWhiteSpace(webhook))
+            {
+                Console.WriteLine($"No admin webhook set, {roleName} {(granted ? "given to" : "removed from")} user {user.Id} by {changedBy}");
+                return;
+            }
+
+            var frontUrl = Environment.GetEnvironmentVariable("FRONT_URL") ?? "";
+            var downloadUrl = Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080";
+            var usersUrl = $"{frontUrl}/dashboard/admin?tab=users";
+
+            var embed = new AdminEmbed(
+                granted ? $"{roleName} role given" : $"{roleName} role removed",
+                string.IsNullOrWhiteSpace(frontUrl) ? null : usersUrl,
+                $"**{user.Username}** {(granted ? "is now" : "is no longer")} {(role == UserFlags.Admin ? "an admin" : "a verified modder")}",
+                // Green when given, grey when removed
+                granted ? 0x2ECC71 : 0x95A5A6,
+                [
+                    new EmbedField("User", user.Username),
+                    new EmbedField("Changed by", changedBy),
+                    new EmbedField("Links", string.IsNullOrWhiteSpace(frontUrl)
+                        ? "FRONT_URL isn't set"
+                        : $"[Open the users]({usersUrl}) · [Profile]({frontUrl}/users/{user.Id})", false),
+                ],
+                user.HasProfilePicture ? new EmbedThumbnail($"{downloadUrl}/user/{user.Id}/avatar") : null,
+                DateTime.UtcNow.ToString("o"));
+
+            var res = await _httpClient.PostAsync(webhook, JsonContent.Create(new SendAdminWebhookMessageRequest("Azanbot", [embed])));
+            if (!res.IsSuccessStatusCode)
+                Console.WriteLine($"Admin webhook error: {(int)res.StatusCode} {await res.Content.ReadAsStringAsync()}");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Admin webhook error: " + e.Message);
+        }
+    }
+
     private Uri GetDiscordRequestUri(string path)
     {
         return new Uri((Environment.GetEnvironmentVariable("DISCORD_WEBHOOK") ?? throw new Exception("Can't find webhook URL")) + path);

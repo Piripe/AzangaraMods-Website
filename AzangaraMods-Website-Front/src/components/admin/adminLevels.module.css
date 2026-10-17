@@ -62,7 +62,13 @@ section.list {
     }
 }
 
+/* Users tab: an avatar takes the thumbnail's place */
+.row.userRow {
+    grid-template-columns: 40px minmax(0, 1fr) auto auto;
+}
+
 .busy .thumbnail,
+.busy .avatar,
 .busy .info {
     opacity: 0.5;
 }
@@ -153,6 +159,9 @@ section.list {
     .row {
         grid-template-columns: 72px minmax(0, 1fr) auto;
     }
+    .row.userRow {
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+    }
     .chips {
         grid-column: 2 / 4;
         grid-row: 2;
@@ -168,4 +177,9 @@ section.list {
     font-size: var(--font-size-1);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+}
+
+.formError {
+    color: var(--error);
+    font-size: var(--font-size-1);
 }

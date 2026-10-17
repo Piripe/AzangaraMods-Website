@@ -26,6 +26,43 @@ public class UserService(MainDbContext db, ILevelService levelService, IDiscordQ
         return db.Users!.FirstOrDefaultAsync(x => x.Id == userId);
     }
 
+    public async Task<(UserStats[] users, int total)> SearchUsers(string? query, UserSortOrders sort, int offset, int limit)
+    {
+        var users = db.Users!.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var text = query.Trim();
+            var pattern = "%" + text.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";
+            users = long.TryParse(text, out var id)
+                ? users.Where(x => x.Id == id || EF.Functions.ILike(x.Username, pattern, "\\") || EF.Functions.ILike(x.Email, pattern, "\\"))
+                : users.Where(x => EF.Functions.ILike(x.Username, pattern, "\\") || EF.Functions.ILike(x.Email, pattern, "\\"));
+        }
+
+        var total = await users.CountAsync();
+
+        users = sort switch
+        {
+            UserSortOrders.Oldest => users.OrderBy(x => x.Creation).ThenBy(x => x.Id),
+            UserSortOrders.Username => users.OrderBy(x => x.Username.ToLower()).ThenBy(x => x.Id),
+            UserSortOrders.Levels => users.OrderByDescending(x => x.Levels!.Count).ThenByDescending(x => x.Id),
+            UserSortOrders.LastLogin => users.OrderByDescending(x => x.LastLogin).ThenByDescending(x => x.Id),
+            _ => users.OrderByDescending(x => x.Creation).ThenByDescending(x => x.Id),
+        };
+
+        var page = await users
+            .Skip(offset)
+            .Take(limit)
+            .Select(x => new { User = x, LevelCount = x.Levels!.Count, PublishedLevelCount = x.Levels!.Count(l => l.Published) })
+            .ToArrayAsync();
+        return (page.Select(x => new UserStats(x.User, x.LevelCount, x.PublishedLevelCount)).ToArray(), total);
+    }
+
+    public async Task<UserStats> GetUserStats(User user)
+    {
+        var levels = db.Levels!.Where(x => x.AuthorId == user.Id);
+        return new UserStats(user, await levels.CountAsync(), await levels.CountAsync(x => x.Published));
+    }
+
     public async Task<bool> Login(User user, string password)
     {
         if (!CheckPassword(user, password)) return false;
@@ -90,12 +127,30 @@ public class UserService(MainDbContext db, ILevelService levelService, IDiscordQ
         return db.SaveChangesAsync();
     }
 
-    public async Task SetDisabled(User user, bool disabled)
+    public Task SetDisabled(User user, bool disabled)
     {
-        var flags = disabled ? user.Flags | UserFlags.Disabled : user.Flags & ~UserFlags.Disabled;
+        return SetFlags(user, disabled ? user.Flags | UserFlags.Disabled : user.Flags & ~UserFlags.Disabled);
+    }
+
+    public Task SetSuspended(User user, bool suspended)
+    {
+        const UserFlags flags = UserFlags.Suspended | UserFlags.Disabled;
+        return SetFlags(user, suspended ? user.Flags | flags : user.Flags & ~flags);
+    }
+
+    public Task<int> SetFlag(User user, UserFlags flag, bool value)
+    {
+        db.Entry(user).Property(x => x.Flags).CurrentValue = value ? user.Flags | flag : user.Flags & ~flag;
+        return db.SaveChangesAsync();
+    }
+
+    private async Task SetFlags(User user, UserFlags flags)
+    {
         if (flags == user.Flags) return;
+        var visibilityChanged = (flags ^ user.Flags).HasFlag(UserFlags.Disabled);
         db.Entry(user).Property(x => x.Flags).CurrentValue = flags;
         await db.SaveChangesAsync();
+        if (!visibilityChanged) return;
 
         foreach (var level in (await FetchLevels(user)).Levels!.Where(x => x.Published))
             discordQueue.QueueForumUpdate(level.Id, true);

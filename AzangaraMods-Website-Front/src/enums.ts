@@ -103,4 +103,7 @@ export enum ErrorCodes {
     ReportRateLimited = 0x44,
     ReportAlreadySent = 0x45,
     AdminReportNotFound = 0x46,
+    AuthLoginSuspended = 0x47,
+    AdminUserNotFound = 0x48,
+    AdminUserSelf = 0x49,
 }

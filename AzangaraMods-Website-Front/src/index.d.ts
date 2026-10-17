@@ -130,6 +130,27 @@ type LevelReportList = {
     offset: number,
     limit: number,
 }
+// Admin users list; levelCount includes drafts
+type AdminUser = {
+    id: string,
+    username: string,
+    email: string,
+    creation: string,
+    lastLogin: string,
+    hasProfilePicture: boolean,
+    verifiedModder: boolean,
+    admin: boolean,
+    disabled: boolean,
+    suspended: boolean,
+    levelCount: number,
+    publishedLevelCount: number,
+}
+type AdminUserList = {
+    hits: AdminUser[],
+    totalHits: number,
+    offset: number,
+    limit: number,
+}
 type SiteSettings = {
     reportsRequireAccount: boolean,
 }
