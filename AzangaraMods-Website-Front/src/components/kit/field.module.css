@@ -291,3 +291,14 @@ select.input ~ .outline > legend {
         color: var(--error);
     }
 }
+
+/* Visible label above a plain box */
+.boxLabel {
+    padding: 0 4px;
+    color: var(--on-surface-variant);
+    font-size: 12px;
+    font-weight: 500;
+}
+.wrapper:focus-within > .boxLabel {
+    color: var(--primary);
+}

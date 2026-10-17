@@ -190,6 +190,60 @@
     }
 }
 
+/* In-place editing */
+.editing {
+    box-shadow: inset 0 0 0 1px var(--primary);
+
+    & .statusIcon {
+        background-color: var(--primary-container);
+        color: var(--on-primary-container);
+    }
+}
+
+.titleRow > .nameInput {
+    flex: 1;
+    min-width: min(100%, 16rem);
+    width: auto;
+
+    & input {
+        height: 56px;
+        font-size: 24px;
+        font-weight: 600;
+    }
+}
+
+.editFields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+
+    & > div {
+        width: 100%;
+    }
+}
+
+.descriptionEdit > label {
+    width: 100%;
+
+    & textarea {
+        min-height: 280px;
+    }
+}
+
+.detail.detailEdit {
+    flex-direction: column;
+    gap: 8px;
+
+    & > dd {
+        text-align: left;
+        font-weight: normal;
+    }
+    & > dd > label {
+        width: 100%;
+    }
+}
+
 .tabToolbar {
     display: flex;
     justify-content: flex-end;

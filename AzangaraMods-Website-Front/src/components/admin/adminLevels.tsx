@@ -333,7 +333,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
                 </div>
                 <Menu items={[
                   { label: "Open level page", icon: "openInNew", href: `/levels/${level.id}` },
-                  { label: "Edit", icon: "edit", href: `/dashboard/levels/${level.id}/edit` },
+                  { label: "Edit", icon: "edit", href: `/levels/${level.id}?edit` },
                   { label: "Download latest file", icon: "download", click: ()=>download(level), disabled: !level.latestFileId },
                   "divider",
                   ...(level.verification === LevelVerificationStatus.Pending ? [

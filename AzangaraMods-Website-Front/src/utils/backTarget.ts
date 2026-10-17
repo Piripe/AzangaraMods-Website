@@ -9,7 +9,7 @@ const KEY = "backTarget";
 // Pages a level page can link back to
 const targetPaths = [/^\/$/, /^\/levels$/, /^\/dashboard\/levels$/, /^\/dashboard\/admin$/, /^\/users\/[^/]+$/];
 // Pages reached from a level page, which keep the back target of that level page
-const levelPaths = [/^\/levels\/[^/]+$/, /^\/dashboard\/levels\/new$/, /^\/dashboard\/levels\/[^/]+\/edit$/];
+const levelPaths = [/^\/levels\/[^/]+$/, /^\/dashboard\/levels\/new$/];
 
 let memoryTarget: string | null = null;
 const listeners = new Set<() => void>();

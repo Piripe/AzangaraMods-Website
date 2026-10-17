@@ -207,7 +207,7 @@ export default function AdminReports({onChanged}:{onChanged:()=>void}) {
               </div>
               <Menu items={[
                 { label: "Open level page", icon: "openInNew", href: `/levels/${report.levelId}` },
-                { label: "Edit level", icon: "edit", href: `/dashboard/levels/${report.levelId}/edit` },
+                { label: "Edit level", icon: "edit", href: `/levels/${report.levelId}?edit` },
                 { label: "Download reported file", icon: "download", click: ()=>download(report) },
                 "divider",
                 ...(report.status === ReportStatus.Open ? [

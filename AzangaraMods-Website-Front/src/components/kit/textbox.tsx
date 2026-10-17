@@ -20,15 +20,17 @@ export default function TextBox(
   supportingText,
   error,
   icon,
+  label,
   className
 }:{
-  onChange?:(e:string)=>void, placeholder?:string|undefined, password?:boolean|undefined,newPassword?:boolean|undefined, usernameEntry?:boolean|undefined, type?:"text"|"email"|"number"|undefined, autoComplete?:string|undefined, autoFocus?:boolean|undefined, maxLength?:number|undefined, min?:number|undefined, max?:number|undefined, defaultValue?:string|undefined, supportingText?:string|undefined, error?:string|null|undefined, icon?:SvgIconName|undefined, className?:string|undefined}) {
+  onChange?:(e:string)=>void, placeholder?:string|undefined, password?:boolean|undefined,newPassword?:boolean|undefined, usernameEntry?:boolean|undefined, type?:"text"|"email"|"number"|undefined, autoComplete?:string|undefined, autoFocus?:boolean|undefined, maxLength?:number|undefined, min?:number|undefined, max?:number|undefined, defaultValue?:string|undefined, supportingText?:string|undefined, error?:string|null|undefined, icon?:SvgIconName|undefined, label?:string|undefined, className?:string|undefined}) {
   const [length, setLength] = useState(defaultValue?.length ?? 0);
   const [revealed, setRevealed] = useState(false);
   const supportingId = useId();
 
   return (
     <label className={`${styles.wrapper} ${className ?? ""}`}>
+      {label && <span className={styles.boxLabel}>{label}</span>}
       <span className={`${styles.field} ${styles.box} ${error ? styles.invalid : ""}`}>
         {icon && <span className={styles.leadingIcon}><SvgIcon name={icon} size={20}/></span>}
         <input
@@ -38,7 +40,7 @@ export default function TextBox(
           autoFocus={autoFocus}
           name={password ? "password" :  usernameEntry ? "username" : undefined}
           placeholder={placeholder}
-          aria-label={placeholder}
+          aria-label={label ? undefined : placeholder}
           aria-invalid={error ? true : undefined}
           aria-describedby={error || supportingText ? supportingId : undefined}
           onChange={(e)=>{setLength(e.target.value.length); onChange(e.target.value);}}
