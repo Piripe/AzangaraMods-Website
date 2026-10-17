@@ -223,10 +223,10 @@
     }
 }
 
-.descriptionEdit > label {
+.descriptionEdit > div {
     width: 100%;
 
-    & textarea {
+    & [role="textbox"] {
         min-height: 280px;
     }
 }
@@ -281,19 +281,6 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-}
-
-.descriptionPreview {
-    padding-top: 16px;
-    border-top: 1px solid var(--outline-variant);
-}
-
-.descriptionPreviewLabel {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--on-surface-variant);
-    font-size: var(--font-size-1);
-    font-weight: 500;
 }
 
 /* Gallery */

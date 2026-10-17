@@ -10,6 +10,7 @@ import downloadLevelFile from "@/utils/downloadLevelFile";
 import { useBackTarget } from "@/utils/backTarget";
 import { LevelVerificationStatus } from "@/enums";
 import BigTextBox from "@/components/kit/bigTextbox";
+import MarkdownTextBox from "@/components/kit/markdownTextbox";
 import Button, { buttonClass } from "@/components/kit/button";
 import Card from "@/components/kit/card";
 import Chip from "@/components/kit/chip";
@@ -384,14 +385,8 @@ export default function Page({
 
           {tab === "description" && (draft ?
             <Card className={styles.descriptionEdit}>
-              <BigTextBox label="Description" placeholder="Tell players what your level is about" maxLength={8192}
+              <MarkdownTextBox label="Description" placeholder="Tell players what your level is about" maxLength={8192}
                 supportingText={markdownHint} defaultValue={draft.description} error={descriptionError} onChange={description=>editDraft({ description })}/>
-              {draft.description.trim() !== "" &&
-                <div className={styles.descriptionPreview}>
-                  <span className={styles.descriptionPreviewLabel}>Preview</span>
-                  <Markdown>{draft.description}</Markdown>
-                </div>
-              }
             </Card>
           :
             <Card>
