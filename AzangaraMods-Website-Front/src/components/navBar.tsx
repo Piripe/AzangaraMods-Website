@@ -1,15 +1,9 @@
 import Link from "next/link";
 import UserButton from "./userButton";
 import styles from "./navBar.module.css";
-import { DashboardNav } from "./nav/dashboardNav";
 import { DefaultNav } from "./nav/defaultNav";
 
-export enum NavBarType {
-    DEFAULT = "default",
-    DASHBOARD = "dashboard",
-}
-
-export default function NavBar({navBarType}:{navBarType?:NavBarType|undefined}) {
+export default function NavBar() {
   return (
     <header className={styles.navBar}>
         <Link href="/" className={styles.brand}>
@@ -17,14 +11,7 @@ export default function NavBar({navBarType}:{navBarType?:NavBarType|undefined}) 
             <img src="/favicon.ico" alt=""/>
             <span className={styles.brandText}>Azangara <span className={styles.accent}>Mods</span></span>
         </Link>
-        {(() => {
-            switch (navBarType) {
-                case NavBarType.DASHBOARD:
-                    return <DashboardNav />;
-                default:
-                    return <DefaultNav />;
-            }
-        })()}
+        <DefaultNav />
         <div className={styles.spacer}/>
         <UserButton/>
     </header>
