@@ -102,5 +102,7 @@ type Session = {
 }
 type LevelFileUploadResponseData = {
     id: string,
+    // Detected entry points; the first one is saved by default
     files: string[],
+    otherFiles: string[],
 }

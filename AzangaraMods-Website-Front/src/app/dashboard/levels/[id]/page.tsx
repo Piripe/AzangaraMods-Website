@@ -17,6 +17,8 @@ import errorAlert from "@/utils/errorAlert";
 import downloadLevelFile from "@/utils/downloadLevelFile";
 import { LevelVerificationStatus } from "@/enums";
 import { difficultyNames, galleryImageUrl, getLevelSizeText } from "@/utils/levelLabels";
+import LevelFileUploadPopup from "@/components/dashboard/levelFileUploadPopup";
+import GalleryUploadPopup from "@/components/dashboard/galleryUploadPopup";
 
 export default  function Page({
   params,
@@ -30,6 +32,7 @@ export default  function Page({
   const levelIndex = user?.levels?.findIndex(l=>l.id === id) ?? -1;
 
   const [levelData, setLevelData] = useState(user?.levels?.[levelIndex]);
+  const [uploadPopup, setUploadPopup] = useState<"file"|"gallery"|null>(null);
 
   useEffect(()=>{
     if (token != null) {
@@ -47,6 +50,26 @@ export default  function Page({
       })();
     }
   }, [user]);
+
+  // Reloads the level after an upload changed its files or room count
+  const reloadLevel = async () => {
+    const res = await fetchApi("/levels/" + id, token!);
+    const data = await res.json();
+    if (res.ok) {
+      setLevelData(data);
+      updateLevel(data);
+    } else {
+      errorAlert(data);
+    }
+  };
+
+  const addGalleryFile = (f: GalleryFile) => {
+    const newLevelData = {...levelData!};
+    newLevelData.galleryFiles = [...(levelData!.galleryFiles ?? []), f];
+    newLevelData.lastEdit = new Date().toString();
+    updateLevel(newLevelData);
+    setLevelData(newLevelData);
+  };
 
   const deleteFile = (f: LevelFile) => {
     fetchApi(
@@ -154,7 +177,7 @@ export default  function Page({
       </Card>
 
       <div className={styles.twoColumns}>
-        <Card title="Files" actions={<LinkButton icon="upload" href={`/dashboard/levels/${id}/files/new`}>Upload</LinkButton>}>
+        <Card title="Files" actions={<Button icon="upload" click={()=>setUploadPopup("file")}>Upload</Button>}>
           {levelData.levelFiles?.length ?
             <ul className={styles.list}>
               {[...levelData.levelFiles].sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()).map(f=>(
@@ -174,7 +197,7 @@ export default  function Page({
           }
         </Card>
 
-        <Card title="Gallery" actions={<LinkButton icon="upload" href={`/dashboard/levels/${id}/gallery/new`}>Upload</LinkButton>}>
+        <Card title="Gallery" actions={<Button icon="upload" click={()=>setUploadPopup("gallery")}>Upload</Button>}>
           {levelData.galleryFiles?.length ?
             <div className={styles.gallery}>
               {levelData.galleryFiles.map(f=>(
@@ -193,6 +216,13 @@ export default  function Page({
           }
         </Card>
       </div>
+
+      {uploadPopup === "file" &&
+        <LevelFileUploadPopup levelId={id} token={token!} onClose={()=>setUploadPopup(null)} onChanged={reloadLevel}/>
+      }
+      {uploadPopup === "gallery" &&
+        <GalleryUploadPopup levelId={id} token={token!} onClose={()=>setUploadPopup(null)} onUploaded={addGalleryFile}/>
+      }
     </div>
   );
 }
