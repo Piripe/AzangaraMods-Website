@@ -5,7 +5,7 @@ import SvgIcon, { SvgIconName } from "./svgIcon";
 
 type IconButtonVariant = "standard" | "tonal" | "danger";
 
-function iconButtonClass(variant: IconButtonVariant) {
+export function iconButtonClass(variant: IconButtonVariant) {
   return `${styles.iconButton} ${tooltip.anchor} ${variant !== "standard" ? styles[variant] : ""}`;
 }
 

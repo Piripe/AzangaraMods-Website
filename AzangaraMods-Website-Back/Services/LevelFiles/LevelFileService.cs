@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Text;
 using AzangaraMods_Website_Back.Data;
@@ -5,6 +6,8 @@ using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.Discord;
 using AzangaraMods_Website_Back.Services.Levels;
 using AzangaraMods_Website_Back.Utils;
+using AzangaraTools;
+using AzangaraTools.Models;
 using AzangaraTools.Models.File;
 using AzangaraTools.Script;
 using Microsoft.EntityFrameworkCore;
@@ -207,5 +210,56 @@ public class LevelFileService(MainDbContext db, ILevelService levelService, IDis
             );
        await levelService.UpdateLevel(levelId, null, null, null, null, (short)roomAmount,
             null);
+    }
+
+    // Runs a stored level file through ProcessLevelFile again. The level must have its LevelFiles loaded.
+    // On failure the original file is restored and the exception is rethrown.
+    public async Task ReprocessLevelFile(Models.Level level, LevelFile levelFile)
+    {
+        var filePath = levelFile.Id.GetIdFilePath("zip");
+        var tempPath = filePath + ".temp";
+
+        File.Move(filePath, tempPath, true);
+        try
+        {
+            IFile[] pakFiles;
+            string missingPath;
+            List<Level> levels;
+            int fileSize;
+
+            await using (var zipFile = File.OpenRead(tempPath))
+            await using (var zip = await ZipArchive.CreateAsync(zipFile, ZipArchiveMode.Read, false, new UTF8Encoding()))
+            {
+                var entry = zip.Entries.FirstOrDefault();
+                await using var pakStream = entry != null ? await entry.OpenAsync() : new MemoryStream();
+                pakFiles = PakHelper.Read(new SubStream(pakStream, entry?.Length ?? 0));
+
+                (_, levels, pakFiles, missingPath) = ProcessLevelFile(pakFiles, level.Id);
+
+                // Files are read lazily from the old archive, so write the new one while it is still open
+                await using var fileStream = File.Create(filePath);
+                await using var finalZip = new ZipArchive(fileStream, ZipArchiveMode.Create);
+                await using var newPakStream = await finalZip.CreateEntry("level-data.pak").OpenAsync();
+                PakHelper.Write(newPakStream, pakFiles);
+                fileSize = (int)newPakStream.Position;
+            }
+
+            if (levelFile.Id == level.LevelFiles?.MaxBy(x => x.Id)?.Id)
+            {
+                await UpdateRoomCount(levels, level.Id);
+            }
+
+            var newEntryPoint = missingPath.Length > 0 && pakFiles.All(x => x.Path != levelFile.EntryPoint)
+                ? missingPath + levelFile.EntryPoint
+                : null;
+            await UpdateLevelFile(level.Id, levelFile.Id, null, newEntryPoint, fileSize);
+
+            File.Delete(tempPath);
+        }
+        catch
+        {
+            File.Move(tempPath, filePath, true);
+            throw;
+        }
     }
 }

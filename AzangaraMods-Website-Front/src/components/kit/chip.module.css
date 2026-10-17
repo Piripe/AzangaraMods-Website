@@ -89,3 +89,49 @@
     width: 18px;
     height: 18px;
 }
+
+/* Filter chip: a toggleable chip, filled with a check mark when selected */
+.filter {
+    position: relative;
+    isolation: isolate;
+    border: none;
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+        background-color var(--duration-short) var(--ease-standard),
+        color var(--duration-short) var(--ease-standard);
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        background-color: currentColor;
+        opacity: 0;
+        transition: opacity var(--duration-short) var(--ease-standard);
+    }
+    &:hover::before { opacity: var(--state-hover); }
+    &:active::before { opacity: var(--state-pressed); }
+    &:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+}
+
+.selected {
+    box-shadow: none;
+    background-color: var(--secondary-container);
+    color: var(--on-secondary-container);
+
+    & > svg {
+        color: inherit;
+    }
+}
+
+.count {
+    color: var(--on-surface-variant);
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+}

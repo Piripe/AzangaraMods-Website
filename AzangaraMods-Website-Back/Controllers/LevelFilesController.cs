@@ -31,7 +31,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
         {
             if (file is null)
                 return BadRequest(new ErrorResponseModel("No file or file too big", ErrorCodes.LevelFilePutNull));
-            if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId))
+            if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId))
                 return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
 
             IFile[] pakFiles;
@@ -141,7 +141,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
     [HttpPatch("{levelFileId}")]
     public async Task<IActionResult> PatchLevelFile([FromBody] PatchLevelFileRequestData partialLevelFile, [FromRoute] long levelId, [FromRoute] long levelFileId)
     {
-        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
         if (partialLevelFile.entryPoint == null && partialLevelFile.fileName == null) return BadRequest(new ErrorResponseModel("Request is null", ErrorCodes.LevelFilePatchNull));
         var levelFile = await levelFileService.UpdateLevelFile(
             levelId,
@@ -159,7 +159,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
     [HttpDelete("{levelFileId}")]
     public async Task<IActionResult> DeleteLevelFile([FromRoute] long levelId, [FromRoute] long levelFileId)
     {
-        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
         var levelFile = await levelFileService.GetLevelFileById(levelId, levelFileId);
         if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found", ErrorCodes.LevelFileDeleteNotFound));
         await levelFileService.DeleteLevelFile(levelFile);

@@ -15,5 +15,11 @@ public interface ILevelService
     public Task<Level> FetchLevelFiles(Level level);
     public Task<Level> FetchLevelAuthor(Level level);
     public Task<Level[]> GetPublicLevels();
+    public Task<Level[]> GetAllLevels();
+    public Task<(Level[] levels, int total)> SearchLevels(bool? published, string? query, LevelDifficulties[] difficulties,
+        string[] tags, LevelSortOrders sort, int offset, int limit);
+    public Task<(string tag, int count)[]> GetPublicTags();
     public Task<bool> UserOwnsLevel(long userId, long levelId);
+    public Task<bool> UserCanEditLevel(User user, long levelId);
+    public Task<int> DeleteLevel(Level level);
 }

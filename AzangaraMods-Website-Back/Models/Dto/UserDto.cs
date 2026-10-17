@@ -25,6 +25,7 @@ public class UserPrivateDto : UserPublicDto
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
 
     public required string Email { get; set; }
+    public bool Admin { get; set; } = false;
     
     public new ICollection<LevelDto>? Levels { get; set; }
 }

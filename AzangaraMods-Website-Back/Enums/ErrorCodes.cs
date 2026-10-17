@@ -39,4 +39,8 @@ public enum ErrorCodes
     LevelFilePutZipError = 0x22,
     LevelFilePutPakWriteError = 0x23,
     LevelFilePutError = 0x24,
+    AdminForbidden = 0x25,
+    AdminLevelNotFound = 0x26,
+    AdminLevelFileNotFound = 0x27,
+    AdminReprocessError = 0x28,
 }

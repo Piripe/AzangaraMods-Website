@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Enums;
+using AzangaraMods_Website_Back.Utils;
 
 namespace AzangaraMods_Website_Back.Models.Dto;
 
@@ -17,14 +18,18 @@ public class LevelPartialDto
     public bool Published { get; set; } = false;
     
     public required string[] Tags { get; set; }
+
+    public DateTime Created => IdUtils.GetIdDate(Id);
 }
 
 public class LevelPartialAuthorDto : LevelPartialDto
 {
     public virtual UserPublicPartialDto? Author { get; set; }
 }
-public class LevelDto : LevelPartialDto
+public class LevelDto : LevelPartialAuthorDto
 {
     public virtual ICollection<LevelFilePartialDto>? LevelFiles { get; set; }
     public virtual ICollection<GalleryFilePartialDto>? GalleryFiles { get; set; }
+
+    public int Downloads => LevelFiles?.Sum(x => x.Downloads) ?? 0;
 }

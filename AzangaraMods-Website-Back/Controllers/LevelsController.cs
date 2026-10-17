@@ -15,16 +15,37 @@ namespace AzangaraMods_Website_Back.Controllers;
 public class LevelsController(IMapper mapper, ILevelService levelService, IDiscordService discordService) : Controller
 {
     [HttpGet(""), Public]
-    public async Task<IActionResult> GetLevels()
+    public async Task<IActionResult> GetLevels(
+        [FromQuery] string? q,
+        [FromQuery] LevelDifficulties[] difficulty,
+        [FromQuery] string[] tag,
+        [FromQuery] LevelSortOrders sort = LevelSortOrders.Relevance,
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 20)
     {
-        return Ok(mapper.Map<LevelPartialDto[]>(await levelService.GetPublicLevels()).OrderByDescending(x=>x.Published));
+        offset = Math.Max(offset, 0);
+        limit = Math.Clamp(limit, 1, 100);
+        var (levels, total) = await levelService.SearchLevels(true, q, difficulty, tag.Take(10).ToArray(), sort, offset, limit);
+        return Ok(new LevelSearchResultDto<LevelSearchHitDto>
+        {
+            Hits = mapper.Map<LevelSearchHitDto[]>(levels),
+            TotalHits = total,
+            Offset = offset,
+            Limit = limit
+        });
+    }
+    [HttpGet("tags"), Public]
+    public async Task<IActionResult> GetTags()
+    {
+        return Ok((await levelService.GetPublicTags()).Select(x => new TagCountDto(x.tag, x.count)));
     }
     [HttpGet("{levelId}"), Public]
     public async Task<IActionResult> GetLevel([FromRoute] long levelId)
     {
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelGetNotFound));
-        if (level.Published || level.AuthorId == (HttpContext.Items[0] as User)!.Id) return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelFiles(level)));
+        var user = HttpContext.Items[0] as User;
+        if (level.Published || level.AuthorId == user?.Id || (user?.Flags.HasFlag(UserFlags.Admin) ?? false)) return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level))));
         return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.LevelGetRestricted));
     }
     public record PutLevelRequestData(string name, string description, LevelDifficulties difficulty, string tags);
@@ -56,7 +77,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     [HttpPatch("{levelId}")]
     public async Task<IActionResult> PatchLevel([FromBody] PatchLevelRequestData partialLevel, [FromRoute] long levelId)
     {
-        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
         if (
             string.IsNullOrWhiteSpace(partialLevel.name) && 
             string.IsNullOrWhiteSpace(partialLevel.description) && 

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Data;
+using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Middlewares;
 using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Models.Dto;
@@ -35,9 +36,17 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.CreateMap<User, UserPublicPartialDto>();
     cfg.CreateMap<User, UserPublicDto>();
-    cfg.CreateMap<User, UserPrivateDto>();
+    cfg.CreateMap<User, UserPrivateDto>()
+        .ForMember(d => d.Admin, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Admin)));
     cfg.CreateMap<Level, LevelPartialDto>();
     cfg.CreateMap<Level, LevelDto>();
+    cfg.CreateMap<Level, LevelSearchHitDto>()
+        .ForMember(d => d.Downloads, o => o.MapFrom(s => s.LevelFiles == null ? 0 : s.LevelFiles.Sum(f => f.Downloads)))
+        .ForMember(d => d.ThumbnailId, o => o.MapFrom(s => s.GalleryFiles == null ? null : s.GalleryFiles.OrderBy(g => g.Id).Select(g => (long?)g.Id).FirstOrDefault()));
+    cfg.CreateMap<Level, AdminLevelHitDto>()
+        .IncludeBase<Level, LevelSearchHitDto>()
+        .ForMember(d => d.FileCount, o => o.MapFrom(s => s.LevelFiles == null ? 0 : s.LevelFiles.Count))
+        .ForMember(d => d.HasDiscordMessage, o => o.MapFrom(s => s.DiscordForumMessage.HasValue));
     cfg.CreateMap<GalleryFile, GalleryFileDto>();
     cfg.CreateMap<GalleryFile, GalleryFilePartialDto>();
     cfg.CreateMap<LevelFile, LevelFileDto>();

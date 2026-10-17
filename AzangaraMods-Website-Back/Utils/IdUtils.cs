@@ -42,4 +42,10 @@ public static class IdUtils
         return (DateTime.Now.Ticks << 3 & ~DateMask) | ((long)_counter << 6);
         }
     }
+
+    // Inverse of GenerateId: the date bits hold DateTime.Now.Ticks, so this is the creation time of the entity
+    public static DateTime GetIdDate(long id)
+    {
+        return new DateTime((id & ~DateMask) >> 3, DateTimeKind.Utc);
+    }
 }

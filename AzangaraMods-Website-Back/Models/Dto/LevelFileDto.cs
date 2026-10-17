@@ -12,6 +12,7 @@ public class LevelFilePartialDto
     public string? EntryPoint { get; set; }
     public required string FileName { get; set; }
     public required int FileSize { get; set; }
+    public int Downloads { get; set; }
 }
 public class LevelFileDto : LevelFilePartialDto
 {

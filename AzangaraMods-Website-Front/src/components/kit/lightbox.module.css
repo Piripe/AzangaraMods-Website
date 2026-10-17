@@ -1,0 +1,53 @@
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 72px 16px 16px;
+    background-color: rgb(0 0 0 / 0.85);
+    animation: fade-in var(--duration-medium) var(--ease-standard);
+}
+
+.figure {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+}
+
+.image {
+    max-width: min(1600px, 100%);
+    max-height: calc(100vh - 160px);
+    object-fit: contain;
+    border-radius: var(--shape-md);
+    box-shadow: var(--elevation-3);
+}
+
+.caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--front-2);
+    font-size: var(--font-size-1);
+}
+
+.counter {
+    margin-left: auto;
+    color: var(--front-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.controls {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+}

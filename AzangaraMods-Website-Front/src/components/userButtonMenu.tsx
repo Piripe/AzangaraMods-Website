@@ -11,11 +11,12 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
     const ref = useRef<HTMLDivElement>(null);
     useClickOutside(ref, closeCallback ?? (()=>{}));
 
-    const {setUser} = useUserData();
+    const {user, setUser} = useUserData();
 
     return (
         <div ref={ref} className={styles.menu}>
             <Link href="/dashboard/levels"><SvgIcon name="map" size={20}/>My Levels</Link>
+            {user?.admin && <Link href="/dashboard/admin"><SvgIcon name="shield" size={20}/>Admin</Link>}
             {/* <Link href="/dashboard">Dashboard</Link> */}
             <div className={styles.divider}/>
             <Link href="/" onNavigate={()=>{

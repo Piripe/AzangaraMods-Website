@@ -1,0 +1,81 @@
+.anchor {
+    position: relative;
+    display: inline-flex;
+}
+
+.menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    padding: 8px 0;
+    border-radius: var(--shape-sm);
+    background-color: var(--surface-container-high);
+    box-shadow: var(--elevation-2);
+    transform-origin: top right;
+    animation: menu-in var(--duration-medium) var(--ease-emphasized-decelerate);
+}
+
+.item {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 48px;
+    padding: 0 16px;
+    border: none;
+    background: none;
+    color: var(--on-surface);
+    font: inherit;
+    font-size: var(--font-size-1);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+
+    & > svg {
+        color: var(--on-surface-variant);
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: var(--on-surface);
+        opacity: 0;
+        transition: opacity var(--duration-short) var(--ease-standard);
+    }
+    &:hover::before {
+        opacity: var(--state-hover);
+    }
+    &:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+    }
+    &:disabled, &[aria-disabled="true"] {
+        cursor: default;
+        pointer-events: none;
+        color: rgb(from var(--on-surface) r g b / 0.38);
+
+        & > svg {
+            color: inherit;
+        }
+    }
+}
+
+.divider {
+    height: 1px;
+    margin: 8px 0;
+    background-color: var(--outline-variant);
+}
+
+@keyframes menu-in {
+    from {
+        transform: scale(0.9, 0.6);
+        opacity: 0;
+    }
+}

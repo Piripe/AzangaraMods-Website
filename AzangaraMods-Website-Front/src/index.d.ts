@@ -7,6 +7,8 @@ type User = {
     lastLogin: string,
     email: string,
     hasProfilePicture: boolean,
+    verifiedModder?: boolean,
+    admin?: boolean,
     levels: Level[]|undefined,
 }
 type Level = {
@@ -15,6 +17,7 @@ type Level = {
     description: string,
     authorId: string,
     lastEdit: string,
+    created: string,
     difficulty: LevelDifficulties,
     roomAmount: number,
     published: boolean,
@@ -22,6 +25,25 @@ type Level = {
     tags: string[]|undefined,
     galleryFiles: GalleryFile[]|undefined,
     levelFiles: LevelFile[]|undefined,
+    downloads?: number,
+}
+type LevelSearchHit = Level & {
+    downloads: number,
+    thumbnailId: string|null,
+}
+type AdminLevelHit = LevelSearchHit & {
+    fileCount: number,
+    hasDiscordMessage: boolean,
+}
+type LevelSearchResult<T extends LevelSearchHit = LevelSearchHit> = {
+    hits: T[],
+    totalHits: number,
+    offset: number,
+    limit: number,
+}
+type TagCount = {
+    tag: string,
+    count: number,
 }
 type LevelFile = {
     id: string,
@@ -30,12 +52,14 @@ type LevelFile = {
     entryPoint: string,
     fileName: string,
     fileSize: number,
+    downloads?: number,
     level: Level|null|undefined,
 }
 type GalleryFile = {
     id: string,
     levelId: string,
     uploadDate: string,
+    description?: string,
     fileName: string,
     level: Level|null|undefined,
 }
@@ -50,6 +74,11 @@ type LoginResponseData = {
 }
 type RegisterResponseData = {
     status: string
+}
+type AdminTaskResponseData = {
+    succeeded: number,
+    failed: number,
+    errors: string[],
 }
 type LevelFileUploadResponseData = {
     id: string,

@@ -19,7 +19,7 @@ public class LevelGalleryController(IMapper mapper, ILevelService levelService, 
     public async Task<IActionResult> PutLevelGallery([FromForm] IFormFile? file, [FromRoute] long levelId)
     {
         if (file is null) return BadRequest(new ErrorResponseModel("No file or file too big", ErrorCodes.LevelGalleryPutNull));
-        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
 
         switch (file.ContentType)
         {
@@ -65,7 +65,7 @@ public class LevelGalleryController(IMapper mapper, ILevelService levelService, 
     [HttpDelete("{galleryFileId}")]
     public async Task<IActionResult> DeleteGalleryFile([FromRoute] long levelId, [FromRoute] long galleryFileId)
     {
-        if (!await levelService.UserOwnsLevel((HttpContext.Items[0] as User)!.Id, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
         var galleryFile = await levelGalleryService.GetGalleryFileById(levelId, galleryFileId);
         if (galleryFile == null) return NotFound(new ErrorResponseModel("Gallery file not found", ErrorCodes.LevelGalleryDeleteNotFound));
         await levelGalleryService.DeleteGalleryFile(galleryFile);

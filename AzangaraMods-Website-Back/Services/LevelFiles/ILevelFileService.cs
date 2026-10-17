@@ -13,4 +13,5 @@ public interface ILevelFileService
     public Task<int> DownloadLevelFile(LevelFile levelFile, string ipAddress);
     public (List<string>, List<Level>, IFile[], string) ProcessLevelFile(IFile[] files, long levelId);
     public Task UpdateRoomCount(List<Level> levels, long levelId);
+    public Task ReprocessLevelFile(Models.Level level, LevelFile levelFile);
 }
