@@ -2,6 +2,7 @@ import styles from "./page.module.css";
 import NavBar from "../components/navBar";
 import LinkButton from "@/components/kit/linkButton";
 import SvgIcon from "@/components/kit/svgIcon";
+import CreateLevelButton from "@/components/createLevelButton";
 
 export default function Home() {
   return (
@@ -13,7 +14,7 @@ export default function Home() {
         <p className={styles.subtitle}>The first website for sharing custom levels for Azangara. Upload your level, add some screenshots and publish it for everyone to play.</p>
         <div className={styles.actions}>
           <LinkButton variant="filled" icon="search" href="/levels">Browse levels</LinkButton>
-          <LinkButton variant="outlined" icon="add" href="/dashboard/levels/new">Create a level</LinkButton>
+          <CreateLevelButton/>
         </div>
       </main>
     </div>

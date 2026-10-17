@@ -48,7 +48,7 @@ function validate(mode: AuthMode, values: Record<Field, string>): FieldErrors {
     return errors;
 }
 
-export function AuthBox({mode, setMode, onSuccess=()=>{}}:{mode:AuthMode, setMode:(mode:AuthMode)=>void, onSuccess?:()=>void}) {
+export function AuthBox({mode, setMode, onSuccess=()=>{}, redirect="/dashboard/levels"}:{mode:AuthMode, setMode:(mode:AuthMode)=>void, onSuccess?:()=>void, redirect?:string}) {
     const [values, setValues] = useState<Record<Field, string>>({username: "", email: "", password: "", confirmPassword: ""});
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [formError, setFormError] = useState<string|null>(null);
@@ -95,7 +95,7 @@ export function AuthBox({mode, setMode, onSuccess=()=>{}}:{mode:AuthMode, setMod
                 setToken(loginData.token);
                 setUser(loginData.user);
                 onSuccess();
-                router.push("/dashboard/levels");
+                router.push(redirect);
                 return;
             }
 
