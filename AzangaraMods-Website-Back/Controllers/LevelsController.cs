@@ -92,8 +92,10 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             string.IsNullOrWhiteSpace(partialLevel.name) && 
             string.IsNullOrWhiteSpace(partialLevel.description) && 
             partialLevel.published == null && 
-            partialLevel.difficulty == null && 
+            partialLevel.difficulty == null &&
+            partialLevel.roomAmount == null &&
             partialLevel.tags == null ) return BadRequest(new ErrorResponseModel("Request is null", ErrorCodes.LevelPatchNull));
+        if (partialLevel.roomAmount < 0) return BadRequest(new ErrorResponseModel("Room amount can't be negative", ErrorCodes.LevelPatchInvalidRoomAmount));
         var level = await levelService.UpdateLevel(
             levelId,
             partialLevel.name,

@@ -32,6 +32,8 @@ export default  function Page({
   const [description, setDescription] = useState(null as string|null);
     const [difficulty, setDifficulty] = useState(null as LevelDifficulties|null);
   const [tags, setTags] = useState(null as string[]|null);
+  // Raw text of the rooms field, null while untouched so the PATCH leaves the room count alone
+  const [roomAmount, setRoomAmount] = useState(null as string|null);
 
   const router = useRouter();
 
@@ -59,6 +61,11 @@ export default  function Page({
   }, [user]);
 
   const difficulties = [10,20,30,40,50,60];
+
+  const parsedRoomAmount = roomAmount === null ? null : Number(roomAmount);
+  const roomAmountError = parsedRoomAmount !== null && (roomAmount!.trim() === "" || !Number.isInteger(parsedRoomAmount) || parsedRoomAmount < 0 || parsedRoomAmount > 32767)
+    ? "Enter a whole number between 0 and 32767"
+    : null;
   
   return (
     (!levelData) ? <Spinner/> :
@@ -68,15 +75,17 @@ export default  function Page({
         <TextBox placeholder="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
         <BigTextBox placeholder="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
         <ComboBox label="Difficulty" onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
+        <TextBox placeholder="Rooms" type="number" min={0} max={32767} onChange={(e)=>setRoomAmount(e)} defaultValue={levelData?.roomAmount?.toString()} error={roomAmountError} supportingText="Counted automatically from your latest upload. Uploading a new file counts it again."/>
         <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags} />
         <div className={styles.formActions}>
           <LinkButton variant="text" href={"/dashboard/levels/" + id}>Cancel</LinkButton>
-          <Button variant="filled" click={()=>{
+          <Button variant="filled" disabled={roomAmountError !== null} click={()=>{
             fetchApi("/levels/" + id, token!, "PATCH",
               JSON.stringify({
                 name,
                 description,
                 difficulty,
+                roomAmount: parsedRoomAmount,
                 tags
               })
             ).then(res=>{

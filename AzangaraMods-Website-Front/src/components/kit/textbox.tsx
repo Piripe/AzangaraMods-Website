@@ -14,13 +14,15 @@ export default function TextBox(
   autoComplete,
   autoFocus,
   maxLength,
+  min,
+  max,
   defaultValue,
   supportingText,
   error,
   icon,
   className
 }:{
-  onChange?:(e:string)=>void, placeholder?:string|undefined, password?:boolean|undefined,newPassword?:boolean|undefined, usernameEntry?:boolean|undefined, type?:"text"|"email"|undefined, autoComplete?:string|undefined, autoFocus?:boolean|undefined, maxLength?:number|undefined, defaultValue?:string|undefined, supportingText?:string|undefined, error?:string|null|undefined, icon?:SvgIconName|undefined, className?:string|undefined}) {
+  onChange?:(e:string)=>void, placeholder?:string|undefined, password?:boolean|undefined,newPassword?:boolean|undefined, usernameEntry?:boolean|undefined, type?:"text"|"email"|"number"|undefined, autoComplete?:string|undefined, autoFocus?:boolean|undefined, maxLength?:number|undefined, min?:number|undefined, max?:number|undefined, defaultValue?:string|undefined, supportingText?:string|undefined, error?:string|null|undefined, icon?:SvgIconName|undefined, className?:string|undefined}) {
   const [length, setLength] = useState(defaultValue?.length ?? 0);
   const [revealed, setRevealed] = useState(false);
   const supportingId = useId();
@@ -41,6 +43,8 @@ export default function TextBox(
           aria-describedby={error || supportingText ? supportingId : undefined}
           onChange={(e)=>{setLength(e.target.value.length); onChange(e.target.value);}}
           maxLength={maxLength}
+          min={min}
+          max={max}
           defaultValue={defaultValue}/>
         {password &&
           <button type="button" className={styles.trailingButton} onClick={()=>setRevealed(!revealed)} aria-label={revealed ? "Hide password" : "Show password"} aria-pressed={revealed}>
