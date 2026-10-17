@@ -1,19 +1,46 @@
 .navBar {
     position: fixed;
-    top:0.25em;
-    left:0.25em;
-    width: calc(100% - .5em);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    padding: 0.25em 0.5em;
-
-    background: var(--back-1);
-
-    border-radius: var(--radius-3);
-    border: solid var(--border-1) 1px;
-    backdrop-filter: blur(8px);
-
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 64px;
+    padding: 0 16px;
+    background-color: rgb(from var(--surface) r g b / 0.8);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 1px 0 rgb(from var(--outline-variant) r g b / 0.5);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 16px;
+    font-size: var(--font-size-3);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+
+    & > img {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--shape-sm);
+    }
+}
+
+.accent {
+    color: var(--primary);
+}
+
+.spacer {
+    flex: 1;
+}
+
+@media (max-width: 600px) {
+    .brandText {
+        display: none;
+    }
 }

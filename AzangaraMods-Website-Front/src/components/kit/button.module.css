@@ -100,3 +100,11 @@
         background-color: transparent;
     }
 }
+
+.withIcon {
+    padding-left: 16px;
+}
+.text.withIcon {
+    padding-left: 12px;
+    padding-right: 16px;
+}

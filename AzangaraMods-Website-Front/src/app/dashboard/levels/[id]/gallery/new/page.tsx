@@ -1,6 +1,8 @@
 'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
+import Card from "@/components/kit/card";
+import PageHeader from "@/components/kit/pageHeader";
 import NavBar from "@/components/navBar";
 import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
@@ -9,7 +11,6 @@ import Link from "next/link";
 import Button from "@/components/kit/button";
 import FileSelect from "@/components/kit/fileSelect";
 import { useRouter } from "next/navigation";
-import LinkButton from "@/components/kit/linkButton";
 import errorAlert from "@/utils/errorAlert";
 import { ErrorCodes } from "@/enums";
 
@@ -52,16 +53,15 @@ export default  function Page({
   
   return (
     <div>
-        <div className={styles.headerButtons}>
-          <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
-        </div>
-      <h1>{levelData?.name}</h1>
-      <h2>Upload Image:</h2>
+      <PageHeader backHref={"/dashboard/levels/" + id} title="Add a screenshot" subtitle={levelData?.name}/>
+      <Card className={styles.form}>
+      <p className={styles.hint}>AVIF, JPEG, PNG, WebP or TIFF. The first image is used as the level&apos;s thumbnail.</p>
       <FileSelect disabled={loading} accept="image/avif, image/jpeg, image/png, image/webp, image/tiff" onChange={(file) => {
         setSelectedFile(file);
       }} />
       
-      <Button variant="filled" disabled={loading || selectedFile == null} click={()=>{
+      <div className={styles.formActions}>
+      <Button variant="filled" icon="upload" disabled={loading || selectedFile == null} click={()=>{
         setLoading(true);
         const formData = new FormData();
         formData.append("file", selectedFile!);
@@ -94,7 +94,9 @@ export default  function Page({
             setLoading(false);
           }
         });
-      }}>Upload image</Button>
+      }}>{loading ? "Uploading…" : "Upload image"}</Button>
+      </div>
+      </Card>
     </div>
   );
 }

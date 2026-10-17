@@ -1,6 +1,9 @@
 'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
+import Card from "@/components/kit/card";
+import PageHeader from "@/components/kit/pageHeader";
+import Spinner from "@/components/kit/spinner";
 import NavBar from "@/components/navBar";
 import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
@@ -57,17 +60,16 @@ export default  function Page({
   const difficulties = [10,20,30,40,50,60];
   
   return (
-    (!levelData) ? <p>Loading...</p> :
+    (!levelData) ? <Spinner/> :
       <div>
-        <div className={styles.headerButtons}>
-          <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
-        </div>
-        <div className={styles.form}>
+        <PageHeader backHref={"/dashboard/levels/" + id} title="Edit level" subtitle={levelData.name}/>
+        <Card className={styles.form}>
         <TextBox label="Name" onChange={(e)=>setName(e)} defaultValue={levelData?.name} maxLength={64}/>
         <BigTextBox label="Description" onChange={(e)=>setDescription(e)} defaultValue={levelData?.description} maxLength={8192}/>
         <ComboBox label="Difficulty" onChange={(e)=>setDifficulty(difficulties[e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={difficulties.indexOf(levelData?.difficulty ?? 10)}/>   
         <TextBox label="Tags" supportingText="Space-separated, up to 10" onChange={(e)=>setTags(e)} defaultValue={levelData?.tags?.join(" ")} />
-        <div>
+        <div className={styles.formActions}>
+          <LinkButton variant="text" href={"/dashboard/levels/" + id}>Cancel</LinkButton>
           <Button variant="filled" click={()=>{
             fetchApi("/levels/" + id, token!, "PATCH",
               JSON.stringify({
@@ -87,10 +89,10 @@ export default  function Page({
               }
             });
           }}>
-            Update Level
+            Save changes
           </Button>
         </div>
-        </div>
+        </Card>
       </div>
   );
 }

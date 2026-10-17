@@ -9,6 +9,7 @@ import { LoginBox } from "./loginBox";
 import useUserData from "../hooks/useUserData";
 import { RegisterBox } from "./registerBox";
 import styles from "./userButton.module.css";
+import SvgIcon from "./kit/svgIcon";
 
 export default function UserButton() {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -31,11 +32,17 @@ export default function UserButton() {
 
     <div>
       {user || token ?
-        (<Button click={toggleMenu}>{user ? user.username : "User"}</Button>)
+        (<Button click={toggleMenu}>
+          <>
+            <span className={styles.avatar}>{(user?.username ?? "?").charAt(0)}</span>
+            <span className={styles.name}>{user ? user.username : "User"}</span>
+            <SvgIcon name="expandMore" size={18}/>
+          </>
+        </Button>)
       :
         <div className={styles.buttons}>
-          <Button click={toggleLoginBox}>{"Login"}</Button>
-          <Button click={toggleRegisterBox}>{"Register"}</Button>
+          <Button variant="text" click={toggleLoginBox}>{"Log in"}</Button>
+          <Button variant="filled" click={toggleRegisterBox}>{"Sign up"}</Button>
         </div>
       }
       {menuVisible &&

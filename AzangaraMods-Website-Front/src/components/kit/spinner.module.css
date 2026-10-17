@@ -1,0 +1,31 @@
+.wrapper {
+    display: grid;
+    place-items: center;
+    padding: 64px 0;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    animation: rotate 1.4s linear infinite;
+
+    & > circle {
+        fill: none;
+        stroke: var(--primary);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-dasharray: 1 200;
+        stroke-dashoffset: 0;
+        animation: dash 1.4s var(--ease-standard) infinite;
+    }
+}
+
+@keyframes rotate {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+    0% { stroke-dasharray: 1 200; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90 200; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90 200; stroke-dashoffset: -124; }
+}

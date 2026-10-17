@@ -1,7 +1,6 @@
 "use client";
 import BigTextBox from "@/components/kit/bigTextbox";
 import Button from "@/components/kit/button";
-import LinkButton from "@/components/kit/linkButton";
 import Slider from "@/components/kit/silder";
 import Stars from "@/components/kit/stars";
 import TextBox from "@/components/kit/textbox";
@@ -10,6 +9,8 @@ import fetchApi from "@/utils/fetchApi";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./page.module.css"
+import Card from "@/components/kit/card";
+import PageHeader from "@/components/kit/pageHeader";
 import errorAlert from "@/utils/errorAlert";
 import { LevelDifficulties } from "@/enums";
 import ComboBox from "@/components/kit/combobox";
@@ -25,16 +26,14 @@ export default function Page() {
     
   return (
     <div>
-      <div className={styles.headerButtons}>
-        <LinkButton href="/dashboard/levels">{"Back"}</LinkButton>
-      </div>
-      <div className={styles.form}>
+      <PageHeader backHref="/dashboard/levels" title="New level" subtitle="You can upload files and screenshots once it's created"/>
+      <Card className={styles.form}>
       <TextBox label="Name" onChange={(e)=>setName(e)} maxLength={64}/>
       <BigTextBox label="Description" onChange={(e)=>setDescription(e)} maxLength={8192}/>
       <ComboBox label="Difficulty" onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
       <TextBox label="Tags" supportingText="Space-separated, up to 10" onChange={(e)=>setTags(e)}/>
-      <div>
-        <Button variant="filled" click={()=>{
+      <div className={styles.formActions}>
+        <Button variant="filled" icon="add" click={()=>{
           if (name.length === 0) {
             alert("Name cannot be empty");
             return;
@@ -81,7 +80,7 @@ export default function Page() {
           Create Level
         </Button>
       </div>
-      </div>
+      </Card>
     </div>
   );
 }

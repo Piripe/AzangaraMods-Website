@@ -1,128 +1,127 @@
-.headerButtons {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
 .container {
     display: flex;
     flex-direction: column;
+    gap: 16px;
+}
 
-    gap: 0.5em;
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
-.topContainer {
 
-    background-color: var(--back-1);
-    border-radius: var(--radius-3);
-    border: solid var(--border-1) 1px;
-    backdrop-filter: blur(8px);
-    padding: 1em;
-}
-.topBar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1em;
-    & > h1 {
-        font-size: 1.5em;
-        font-weight: 500;
-    }
-} 
-.levelActions {
-    display: flex;
-    gap: 0.5em;
-}
-.info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-}
 .description {
-    background-color: var(--back-0);
-    border-radius: var(--radius-3);
-    padding: 1em;
-    margin: 0.5em 0;
-    border: solid var(--border-2) 1px;
-    /*backdrop-filter: blur(8px);*/
+    color: var(--on-surface-variant);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
+
 .twoColumns {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 0.5em;
+    gap: 16px;
+    align-items: start;
 }
 @media (min-width: 900px) {
     .twoColumns {
         grid-template-columns: 1fr 1fr;
     }
 }
-.listContainer {
-    background-color: var(--back-1);
-    border-radius: var(--radius-3);
-    border: solid var(--border-1) 1px;
-    backdrop-filter: blur(8px);
-    padding: 1em;
+
+.list {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    margin: 0 -12px;
+    list-style: none;
 }
-.listHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5em;
-}
-.listTitle {
-    font-size: var(--font-size-3);
-    font-weight: 500;
-}
+
 .fileListItem {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
     align-items: center;
-    font-size: var(--font-size-1);
-    font-weight: 500;
-    padding: 0.5em 0.75em 0.5em 1em;
-    border-radius: var(--radius-3);
-    background-color: var(--control-back-0);
-    border: solid var(--border-2) 1px;
-    gap:1em;
+    gap: 16px;
+    padding: 8px 12px;
+    border-radius: var(--shape-md);
+    transition: background-color var(--duration-short) var(--ease-standard);
 
-    transition: background-color 0.3s ease-in-out;
     &:hover {
-        background-color: var(--control-back-1);
+        background-color: rgb(from var(--on-surface) r g b / var(--state-hover));
     }
 }
-.galleryListItem {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    font-size: var(--font-size-1);
-    font-weight: 500;
-    padding: 4px 0.75em 4px 4px;
-    border-radius: var(--radius-3);
-    background-color: var(--control-back-0);
-    border: solid var(--border-2) 1px;
-    gap:1em;
 
-    transition: background-color 0.3s ease-in-out;
-    &:hover {
-        background-color: var(--control-back-1);
-    }
+.fileIcon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--shape-md);
+    background-color: var(--secondary-container);
+    color: var(--on-secondary-container);
 }
-.galleryImageContainer {
+
+.fileText {
+    flex: 1;
+    min-width: 0;
+}
+
+.fileName {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fileMeta {
+    color: var(--on-surface-variant);
+    font-size: 12px;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.galleryItem {
+    position: relative;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.75em;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
+
 .galleryImage {
-    height: 48px;
-    border-radius: var(--radius-1);
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--shape-md);
+    background-color: var(--surface-container-highest);
 }
-.ellipsis {
-    word-break: break-all;
+
+.galleryDelete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    opacity: 0;
+    transition: opacity var(--duration-short) var(--ease-standard);
 }
-.infoLabelTitle {
-    font-weight: 600;
+
+.galleryItem:hover .galleryDelete,
+.galleryDelete:focus-within {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .galleryDelete {
+        opacity: 1;
+    }
+}
+
+.galleryCaption {
+    color: var(--on-surface-variant);
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

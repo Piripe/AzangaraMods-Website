@@ -1,32 +1,49 @@
 .navBar {
     display: flex;
-    justify-content: flex-end;
-    padding: 0.25em 2em;
-    gap: 0.25em;
-    
+    align-items: center;
+    gap: 4px;
+
     & > a {
-        padding: 0.5em 1em;
-        border-radius: 100px;
-        transition: background-color 0.15s ease-in-out;
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: var(--shape-full);
+        color: var(--on-surface-variant);
+        font-size: var(--font-size-1);
+        font-weight: 500;
+        white-space: nowrap;
+        transition: color var(--duration-short) var(--ease-standard);
 
-
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: inherit;
+            background-color: var(--on-surface);
+            opacity: 0;
+            transition: opacity var(--duration-short) var(--ease-standard);
+        }
         &:hover {
-            background-color: var(--control-back-1);
+            color: var(--on-surface);
+        }
+        &:hover::before {
+            opacity: var(--state-hover);
         }
     }
 }
 
 .highlightNav {
-    position: relative;
+    background-color: var(--secondary-container);
+    color: var(--on-secondary-container) !important;
 }
-.highlightNav::after {
-    position: absolute;
-    content:"";
-    bottom:-.25em;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 3px;
-    border-radius: 1px;
-    background-color: var(--accent-1);
+
+@media (max-width: 600px) {
+    .navBar > a {
+        padding: 0 12px;
+    }
 }

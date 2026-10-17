@@ -5,6 +5,7 @@ import Link from "next/link";
 import fetchApi from "../utils/fetchApi";
 import useUserData from "../hooks/useUserData";
 import styles from "./userButtonMenu.module.css";
+import SvgIcon from "./kit/svgIcon";
 
 export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void)|undefined|null}) {
     const ref = useRef<HTMLDivElement>(null);
@@ -14,13 +15,14 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
 
     return (
         <div ref={ref} className={styles.menu}>
-            <Link href="/dashboard/levels">My Levels</Link>
+            <Link href="/dashboard/levels"><SvgIcon name="map" size={20}/>My Levels</Link>
             {/* <Link href="/dashboard">Dashboard</Link> */}
+            <div className={styles.divider}/>
             <Link href="/" onNavigate={()=>{
                 fetchApi("/logout", localStorage.getItem("token") ?? "");
                 localStorage.removeItem("token");
                 setUser(null);
-            }}>Logout</Link>
+            }}><SvgIcon name="logout" size={20}/>Log out</Link>
         </div>
     );
 }

@@ -1,17 +1,20 @@
 'use client';
-import Image from "next/image";
 import styles from "./page.module.css";
-import NavBar from "@/components/navBar";
 import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
 import useUserData from "@/hooks/useUserData";
-import Link from "next/link";
 import Button from "@/components/kit/button";
 import LinkButton from "@/components/kit/linkButton";
-import Icon, { IconType } from "@/components/kit/icon";
-import Stars from "@/components/kit/stars";
+import IconButton from "@/components/kit/iconButton";
+import Card from "@/components/kit/card";
+import Chip from "@/components/kit/chip";
+import EmptyState from "@/components/kit/emptyState";
+import PageHeader from "@/components/kit/pageHeader";
+import Spinner from "@/components/kit/spinner";
+import SvgIcon from "@/components/kit/svgIcon";
 import formatBytes from "@/utils/fileSize";
 import errorAlert from "@/utils/errorAlert";
+import { difficultyNames, galleryImageUrl, getLevelSizeText } from "@/utils/levelLabels";
 
 export default  function Page({
   params,
@@ -43,119 +46,120 @@ export default  function Page({
     }
   }, [user]);
 
-  const difficulties = {
-    10: "Very Easy",
-    20: "Easy",
-    30: "Normal",
-    40: "Hard",
-    50: "Very Hard",
-    60: "Expert"
+  const deleteFile = (f: LevelFile) => {
+    fetchApi(
+      "/levels/" + id + "/files/" + f.id,
+      token!,
+      "DELETE"
+    );
+    const newLevelData = {...levelData!};
+    newLevelData.levelFiles = levelData!.levelFiles?.filter(file=>file.id !== f.id);
+    newLevelData.lastEdit = new Date().toString();
+    updateLevel(newLevelData);
+    setLevelData(newLevelData);
   };
-  
-  const getLevelSizeText = (size: number) => {
-    if (size < 8) return "Very Small";
-    if (size < 16) return "Small";
-    if (size < 24) return "Medium";
-    if (size < 32) return "Large";
-    return "Very Large";
-  }
+
+  const deleteGalleryFile = (f: GalleryFile) => {
+    fetchApi(
+      "/levels/" + id + "/gallery/" + f.id,
+      token!,
+      "DELETE"
+    );
+    const newLevelData = {...levelData!};
+    newLevelData.galleryFiles = levelData!.galleryFiles?.filter(file=>file.id !== f.id);
+    newLevelData.lastEdit = new Date().toString();
+    updateLevel(newLevelData);
+    setLevelData(newLevelData);
+  };
+
+  if (!levelData) return <Spinner/>;
+
+  const tags = levelData.tags?.filter(t=>t.length > 0) ?? [];
 
   return (
     <div className={styles.container}>
-      <div className={styles.topContainer}>
-        <div className={styles.headerButtons}>
-          <LinkButton href="/dashboard/levels">{"Back"}</LinkButton>
-        </div>
-        <div className={styles.topBar}>
-          <h1>{levelData?.name} <Icon size={22} icon={levelData?.published ? IconType.LockOpen : IconType.LockClosed} alt={levelData?.published ? "Published" : "Not published"} /></h1>
-          <div className={styles.levelActions}>
-            <LinkButton href={`/dashboard/levels/${id}/edit`}>Edit</LinkButton>
-            <Button click={()=>{
-          fetchApi(
-            "/levels/" + id,
-            token!,
-            "PATCH",
-            JSON.stringify({
-              published: !levelData?.published
-            })
-          ).then(res=>{
-            if (res.ok) {
-              res.json().then((data:Level)=>{
-                setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
-                updateLevel(levelData!);
-              });
-            } else {
-              res.json().then((data: ErrorResponse)=>errorAlert(data))
-            }
-          });
-        }}>{levelData?.published ? "Unpublish" : "Publish"}</Button>
-          </div>
-        </div>
-        <div className={styles.info}>
-        <p className={styles.infoLabel}><span className={styles.infoLabelTitle}>Difficulty: </span>{difficulties[levelData?.difficulty ?? 10]}</p>
-        <p className={styles.infoLabel}><span className={styles.infoLabelTitle}>Size: </span>{(levelData?.roomAmount ?? 0) <= 0 ? "No rooms" : `${levelData?.roomAmount} room${(levelData!.roomAmount == 1 ? "" : "s")} (${getLevelSizeText(levelData!.roomAmount)})`}</p>
-        <p className={styles.description}>{levelData?.description}</p>
-        </div>
-      </div>
-      <div className={styles.twoColumns}>
-        <div className={styles.listContainer}>
-          <div className={styles.listHeader}>
-            <h2 className={styles.listTitle}>Files</h2>
-            <LinkButton href={`/dashboard/levels/${id}/files/new`}>Upload File</LinkButton>
-          </div>
-          {
-            levelData?.levelFiles?.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()).map(f=>(
-              <div key={f.id} className={styles.fileListItem}>
-                <div className={styles.galleryImageContainer}>
-                  <p>{f.fileName} ({formatBytes(f.fileSize)}) {new Date(f.uploadDate).toLocaleString()}</p>
-                </div>
-                <Button click={()=>{
-                  fetchApi(
-                    "/levels/" + id + "/files/" + f.id,
-                    token!,
-                    "DELETE"
-                  );
-                  var newLevelData = {...levelData};
-                  newLevelData.levelFiles = levelData.levelFiles?.filter(file=>file.id !== f.id);
-                  newLevelData.lastEdit = new Date().toString();
-                  updateLevel(newLevelData);
-                  setLevelData(newLevelData);
-                }}>Delete</Button>
-              </div>
-            ))
-          }
-      </div>
-      <div className={styles.listContainer}>
-        <div className={styles.listHeader}>
-          <h2 className={styles.listTitle}>Gallery</h2>
-          <LinkButton href={`/dashboard/levels/${id}/gallery/new`}>Upload Image</LinkButton>
-        </div>
-        {
-          levelData?.galleryFiles?.map(f=>(
-            <div key={f.id} className={styles.galleryListItem}>
-              <div className={styles.galleryImageContainer}>
-                <img className={styles.galleryImage} src={process.env.NEXT_PUBLIC_API_URL + "/download/level/" + levelData.id + "/gallery/" + f.id} alt={f.fileName} />
-                <div>
-                  <p className={styles.ellipsis}>{f.fileName}</p>
-                  <p>{new Date(f.uploadDate).toLocaleString()}</p>
-                </div>
-              </div>
-              <Button click={()=>{
-                fetchApi(
-                  "/levels/" + id + "/gallery/" + f.id,
-                  token!,
-                  "DELETE"
-                );
-                var newLevelData = {...levelData};
-                newLevelData.galleryFiles = levelData.galleryFiles?.filter(file=>file.id !== f.id);
-                newLevelData.lastEdit = new Date().toString();
-                updateLevel(newLevelData);
-                setLevelData(newLevelData);
-              }}>Delete</Button>
-            </div>
-          ))
+      <PageHeader
+        backHref="/dashboard/levels"
+        title={levelData.name}
+        subtitle={"Last edited " + new Date(levelData.lastEdit).toLocaleString()}
+        badge={levelData.published ?
+          <Chip variant="success" icon="public">Published</Chip>
+        :
+          <Chip variant="highlight" icon="lock">Draft</Chip>
         }
+        actions={<>
+          <LinkButton variant="outlined" icon="edit" href={`/dashboard/levels/${id}/edit`}>Edit</LinkButton>
+          <Button variant={levelData.published ? "tonal" : "filled"} icon={levelData.published ? "lock" : "public"} click={()=>{
+            fetchApi(
+              "/levels/" + id,
+              token!,
+              "PATCH",
+              JSON.stringify({
+                published: !levelData?.published
+              })
+            ).then(res=>{
+              if (res.ok) {
+                res.json().then((data:Level)=>{
+                  setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
+                  updateLevel(levelData!);
+                });
+              } else {
+                res.json().then((data: ErrorResponse)=>errorAlert(data))
+              }
+            });
+          }}>{levelData.published ? "Unpublish" : "Publish"}</Button>
+        </>}
+      />
+
+      <Card>
+        <div className={styles.chips}>
+          <Chip icon="terrain">{difficultyNames[levelData.difficulty ?? 10]}</Chip>
+          <Chip icon="rooms">{(levelData.roomAmount ?? 0) <= 0 ? "No rooms" : `${levelData.roomAmount} room${(levelData.roomAmount == 1 ? "" : "s")} · ${getLevelSizeText(levelData.roomAmount)}`}</Chip>
+          {tags.map(t=>(
+            <Chip key={t} icon="tag">{t}</Chip>
+          ))}
         </div>
+        <p className={styles.description}>{levelData.description}</p>
+      </Card>
+
+      <div className={styles.twoColumns}>
+        <Card title="Files" actions={<LinkButton icon="upload" href={`/dashboard/levels/${id}/files/new`}>Upload</LinkButton>}>
+          {levelData.levelFiles?.length ?
+            <ul className={styles.list}>
+              {[...levelData.levelFiles].sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()).map(f=>(
+                <li key={f.id} className={styles.fileListItem}>
+                  <span className={styles.fileIcon}><SvgIcon name="file"/></span>
+                  <div className={styles.fileText}>
+                    <p className={styles.fileName}>{f.fileName}</p>
+                    <p className={styles.fileMeta}>{formatBytes(f.fileSize)} · {new Date(f.uploadDate).toLocaleString()}</p>
+                  </div>
+                  <IconButton icon="delete" label="Delete" variant="danger" click={()=>deleteFile(f)}/>
+                </li>
+              ))}
+            </ul>
+          :
+            <EmptyState icon="file" title="No files yet" text="Upload a .pak or .zip of your level."/>
+          }
+        </Card>
+
+        <Card title="Gallery" actions={<LinkButton icon="upload" href={`/dashboard/levels/${id}/gallery/new`}>Upload</LinkButton>}>
+          {levelData.galleryFiles?.length ?
+            <div className={styles.gallery}>
+              {levelData.galleryFiles.map(f=>(
+                <figure key={f.id} className={styles.galleryItem}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className={styles.galleryImage} src={galleryImageUrl(levelData.id, f.id)} alt={f.fileName} />
+                  <span className={styles.galleryDelete}>
+                    <IconButton icon="delete" label="Delete" variant="tonal" click={()=>deleteGalleryFile(f)}/>
+                  </span>
+                  <figcaption className={styles.galleryCaption} title={f.fileName}>{f.fileName}</figcaption>
+                </figure>
+              ))}
+            </div>
+          :
+            <EmptyState icon="image" title="No screenshots yet" text="Screenshots show players what your level looks like."/>
+          }
+        </Card>
       </div>
     </div>
   );

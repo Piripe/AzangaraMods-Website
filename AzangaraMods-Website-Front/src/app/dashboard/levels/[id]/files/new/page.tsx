@@ -1,6 +1,9 @@
 'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
+import Card from "@/components/kit/card";
+import PageHeader from "@/components/kit/pageHeader";
+import ComboBox from "@/components/kit/combobox";
 import NavBar from "@/components/navBar";
 import fetchApi from "@/utils/fetchApi";
 import { use, useEffect, useState } from "react";
@@ -9,7 +12,6 @@ import Link from "next/link";
 import Button from "@/components/kit/button";
 import FileSelect from "@/components/kit/fileSelect";
 import { useRouter } from "next/navigation";
-import LinkButton from "@/components/kit/linkButton";
 import errorAlert from "@/utils/errorAlert";
 import { ErrorCodes } from "@/enums";
 
@@ -56,19 +58,22 @@ export default  function Page({
   
   return (
     <div>
-        <div className={styles.headerButtons}>
-          <LinkButton href={"/dashboard/levels/" + id}>{"Back"}</LinkButton>
-        </div>
-      <h1>{levelData?.name}</h1>
+      <PageHeader backHref={"/dashboard/levels/" + id} title="Upload a file" subtitle={levelData?.name}/>
 
+      <Card className={styles.form}>
+      <ol className={styles.steps}>
+        <li className={files == null ? styles.activeStep : styles.doneStep}><span>1</span>Upload</li>
+        <li className={files == null ? undefined : styles.activeStep}><span>2</span>Entry point</li>
+      </ol>
       {files == null ?
       <>
-        <h2>Upload File:</h2>
+        <p className={styles.hint}>Upload your level as a .pak or a .zip archive.</p>
         <FileSelect disabled={loading} accept=".pak, .zip" onChange={(file) => {
           setSelectedFile(file);
         }} />
         
-        <Button variant="filled" disabled={loading || selectedFile == null} click={()=>{
+        <div className={styles.formActions}>
+        <Button variant="filled" icon="upload" disabled={loading || selectedFile == null} click={()=>{
           setLoading(true);
           const formData = new FormData();
           formData.append("file", selectedFile!);
@@ -104,20 +109,17 @@ export default  function Page({
               setLoading(false);
             }
           });
-        }}>Upload file</Button>
+        }}>{loading ? "Uploading…" : "Upload file"}</Button>
+        </div>
       </>
       :
       <>
-        <h2>Entry point:</h2>
-        <select onChange={(e)=>{
-          setEntryPoint(e.target.value);
-        }}>
-          <option value="/">/</option>
-          {files.map(f=>(
-            <option key={f} value={f}>/{f}</option>
-          ))}
-        </select>
+        <p className={styles.hint}>Pick the folder the game should load the level from.</p>
+        <ComboBox label="Entry point" values={["/", ...files.map(f=>"/" + f)]} onChange={(i)=>{
+          setEntryPoint(i === 0 ? "/" : files[i - 1]);
+        }}/>
 
+        <div className={styles.formActions}>
         <Button variant="filled" disabled={loading || entryPoint == null} click={()=>{
           setLoading(true);
           fetchApi(
@@ -142,8 +144,10 @@ export default  function Page({
             }
           });
         }}>Select</Button>
+        </div>
       </>
       }
+      </Card>
     </div>
   );
 }

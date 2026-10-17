@@ -1,4 +1,5 @@
 .container {
-    margin: 4em auto;
-    width: min(calc(100% - 0.5em), 75em);
+    width: min(100%, 72rem);
+    margin: 0 auto;
+    padding: 96px 16px 48px;
 }

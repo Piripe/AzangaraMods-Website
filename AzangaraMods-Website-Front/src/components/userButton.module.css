@@ -1,5 +1,25 @@
 .buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
     flex-direction: row;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-left: -12px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: var(--on-primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+    .name {
+        display: none;
+    }
 }

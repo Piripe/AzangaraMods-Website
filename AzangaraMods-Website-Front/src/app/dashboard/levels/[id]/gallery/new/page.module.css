@@ -1,5 +1,17 @@
-.headerButtons {
+.form {
+    align-items: flex-start;
+    max-width: 52rem;
+}
+
+.formActions {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    justify-content: flex-end;
+    gap: 8px;
+    align-self: stretch;
+    margin-top: 8px;
+}
+
+.hint {
+    color: var(--on-surface-variant);
+    font-size: var(--font-size-1);
 }
