@@ -57,7 +57,11 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                 ?.Select(x => new Embed(new EmbedImage($"{downloadUrl}/level/{x.LevelId}/gallery/{x.Id}"))).ToArray() ?? [];
 
             var downloadCount = level.LevelFiles?.Sum(x => x.Downloads) ?? 0;
-            
+
+            // The angle brackets stop Discord from adding a link preview next to the gallery embeds
+            var frontUrl = Environment.GetEnvironmentVariable("FRONT_URL");
+            var websiteLine = string.IsNullOrWhiteSpace(frontUrl) ? "" : $"\n**Website:** [View on Azangara Mods](<{frontUrl}/levels/{level.Id}>)";
+
             string title = $"{level.Name}";
             string text = $"""
                            **Level Name:** {level.Name}
@@ -74,7 +78,7 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                            {(string.IsNullOrWhiteSpace(latestFile?.EntryPoint) ? "No entry point specified." : latestFile.EntryPoint.EndsWith(".exec") ? "exec " + latestFile.EntryPoint : "level " + latestFile.EntryPoint)}
                            ```
                            **Download:**
-                            [{latestFile?.FileName}.pak]({downloadPath}) [{downloadCount:#,##0} download{(downloadCount==1?"":"s")}]
+                            [{latestFile?.FileName}.pak]({downloadPath}) [{downloadCount:#,##0} download{(downloadCount==1?"":"s")}]{websiteLine}
                            """;
             
             // A disabled author's levels are hidden like drafts
