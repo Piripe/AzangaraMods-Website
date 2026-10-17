@@ -3,6 +3,7 @@ import NavBar from "../components/navBar";
 import LinkButton from "@/components/kit/linkButton";
 import SvgIcon from "@/components/kit/svgIcon";
 import CreateLevelButton from "@/components/createLevelButton";
+import TrendingLevels from "@/components/levels/trendingLevels";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
           <CreateLevelButton/>
         </div>
       </main>
+      <TrendingLevels/>
     </div>
   );
 }
