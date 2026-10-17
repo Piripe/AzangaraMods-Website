@@ -149,17 +149,18 @@ export default function Page({
     ["history", "Updated", formatRelativeDate(level.lastEdit), new Date(level.lastEdit).toLocaleString()],
   ];
 
-  const [statusTitle, statusText] =
-    pending ? ["Waiting for review", isAuthor
+  // A title only where the chip next to the level name doesn't already say it
+  const [statusIcon, statusTitle, statusText]: [SvgIconName, string | null, string] =
+    pending ? ["schedule", "Waiting for review", isAuthor
       ? "An admin will check your level soon. It is published as soon as they approve it."
       : `${level.author?.username ?? "The author"} asked for this level to be verified${level.verificationRequested ? " " + formatRelativeDate(level.verificationRequested) : ""}.`]
-    : rejected ? ["Review rejected", isAuthor
+    : rejected ? ["warning", "Review rejected", isAuthor
       ? "An admin didn't approve this level. Fix what they asked, then submit it again."
       : "This level was rejected. The author can submit it again."]
-    : !isAuthor ? ["Draft", "Only the author and admins can see this level."]
-    : canPublish ? ["Draft", "Only you and admins can see this level. Publish it when it's ready."]
-    : files.length > 0 ? ["Review required", "Your first levels are checked by an admin before they go public. Submit this level when it is ready, and it is published once approved."]
-    : ["Review required", "Your first levels are checked by an admin before they go public. Upload a file, then submit the level for review."];
+    : !isAuthor ? ["visibilityOff", null, "Only the author and admins can see this level."]
+    : canPublish ? ["visibilityOff", null, "Only you and admins can see this level. Publish it when it's ready."]
+    : files.length > 0 ? ["flag", "Review required", "Your first levels are checked by an admin before they go public. Submit this level when it is ready, and it is published once approved."]
+    : ["flag", "Review required", "Your first levels are checked by an admin before they go public. Upload a file, then submit the level for review."];
 
   // Goes back to the list the user came from, or to the level browser
   const back = backTarget ?? "/levels";
@@ -178,6 +179,18 @@ export default function Page({
       <div className={styles.backLink}>
         <LinkButton variant="text" icon="arrowBack" href={back}>{backLabel}</LinkButton>
       </div>
+
+      {canEdit && !level.published &&
+        <div className={styles.status} role="status">
+          <span className={styles.statusIcon}><SvgIcon name={statusIcon} size={20}/></span>
+          <div className={styles.statusText}>
+            {statusTitle && <h2>{statusTitle}</h2>}
+            <p>{statusText}</p>
+            {rejected && level.verificationNote && <blockquote>{level.verificationNote}</blockquote>}
+          </div>
+        </div>
+      }
+      
       <header className={styles.header}>
         <div className={styles.thumbnail}>
           {gallery.length > 0 ?
@@ -242,16 +255,6 @@ export default function Page({
           }
         </div>
       </header>
-
-      {canEdit && !level.published &&
-        <Card className={styles.manage}>
-          <div className={styles.manageText}>
-            <h2>{statusTitle}</h2>
-            <p>{statusText}</p>
-            {rejected && level.verificationNote && <p><strong>Reason:</strong> {level.verificationNote}</p>}
-          </div>
-        </Card>
-      }
 
       <div className={styles.columns}>
         <div className={styles.main}>
