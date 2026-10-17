@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./adminLevels.module.css";
+import BigTextBox from "../kit/bigTextbox";
 import Button from "../kit/button";
 import Card from "../kit/card";
 import Chip from "../kit/chip";
@@ -20,13 +21,16 @@ import TextBox from "../kit/textbox";
 import useUserData from "@/hooks/useUserData";
 import fetchApi from "@/utils/fetchApi";
 import errorAlert from "@/utils/errorAlert";
+import downloadLevelFile from "@/utils/downloadLevelFile";
+import { LevelVerificationStatus } from "@/enums";
 import { formatCount, formatRelativeDate, galleryImageUrl } from "@/utils/levelLabels";
 
-type StatusFilter = "all" | "published" | "drafts";
-const statusTabs: { id: StatusFilter, label: string, icon: "map" | "public" | "lock" }[] = [
+export type StatusFilter = "all" | "published" | "drafts" | "pending";
+const statusTabs: { id: StatusFilter, label: string, icon: "map" | "public" | "lock" | "schedule" }[] = [
   { id: "all", label: "All", icon: "map" },
   { id: "published", label: "Published", icon: "public" },
   { id: "drafts", label: "Drafts", icon: "lock" },
+  { id: "pending", label: "Pending review", icon: "schedule" },
 ];
 const sortOptions = [
   { id: "updated", label: "Recently updated" },
@@ -48,11 +52,11 @@ function taskSummary(verb: string, noun: string, data: AdminTaskResponseData): N
   };
 }
 
-export default function AdminLevels() {
+export default function AdminLevels({initialStatus = "all"}:{initialStatus?: StatusFilter}) {
   const {user, token} = useUserData();
 
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [status, setStatus] = useState<StatusFilter>(initialStatus);
   const [sortIndex, setSortIndex] = useState(0);
   const [page, setPage] = useState(1);
   const [reloadKey, setReloadKey] = useState(0);
@@ -63,12 +67,17 @@ export default function AdminLevels() {
   const [bulkBusy, setBulkBusy] = useState<string|null>(null);
   const [notice, setNotice] = useState<Notice|null>(null);
   const [confirm, setConfirm] = useState<Confirm|null>(null);
+  const [rejecting, setRejecting] = useState<AdminLevelHit|null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const [pendingCount, setPendingCount] = useState<number|undefined>(undefined);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const params = new URLSearchParams();
   if (query) params.set("q", query);
-  if (status !== "all") params.set("published", (status === "published").toString());
-  params.set("sort", sortOptions[sortIndex].id);
+  if (status === "pending") params.set("verification", "pending");
+  else if (status !== "all") params.set("published", (status === "published").toString());
+  // The review queue is always oldest request first
+  params.set("sort", status === "pending" ? "verificationRequested" : sortOptions[sortIndex].id);
   params.set("offset", ((page - 1) * pageSize).toString());
   params.set("limit", pageSize.toString());
   const apiQuery = params.toString();
@@ -91,6 +100,16 @@ export default function AdminLevels() {
     });
     return ()=>{ cancelled = true; };
   }, [apiQuery, token, isAdmin, reloadKey]);
+
+  // Shown on the "Pending review" tab whichever tab is open
+  useEffect(()=>{
+    if (!token || !isAdmin) return;
+    let cancelled = false;
+    fetchApi("/admin/levels?verification=pending&limit=1", token).then(async res=>{
+      if (!cancelled && res.ok) setPendingCount((await res.json() as LevelSearchResult).totalHits);
+    }).catch(()=>{});
+    return ()=>{ cancelled = true; };
+  }, [token, isAdmin, reloadKey]);
 
   function search(text: string) {
     clearTimeout(searchTimeout.current);
@@ -154,6 +173,28 @@ export default function AdminLevels() {
       ()=>setNotice({ title: `${level.name}: Discord message refreshed`, errors: [] }));
   }
 
+  function approve(level: AdminLevelHit) {
+    runLevelTask(level, "Approving…",
+      ()=>fetchApi(`/admin/levels/${level.id}/verification/approve`, token!, "POST"),
+      ()=>setNotice({ title: `${level.name} verified and published`, errors: [] }));
+  }
+
+  function openReject(level: AdminLevelHit) {
+    setRejectNote("");
+    setRejecting(level);
+  }
+
+  function reject(level: AdminLevelHit, note: string) {
+    runLevelTask(level, "Rejecting…",
+      ()=>fetchApi(`/admin/levels/${level.id}/verification/reject`, token!, "POST", JSON.stringify({ note })),
+      ()=>setNotice({ title: `${level.name} rejected`, errors: [] }));
+  }
+
+  function download(level: AdminLevelHit) {
+    if (!level.latestFileId) return;
+    downloadLevelFile(level.id, level.latestFileId, level.latestFileName ?? level.name, token!);
+  }
+
   function deleteLevel(level: AdminLevelHit) {
     setConfirm({
       title: "Delete level?",
@@ -209,12 +250,14 @@ export default function AdminLevels() {
 
       <div className={styles.toolbar}>
         <TextBox className={styles.search} label="Search levels" placeholder="Name or description" onChange={search}/>
-        <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
-          setSortIndex(i);
-          setPage(1);
-        }}/>
+        {status !== "pending" &&
+          <ComboBox label="Sort by" values={sortOptions.map(s=>s.label)} defaultValue={sortIndex} onChange={i=>{
+            setSortIndex(i);
+            setPage(1);
+          }}/>
+        }
       </div>
-      <Tabs tabs={statusTabs.map(t=>({...t, count: t.id === status ? result?.totalHits : undefined}))} value={status} onChange={s=>{
+      <Tabs tabs={statusTabs.map(t=>({...t, count: t.id === status ? result?.totalHits : t.id === "pending" ? pendingCount : undefined}))} value={status} onChange={s=>{
         setStatus(s);
         setPage(1);
       }}/>
@@ -224,7 +267,10 @@ export default function AdminLevels() {
       : !result ?
         <Spinner/>
       : result.hits.length === 0 ?
-        <EmptyState icon="search" title="No levels found" text={query ? "Try another search." : "There are no levels here yet."}/>
+        status === "pending" && !query ?
+          <EmptyState icon="check" title="No pending verifications" text="Every verification request has been reviewed."/>
+        :
+          <EmptyState icon="search" title="No levels found" text={query ? "Try another search." : "There are no levels here yet."}/>
       :
         <>
           <Card className={styles.list}>
@@ -247,24 +293,40 @@ export default function AdminLevels() {
                     <span><SvgIcon name="file" size={14}/>{level.fileCount} file{level.fileCount === 1 ? "" : "s"}</span>
                     <span title={`${level.downloads} downloads`}><SvgIcon name="download" size={14}/>{formatCount(level.downloads)}</span>
                     <span title={new Date(level.lastEdit).toLocaleString()}><SvgIcon name="history" size={14}/>{formatRelativeDate(level.lastEdit)}</span>
+                    {level.verification === LevelVerificationStatus.Pending && level.verificationRequested &&
+                      <span title={new Date(level.verificationRequested).toLocaleString()}><SvgIcon name="schedule" size={14}/>Requested {formatRelativeDate(level.verificationRequested)}</span>
+                    }
                   </p>
                 </div>
                 <div className={styles.chips}>
                   {busy[level.id] ?
                     <Chip small variant="highlight" icon="schedule">{busy[level.id]}</Chip>
-                  : <>
+                  : status === "pending" && level.verification === LevelVerificationStatus.Pending ? <>
+                    <Button variant="outlined" icon="download" disabled={!level.latestFileId} click={()=>download(level)}>Download</Button>
+                    <Button variant="text" icon="close" click={()=>openReject(level)}>Reject</Button>
+                    <Button variant="filled" icon="check" click={()=>approve(level)}>Approve</Button>
+                  </> : <>
                     {level.published ?
                       <Chip small variant="success" icon="public">Published</Chip>
+                    : level.verification === LevelVerificationStatus.Pending ?
+                      <Chip small variant="highlight" icon="schedule">Pending review</Chip>
                     :
                       <Chip small variant="highlight" icon="lock">Draft</Chip>
                     }
+                    {!level.published && level.verification === LevelVerificationStatus.Rejected && <Chip small icon="close">Rejected</Chip>}
                     {level.published && !level.hasDiscordMessage && <Chip small icon="forum">No Discord post</Chip>}
                   </>}
                 </div>
                 <Menu items={[
                   { label: "Open public page", icon: "openInNew", href: `/levels/${level.id}` },
                   { label: "Edit", icon: "edit", href: `/dashboard/levels/${level.id}` },
+                  { label: "Download latest file", icon: "download", click: ()=>download(level), disabled: !level.latestFileId },
                   "divider",
+                  ...(level.verification === LevelVerificationStatus.Pending ? [
+                    { label: "Approve and publish", icon: "check", click: ()=>approve(level), disabled: !!busy[level.id] },
+                    { label: "Reject", icon: "close", click: ()=>openReject(level), disabled: !!busy[level.id] },
+                    "divider",
+                  ] as const : []),
                   { label: level.published ? "Unpublish" : "Publish", icon: level.published ? "lock" : "public", click: ()=>togglePublished(level), disabled: !!busy[level.id] },
                   { label: "Reprocess files", icon: "refresh", click: ()=>reprocess(level), disabled: !!busy[level.id] || level.fileCount === 0 },
                   { label: "Refresh Discord message", icon: "forum", click: ()=>refreshDiscord(level), disabled: !!busy[level.id] },
@@ -276,6 +338,22 @@ export default function AdminLevels() {
           </Card>
           <Pagination page={page} pageCount={pageCount} onChange={setPage}/>
         </>
+      }
+
+      {rejecting &&
+        <Popup title="Reject verification?" closeCallback={()=>setRejecting(null)}>
+          <div className={styles.dialog}>
+            <p>&quot;{rejecting.name}&quot; by {rejecting.author?.username ?? "unknown"} stays a draft. The author sees your reason and can ask again.</p>
+            <BigTextBox label="Reason (optional)" maxLength={1024} onChange={setRejectNote}/>
+            <div className={styles.dialogActions}>
+              <Button variant="text" click={()=>setRejecting(null)}>Cancel</Button>
+              <Button variant="filled" click={()=>{
+                setRejecting(null);
+                reject(rejecting, rejectNote);
+              }}>Reject</Button>
+            </div>
+          </div>
+        </Popup>
       }
 
       {confirm &&

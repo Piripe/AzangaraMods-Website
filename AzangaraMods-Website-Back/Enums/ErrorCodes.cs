@@ -43,4 +43,11 @@ public enum ErrorCodes
     AdminLevelNotFound = 0x26,
     AdminLevelFileNotFound = 0x27,
     AdminReprocessError = 0x28,
+    LevelPublishVerificationRequired = 0x29,
+    LevelVerificationAlreadyPending = 0x2A,
+    LevelVerificationAlreadyVerified = 0x2B,
+    LevelVerificationNoFiles = 0x2C,
+    LevelVerificationNotFound = 0x2D,
+    LevelVerificationNotPending = 0x2E,
+    AdminVerificationNoteTooLong = 0x2F,
 }

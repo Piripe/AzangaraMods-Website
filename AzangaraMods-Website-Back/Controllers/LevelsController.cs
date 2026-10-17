@@ -77,7 +77,14 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     [HttpPatch("{levelId}")]
     public async Task<IActionResult> PatchLevel([FromBody] PatchLevelRequestData partialLevel, [FromRoute] long levelId)
     {
-        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        var user = (HttpContext.Items[0] as User)!;
+        if (!await levelService.UserCanEditLevel(user, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        if (partialLevel.published == true && !user.Flags.HasFlag(UserFlags.VerifiedModder) && !user.Flags.HasFlag(UserFlags.Admin))
+        {
+            var current = await levelService.GetLevelById(levelId);
+            if (current is { Published: false, Verification: not LevelVerificationStatus.Verified })
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseModel("This level must be verified before it can be published", ErrorCodes.LevelPublishVerificationRequired));
+        }
         if (
             string.IsNullOrWhiteSpace(partialLevel.name) && 
             string.IsNullOrWhiteSpace(partialLevel.description) && 
@@ -95,5 +102,35 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelPatchNotFound));
         await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
         return Ok(mapper.Map<LevelDto>(level));
+    }
+
+    // Asks an admin to verify the level so an author who isn't a Verified Modder can publish it
+    [HttpPost("{levelId}/verification")]
+    public async Task<IActionResult> RequestVerification([FromRoute] long levelId)
+    {
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelVerificationNotFound));
+        if (level.Verification == LevelVerificationStatus.Verified) return BadRequest(new ErrorResponseModel("Level is already verified", ErrorCodes.LevelVerificationAlreadyVerified));
+        if (level.Verification == LevelVerificationStatus.Pending) return BadRequest(new ErrorResponseModel("A verification is already pending", ErrorCodes.LevelVerificationAlreadyPending));
+        level = await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level));
+        if (level.LevelFiles?.Count is null or 0) return BadRequest(new ErrorResponseModel("Upload a file before asking for a verification", ErrorCodes.LevelVerificationNoFiles));
+
+        await levelService.SetVerification(level, LevelVerificationStatus.Pending);
+        await discordService.NotifyVerificationRequest(level);
+        return Ok(mapper.Map<LevelDto>(level));
+    }
+
+    [HttpDelete("{levelId}/verification")]
+    public async Task<IActionResult> CancelVerification([FromRoute] long levelId)
+    {
+        if (!await levelService.UserCanEditLevel((HttpContext.Items[0] as User)!, levelId)) return Unauthorized(new ErrorResponseModel("It's not your level", ErrorCodes.LevelEditNotYours));
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelVerificationNotFound));
+        if (level.Verification != LevelVerificationStatus.Pending) return BadRequest(new ErrorResponseModel("No verification is pending", ErrorCodes.LevelVerificationNotPending));
+
+        await levelService.SetVerification(level, LevelVerificationStatus.None);
+        await discordService.DeleteVerificationRequest(level);
+        return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level))));
     }
 }

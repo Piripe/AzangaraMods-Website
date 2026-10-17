@@ -16,6 +16,9 @@ public class LevelPartialDto
     public required LevelDifficulties Difficulty { get; set; }
     public required short RoomAmount { get; set; }
     public bool Published { get; set; } = false;
+    public LevelVerificationStatus Verification { get; set; }
+    public DateTime? VerificationRequested { get; set; }
+    public string? VerificationNote { get; set; }
     
     public required string[] Tags { get; set; }
 

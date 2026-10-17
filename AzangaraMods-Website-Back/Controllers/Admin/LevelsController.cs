@@ -20,13 +20,14 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
     public async Task<IActionResult> GetLevels(
         [FromQuery] string? q,
         [FromQuery] bool? published,
+        [FromQuery] LevelVerificationStatus? verification,
         [FromQuery] LevelSortOrders sort = LevelSortOrders.Updated,
         [FromQuery] int offset = 0,
         [FromQuery] int limit = 20)
     {
         offset = Math.Max(offset, 0);
         limit = Math.Clamp(limit, 1, 100);
-        var (levels, total) = await levelService.SearchLevels(published, q, [], [], sort, offset, limit);
+        var (levels, total) = await levelService.SearchLevels(published, q, [], [], sort, offset, limit, verification);
         return Ok(new LevelSearchResultDto<AdminLevelHitDto>
         {
             Hits = mapper.Map<AdminLevelHitDto[]>(levels),
@@ -34,6 +35,36 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
             Offset = offset,
             Limit = limit
         });
+    }
+
+    // Verifies a pending level and publishes it
+    [HttpPost("{levelId}/verification/approve")]
+    public async Task<IActionResult> ApproveVerification([FromRoute] long levelId)
+    {
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.AdminLevelNotFound));
+        if (level.Verification != LevelVerificationStatus.Pending) return BadRequest(new ErrorResponseModel("No verification is pending", ErrorCodes.LevelVerificationNotPending));
+
+        level.Published = true;
+        levelService.SoftEditLevel(level);
+        await levelService.SetVerification(level, LevelVerificationStatus.Verified);
+        await discordService.UpdateDiscordForum(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level)));
+        return Ok(mapper.Map<LevelPartialDto>(level));
+    }
+
+    public record RejectVerificationRequestData(string? note);
+
+    [HttpPost("{levelId}/verification/reject")]
+    public async Task<IActionResult> RejectVerification([FromRoute] long levelId, [FromBody] RejectVerificationRequestData data)
+    {
+        var note = string.IsNullOrWhiteSpace(data.note) ? null : data.note.Trim();
+        if (note?.Length > 1024) return BadRequest(new ErrorResponseModel("Note is too long", ErrorCodes.AdminVerificationNoteTooLong));
+        var level = await levelService.GetLevelById(levelId);
+        if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.AdminLevelNotFound));
+        if (level.Verification != LevelVerificationStatus.Pending) return BadRequest(new ErrorResponseModel("No verification is pending", ErrorCodes.LevelVerificationNotPending));
+
+        await levelService.SetVerification(level, LevelVerificationStatus.Rejected, note);
+        return Ok(mapper.Map<LevelPartialDto>(level));
     }
 
     [HttpPost("{levelId}/reprocess")]

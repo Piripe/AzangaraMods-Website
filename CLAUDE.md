@@ -33,7 +33,7 @@ Backend:
 dotnet build AzangaraMods-Website-Back.sln
 dotnet ef migrations add <Name> --project AzangaraMods-Website-Back
 ```
-Migrations are applied automatically at startup (`Database.Migrate()` in `Program.cs`). The connection string in `appsettings*.json` points to host `db`, which is the compose service name. Env vars the backend reads: `FRONT_URL` (CORS origin), `DOWNLOAD_URL`, `DISCORD_WEBHOOK`, `DISCORD_EMOTES`, `DATA_DIR` (defaults to `/data`).
+Migrations are applied automatically at startup (`Database.Migrate()` in `Program.cs`). The connection string in `appsettings*.json` points to host `db`, which is the compose service name. Env vars the backend reads: `FRONT_URL` (CORS origin), `DOWNLOAD_URL`, `DISCORD_WEBHOOK`, `DISCORD_EMOTES`, `DISCORD_ADMIN_WEBHOOK` (optional, notified when a level verification is requested), `DATA_DIR` (defaults to `/data`).
 
 This repository has no test suite. The only tests are in the submodule (`libs/AzangaraTools/AzangaraTools.Tests`).
 

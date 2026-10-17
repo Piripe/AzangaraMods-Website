@@ -76,10 +76,11 @@ public class LevelService(MainDbContext db) : ILevelService
 
     // published == null searches every level, drafts included (admin panel)
     public async Task<(Level[] levels, int total)> SearchLevels(bool? published, string? query, LevelDifficulties[] difficulties,
-        string[] tags, LevelSortOrders sort, int offset, int limit)
+        string[] tags, LevelSortOrders sort, int offset, int limit, LevelVerificationStatus? verification = null)
     {
         var levels = db.Levels!.AsQueryable();
         if (published.HasValue) levels = levels.Where(x => x.Published == published.Value);
+        if (verification.HasValue) levels = levels.Where(x => x.Verification == verification.Value);
 
         string? pattern = null;
         if (!string.IsNullOrWhiteSpace(query))
@@ -96,6 +97,7 @@ public class LevelService(MainDbContext db) : ILevelService
         {
             LevelSortOrders.Newest => levels.OrderByDescending(x => x.Id),
             LevelSortOrders.Updated => levels.OrderByDescending(x => x.LastEdit),
+            LevelSortOrders.VerificationRequested => levels.OrderBy(x => x.VerificationRequested).ThenBy(x => x.Id),
             LevelSortOrders.Downloads => levels.OrderByDescending(x => x.LevelFiles!.Sum(f => f.Downloads)).ThenByDescending(x => x.Id),
             // Name matches rank above description-only matches
             _ when pattern != null => levels
@@ -127,6 +129,14 @@ public class LevelService(MainDbContext db) : ILevelService
             .OrderByDescending(x => x.Item2)
             .ThenBy(x => x.Key)
             .ToArray();
+    }
+
+    public Task<int> SetVerification(Level level, LevelVerificationStatus status, string? note = null)
+    {
+        level.Verification = status;
+        level.VerificationNote = note;
+        if (status == LevelVerificationStatus.Pending) level.VerificationRequested = DateTime.UtcNow;
+        return db.SaveChangesAsync();
     }
 
     private static string EscapeLikePattern(string text)

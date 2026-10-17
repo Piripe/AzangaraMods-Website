@@ -5,5 +5,7 @@ public enum LevelSortOrders
     Relevance,
     Downloads,
     Newest,
-    Updated
+    Updated,
+    // Oldest verification request first, for the admin review queue
+    VerificationRequested
 }

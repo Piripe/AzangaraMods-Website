@@ -8,6 +8,14 @@ export enum LevelDifficulties
     Expert = 60
 }
 
+export enum LevelVerificationStatus
+{
+    None = 0,
+    Pending = 10,
+    Verified = 20,
+    Rejected = 30
+}
+
 export enum ErrorCodes {
     AuthLoginInvalid = 0x00,
     AuthRegisterUnknownError = 0x01,
@@ -50,4 +58,11 @@ export enum ErrorCodes {
     AdminLevelNotFound = 0x26,
     AdminLevelFileNotFound = 0x27,
     AdminReprocessError = 0x28,
+    LevelPublishVerificationRequired = 0x29,
+    LevelVerificationAlreadyPending = 0x2A,
+    LevelVerificationAlreadyVerified = 0x2B,
+    LevelVerificationNoFiles = 0x2C,
+    LevelVerificationNotFound = 0x2D,
+    LevelVerificationNotPending = 0x2E,
+    AdminVerificationNoteTooLong = 0x2F,
 }

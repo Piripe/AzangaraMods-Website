@@ -97,6 +97,19 @@ namespace AzangaraMods_Website_Back.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)[]");
 
+                    b.Property<int>("Verification")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("VerificationDiscordMessage")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("VerificationNote")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<DateTime?>("VerificationRequested")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");

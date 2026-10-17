@@ -13,6 +13,9 @@ public class AdminLevelHitDto : LevelSearchHitDto
 {
     public int FileCount { get; set; }
     public bool HasDiscordMessage { get; set; }
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
+    public long? LatestFileId { get; set; }
+    public string? LatestFileName { get; set; }
 }
 
 public class LevelSearchResultDto<T> where T : LevelSearchHitDto

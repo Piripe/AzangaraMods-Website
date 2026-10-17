@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
+using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
@@ -16,6 +18,17 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
     private record SendWebhookMessageRequest(string username, string content, string? thread_name, Embed[] embeds);
     private record EditWebhookMessageRequest(string content, Embed[] embeds);
     private record SendWebhookMessageResponse(string id, string channel_id);
+    private record EmbedThumbnail(string url);
+    private record EmbedField(string name, string value, bool inline = true);
+    private record AdminEmbed(
+        string title,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? url,
+        string description,
+        int color,
+        EmbedField[] fields,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] EmbedThumbnail? thumbnail,
+        string timestamp);
+    private record SendAdminWebhookMessageRequest(string username, AdminEmbed[] embeds);
 
     private readonly string[] _discordEmotes =
         (Environment.GetEnvironmentVariable("DISCORD_EMOTES") ??
@@ -95,6 +108,86 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
         catch (Exception e)
         {
             Console.WriteLine("Discord service error: " + e.Message);
+        }
+    }
+
+    // Posts to the admin webhook (DISCORD_ADMIN_WEBHOOK), which is optional
+    public async Task NotifyVerificationRequest(Level level)
+    {
+        try
+        {
+            var webhook = Environment.GetEnvironmentVariable("DISCORD_ADMIN_WEBHOOK");
+            if (string.IsNullOrWhiteSpace(webhook))
+            {
+                Console.WriteLine($"No admin webhook set, verification requested for level {level.Id}");
+                return;
+            }
+
+            var frontUrl = Environment.GetEnvironmentVariable("FRONT_URL") ?? "";
+            var downloadUrl = Environment.GetEnvironmentVariable("DOWNLOAD_URL") ?? "https://127.0.0.1:8080";
+            var reviewUrl = $"{frontUrl}/dashboard/admin?tab=pending";
+            // Same thumbnail rule as the level search DTO: the oldest gallery image
+            var thumbnail = level.GalleryFiles?.OrderBy(x => x.Id).FirstOrDefault();
+
+            var embed = new AdminEmbed(
+                "Verification requested",
+                string.IsNullOrWhiteSpace(frontUrl) ? null : reviewUrl,
+                $"**{level.Name}**",
+                0xF1C40F,
+                [
+                    new EmbedField("Creator", level.Author?.Username ?? level.AuthorId.ToString()),
+                    new EmbedField("Difficulty", _difficulties[level.Difficulty]),
+                    new EmbedField("Size", $"{level.RoomAmount} room{(level.RoomAmount == 1 ? "" : "s")}"),
+                    new EmbedField("Files", (level.LevelFiles?.Count ?? 0).ToString()),
+                    new EmbedField("Review", $"[Open the admin panel]({reviewUrl})", false),
+                ],
+                thumbnail == null ? null : new EmbedThumbnail($"{downloadUrl}/level/{level.Id}/gallery/{thumbnail.Id}"),
+                DateTime.UtcNow.ToString("o"));
+
+            var res = await _httpClient.PostAsync(webhook + "?wait=true", JsonContent.Create(new SendAdminWebhookMessageRequest("Azanbot", [embed])));
+            if (!res.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Admin webhook error: {(int)res.StatusCode} {await res.Content.ReadAsStringAsync()}");
+                return;
+            }
+
+            var messageInfos = await res.Content.ReadFromJsonAsync<SendWebhookMessageResponse>();
+            if (messageInfos == null) return;
+
+            db.Entry(level).Property(x => x.VerificationDiscordMessage).CurrentValue = long.Parse(messageInfos.id);
+            await db.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Admin webhook error: " + e.Message);
+        }
+    }
+
+    // Removes the message posted by NotifyVerificationRequest
+    public async Task DeleteVerificationRequest(Level level)
+    {
+        try
+        {
+            if (!level.VerificationDiscordMessage.HasValue) return;
+
+            var webhook = Environment.GetEnvironmentVariable("DISCORD_ADMIN_WEBHOOK");
+            if (!string.IsNullOrWhiteSpace(webhook))
+            {
+                var res = await _httpClient.DeleteAsync($"{webhook}/messages/{level.VerificationDiscordMessage.Value}");
+                // 404 means the message is already gone, so the stored ID can be cleared anyway
+                if (!res.IsSuccessStatusCode && res.StatusCode != HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine($"Admin webhook error: {(int)res.StatusCode} {await res.Content.ReadAsStringAsync()}");
+                    return;
+                }
+            }
+
+            db.Entry(level).Property(x => x.VerificationDiscordMessage).CurrentValue = null;
+            await db.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Admin webhook error: " + e.Message);
         }
     }
 

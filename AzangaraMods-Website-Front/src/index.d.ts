@@ -1,4 +1,5 @@
 type LevelDifficulties = 10 | 20 | 30 | 40 | 50 | 60;
+type LevelVerificationStatus = 0 | 10 | 20 | 30;
 
 type User = {
     id: string,
@@ -21,6 +22,9 @@ type Level = {
     difficulty: LevelDifficulties,
     roomAmount: number,
     published: boolean,
+    verification: LevelVerificationStatus,
+    verificationRequested: string|null,
+    verificationNote: string|null,
     author: User|null|undefined,
     tags: string[]|undefined,
     galleryFiles: GalleryFile[]|undefined,
@@ -34,6 +38,8 @@ type LevelSearchHit = Level & {
 type AdminLevelHit = LevelSearchHit & {
     fileCount: number,
     hasDiscordMessage: boolean,
+    latestFileId: string|null,
+    latestFileName: string|null,
 }
 type LevelSearchResult<T extends LevelSearchHit = LevelSearchHit> = {
     hits: T[],

@@ -34,9 +34,12 @@ builder.Services.AddScoped<IDiscordService, DiscordService>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
-    cfg.CreateMap<User, UserPublicPartialDto>();
-    cfg.CreateMap<User, UserPublicDto>();
+    cfg.CreateMap<User, UserPublicPartialDto>()
+        .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)));
+    cfg.CreateMap<User, UserPublicDto>()
+        .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)));
     cfg.CreateMap<User, UserPrivateDto>()
+        .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)))
         .ForMember(d => d.Admin, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.Admin)));
     cfg.CreateMap<Level, LevelPartialDto>();
     cfg.CreateMap<Level, LevelDto>();
@@ -46,7 +49,9 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.CreateMap<Level, AdminLevelHitDto>()
         .IncludeBase<Level, LevelSearchHitDto>()
         .ForMember(d => d.FileCount, o => o.MapFrom(s => s.LevelFiles == null ? 0 : s.LevelFiles.Count))
-        .ForMember(d => d.HasDiscordMessage, o => o.MapFrom(s => s.DiscordForumMessage.HasValue));
+        .ForMember(d => d.HasDiscordMessage, o => o.MapFrom(s => s.DiscordForumMessage.HasValue))
+        .ForMember(d => d.LatestFileId, o => o.MapFrom(s => s.LevelFiles == null ? null : s.LevelFiles.OrderByDescending(f => f.UploadDate).Select(f => (long?)f.Id).FirstOrDefault()))
+        .ForMember(d => d.LatestFileName, o => o.MapFrom(s => s.LevelFiles == null ? null : s.LevelFiles.OrderByDescending(f => f.UploadDate).Select(f => f.FileName).FirstOrDefault()));
     cfg.CreateMap<GalleryFile, GalleryFileDto>();
     cfg.CreateMap<GalleryFile, GalleryFilePartialDto>();
     cfg.CreateMap<LevelFile, LevelFileDto>();

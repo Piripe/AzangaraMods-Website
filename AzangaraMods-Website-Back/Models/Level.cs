@@ -30,6 +30,13 @@ public class Level
     public required string[] Tags { get; set; }
 
     public bool Published { get; set; } = false;
+    public LevelVerificationStatus Verification { get; set; } = LevelVerificationStatus.None;
+    public DateTime? VerificationRequested { get; set; } = null;
+    [MaxLength(1024)]
+    public string? VerificationNote { get; set; } = null;
+    // Admin webhook message announcing the pending verification, deleted if the request is cancelled
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
+    public long? VerificationDiscordMessage { get; set; } = null;
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]
     public long? DiscordForumMessage { get; set; } = null;
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString)]

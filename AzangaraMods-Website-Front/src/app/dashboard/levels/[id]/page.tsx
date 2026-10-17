@@ -14,6 +14,8 @@ import Spinner from "@/components/kit/spinner";
 import SvgIcon from "@/components/kit/svgIcon";
 import formatBytes from "@/utils/fileSize";
 import errorAlert from "@/utils/errorAlert";
+import downloadLevelFile from "@/utils/downloadLevelFile";
+import { LevelVerificationStatus } from "@/enums";
 import { difficultyNames, galleryImageUrl, getLevelSizeText } from "@/utils/levelLabels";
 
 export default  function Page({
@@ -72,9 +74,27 @@ export default  function Page({
     setLevelData(newLevelData);
   };
 
+  // Runs a publish or verification request and keeps the loaded files, which those responses may leave out
+  const levelRequest = (path: string, method: string, body: BodyInit | null = null) => {
+    fetchApi(path, token!, method, body).then(res=>{
+      if (res.ok) {
+        res.json().then((data:Level)=>{
+          const newLevelData = { ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles };
+          setLevelData(newLevelData);
+          updateLevel(newLevelData);
+        });
+      } else {
+        res.json().then((data: ErrorResponse)=>errorAlert(data));
+      }
+    });
+  };
+
   if (!levelData) return <Spinner/>;
 
   const tags = levelData.tags?.filter(t=>t.length > 0) ?? [];
+  // Authors who aren't Verified Modders need an admin to verify the level before publishing it
+  const canPublish = levelData.published || user?.verifiedModder || user?.admin || levelData.verification === LevelVerificationStatus.Verified;
+  const pending = levelData.verification === LevelVerificationStatus.Pending;
 
   return (
     <div className={styles.container}>
@@ -84,32 +104,43 @@ export default  function Page({
         subtitle={"Last edited " + new Date(levelData.lastEdit).toLocaleString()}
         badge={levelData.published ?
           <Chip variant="success" icon="public">Published</Chip>
+        : pending ?
+          <Chip variant="highlight" icon="schedule">Pending review</Chip>
         :
           <Chip variant="highlight" icon="lock">Draft</Chip>
         }
         actions={<>
           <LinkButton variant="outlined" icon="edit" href={`/dashboard/levels/${id}/edit`}>Edit</LinkButton>
-          <Button variant={levelData.published ? "tonal" : "filled"} icon={levelData.published ? "lock" : "public"} click={()=>{
-            fetchApi(
-              "/levels/" + id,
-              token!,
-              "PATCH",
-              JSON.stringify({
-                published: !levelData?.published
-              })
-            ).then(res=>{
-              if (res.ok) {
-                res.json().then((data:Level)=>{
-                  setLevelData({ ...data, levelFiles: levelData?.levelFiles, galleryFiles: levelData?.galleryFiles });
-                  updateLevel(levelData!);
-                });
-              } else {
-                res.json().then((data: ErrorResponse)=>errorAlert(data))
-              }
-            });
-          }}>{levelData.published ? "Unpublish" : "Publish"}</Button>
+{canPublish ?
+            <Button variant={levelData.published ? "tonal" : "filled"} icon={levelData.published ? "lock" : "public"} click={()=>
+              levelRequest("/levels/" + id, "PATCH", JSON.stringify({ published: !levelData.published }))
+            }>{levelData.published ? "Unpublish" : "Publish"}</Button>
+          : pending ?
+            <Button variant="tonal" icon="close" click={()=>levelRequest(`/levels/${id}/verification`, "DELETE")}>Cancel review</Button>
+          :
+            <Button variant="filled" icon="flag" disabled={!levelData.levelFiles?.length} click={()=>levelRequest(`/levels/${id}/verification`, "POST")}>Submit for review</Button>
+          }
         </>}
       />
+
+      {!canPublish &&
+        <Card title={pending ? "Waiting for review" : levelData.verification === LevelVerificationStatus.Rejected ? "Review rejected" : "Review required"}>
+          <p className={styles.description}>
+            {pending ?
+              "An admin will check your level soon. It is published as soon as they approve it."
+            : levelData.verification === LevelVerificationStatus.Rejected ?
+              "An admin didn't approve this level. Fix what they asked, then submit it again."
+            : levelData.levelFiles?.length ?
+              "Your first levels are checked by an admin before they go public. Submit this level when it is ready, and it is published once approved."
+            :
+              "Your first levels are checked by an admin before they go public. Upload a file, then submit the level for review."
+            }
+          </p>
+          {levelData.verification === LevelVerificationStatus.Rejected && levelData.verificationNote &&
+            <p className={styles.description}><strong>Reason:</strong> {levelData.verificationNote}</p>
+          }
+        </Card>
+      }
 
       <Card>
         <div className={styles.chips}>
@@ -133,6 +164,7 @@ export default  function Page({
                     <p className={styles.fileName}>{f.fileName}</p>
                     <p className={styles.fileMeta}>{formatBytes(f.fileSize)} · {new Date(f.uploadDate).toLocaleString()}</p>
                   </div>
+                  <IconButton icon="download" label="Download" click={()=>downloadLevelFile(id, f.id, f.fileName, token!)}/>
                   <IconButton icon="delete" label="Delete" variant="danger" click={()=>deleteFile(f)}/>
                 </li>
               ))}

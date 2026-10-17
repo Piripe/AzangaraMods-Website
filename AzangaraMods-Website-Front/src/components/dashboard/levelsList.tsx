@@ -9,6 +9,7 @@ import Spinner from "../kit/spinner";
 import EmptyState from "../kit/emptyState";
 import LinkButton from "../kit/linkButton";
 import { difficultyNames, galleryImageUrl } from "@/utils/levelLabels";
+import { LevelVerificationStatus } from "@/enums";
 
 export function LevelsList() {
 
@@ -40,6 +41,8 @@ export function LevelsList() {
                             <span className={styles.status}>
                                 {level.published ?
                                     <Chip small variant="success" icon="public">Published</Chip>
+                                : level.verification === LevelVerificationStatus.Pending ?
+                                    <Chip small variant="highlight" icon="schedule">Pending review</Chip>
                                 :
                                     <Chip small variant="highlight" icon="lock">Draft</Chip>
                                 }

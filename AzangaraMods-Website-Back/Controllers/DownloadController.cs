@@ -21,13 +21,16 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.DownloadLevelNotFound));
         level = await levelService.FetchLevelGallery(await levelService.FetchLevelAuthor(level));
-        if (!level.Published && (HttpContext.Items[0] as User)?.Id != level.AuthorId) return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.DownloadLevelRestricted));
+        var user = HttpContext.Items[0] as User;
+        // Admins can download drafts to review them
+        if (!level.Published && user?.Id != level.AuthorId && !(user?.Flags.HasFlag(UserFlags.Admin) ?? false)) return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.DownloadLevelRestricted));
         var levelFile = level?.LevelFiles?.FirstOrDefault(x=>x.Id == levelFileId) ?? await levelFileService.GetLevelFileById(levelId, levelFileId);
         if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found", ErrorCodes.DownloadLevelFileNotFound));
 
         var zipFile = System.IO.File.OpenRead(levelFileId.GetIdFilePath("zip"));
         
-        await levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        // Drafts are only downloaded by their author or by admins reviewing them, so they don't count
+        if (level.Published) await levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
         
         switch (ext)
         {
