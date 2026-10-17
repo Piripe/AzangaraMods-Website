@@ -45,16 +45,16 @@
     color: var(--primary);
 
     &:hover { color: var(--primary); }
-    &::after {
-        content: "";
-        position: absolute;
-        left: 16px;
-        right: 16px;
-        bottom: 0;
-        height: 3px;
-        border-radius: 3px 3px 0 0;
-        background-color: var(--primary);
-    }
+}
+
+.indicator {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background-color: var(--primary);
 }
 
 .count {
@@ -73,27 +73,4 @@
     flex-direction: column;
     gap: 16px;
     min-width: 0;
-}
-
-.left, .right {
-    animation: panel-in var(--duration-medium) var(--ease-emphasized-decelerate);
-}
-.left { --panel-offset: -24px; }
-.right { --panel-offset: 24px; }
-
-@keyframes panel-in {
-    from {
-        opacity: 0;
-        transform: translateX(var(--panel-offset));
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .left, .right {
-        animation-name: fade-in;
-    }
-}
-
-@keyframes fade-in {
-    from { opacity: 0; }
 }

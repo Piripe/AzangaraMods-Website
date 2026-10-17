@@ -380,7 +380,7 @@ export default function Page({
         <div className={styles.main}>
           <Tabs<LevelTab> value={tab} onChange={setTab} tabs={tabs}/>
 
-          <TabPanel tabs={tabs} value={tab}>
+          <TabPanel value={tab}>
             {tab === "description" && (draft ?
               <Card className={styles.descriptionEdit}>
                 <MarkdownTextBox label="Description" placeholder="Tell players what your level is about" maxLength={8192}

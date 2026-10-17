@@ -268,7 +268,7 @@ export default function AdminLevels({initialStatus = "all"}:{initialStatus?: Sta
         setQuery("");
       }}/>
 
-      <TabPanel tabs={statusTabs} value={status}>
+      <TabPanel value={status}>
         {isLevels &&
           <div className={styles.toolbar}>
             <TextBox className={styles.search} icon="search" placeholder="Search levels…" onChange={search}/>
