@@ -6,6 +6,8 @@ import errorAlert from "@/utils/errorAlert";
 
 interface UserContextProps {
     token: string | null;
+    // False until the token has been read from localStorage, so pages don't send requests without it
+    tokenLoaded: boolean;
     setToken: (token: string | null) => void;
     user: User | null;
     setUser: (user:User | null) => void;
@@ -22,11 +24,13 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
     const [user, setUser] = useState<User | null>(null);
 
     const [token, setToken] = useState<string | null>(null);
+    const [tokenLoaded, setTokenLoaded] = useState(false);
 
     const [avatarVersion, setAvatarVersion] = useState(0);
 
     useEffect(()=>{
         setToken(localStorage.getItem("token"));
+        setTokenLoaded(true);
         if (user) return;
         if (token) {
             (async ()=>{
@@ -46,7 +50,7 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
     }, [user, token]);
 
     const contextValue = useMemo<UserContextProps>(
-        ()=>({user, setUser, token, setToken, pushLevel: (level: Level) => {
+        ()=>({user, setUser, token, tokenLoaded, setToken, pushLevel: (level: Level) => {
             if (user) {
                 setUser({...user, levels: [...user.levels??[], level]});
             }
@@ -55,7 +59,7 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
                 setUser({...user, levels: user.levels?.map(l => l.id === level.id ? level : l) ?? []});
             }
         }, avatarVersion, bumpAvatarVersion: () => setAvatarVersion(Date.now())}),
-        [user, setUser, token, setToken, avatarVersion]
+        [user, setUser, token, tokenLoaded, setToken, avatarVersion]
     );
 
     return (

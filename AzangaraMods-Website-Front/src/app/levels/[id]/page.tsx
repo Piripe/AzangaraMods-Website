@@ -37,7 +37,7 @@ export default function Page({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params);
-  const { user, setUser, token, updateLevel } = useUserData();
+  const { user, setUser, token, tokenLoaded, updateLevel } = useUserData();
   const router = useRouter();
   const backTarget = useBackTarget();
 
@@ -51,8 +51,9 @@ export default function Page({
   // The management action whose request is running, and the label its button shows meanwhile
   const [busy, setBusy] = useState<{ action: LevelAction, label: string }|null>(null);
 
-  // Refetched once the token is loaded, so authors can preview their unpublished levels
+  // Waits for the token to be loaded, so authors can preview their unpublished levels
   useEffect(()=>{
+    if (!tokenLoaded) return;
     let cancelled = false;
     fetchApi("/levels/" + id, token ?? "").then(async res=>{
       if (cancelled) return;
@@ -66,7 +67,7 @@ export default function Page({
       if (!cancelled) setFailed(true);
     });
     return ()=>{ cancelled = true; };
-  }, [id, token]);
+  }, [id, token, tokenLoaded]);
 
   const saveLevel = (data: Level) => {
     setLevel(data);
