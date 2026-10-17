@@ -21,6 +21,7 @@ export default function Page() {
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState(LevelDifficulties.VeryEasy);
   const [tags, setTags] = useState([] as string[]);
+  const [creating, setCreating] = useState(false);
   const {token, pushLevel} = useUserData();
 
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function Page() {
       <ComboBox label="Difficulty" onChange={(e)=>setDifficulty([10,20,30,40,50,60][e])} values={["Very Easy", "Easy", "Normal", "Hard", "Very Hard", "Expert"]} defaultValue={0}/>
       <TagsInput label="Tags" supportingText="Press Enter, Space or comma to add" onChange={(e)=>setTags(e)}/>
       <div className={styles.formActions}>
-        <Button variant="filled" icon="add" click={()=>{
+        <Button variant="filled" icon="add" disabled={creating} click={()=>{
           if (name.length === 0) {
             alert("Name cannot be empty");
             return;
@@ -51,6 +52,7 @@ export default function Page() {
             alert("Description cannot be longer than 8192 characters");
             return;
           }
+          setCreating(true);
           fetchApi("/levels", token!, "PUT",
             JSON.stringify({
               name,
@@ -65,11 +67,15 @@ export default function Page() {
                 router.push("/levels/"+data.id);
               });
             } else {
+              setCreating(false);
               res.json().then((data:ErrorResponse)=>errorAlert(data));
             }
+          }).catch(()=>{
+            setCreating(false);
+            alert("Could not reach the server. Please try again.");
           });
         }}>
-          Create Level
+          {creating ? "Creating…" : "Create Level"}
         </Button>
       </div>
       </Card>
