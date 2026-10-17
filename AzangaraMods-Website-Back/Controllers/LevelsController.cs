@@ -44,8 +44,10 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     {
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelGetNotFound));
+        level = await levelService.FetchLevelAuthor(level);
         var user = HttpContext.Items[0] as User;
-        if (level.Published || level.AuthorId == user?.Id || (user?.Flags.HasFlag(UserFlags.Admin) ?? false)) return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level))));
+        var isPublic = level.Published && !(level.Author?.Flags.HasFlag(UserFlags.Disabled) ?? false);
+        if (isPublic || level.AuthorId == user?.Id || (user?.Flags.HasFlag(UserFlags.Admin) ?? false)) return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelFiles(level)));
         return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.LevelGetRestricted));
     }
     public record PutLevelRequestData(string name, string description, LevelDifficulties difficulty, string tags);

@@ -56,6 +56,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.CreateMap<GalleryFile, GalleryFilePartialDto>();
     cfg.CreateMap<LevelFile, LevelFileDto>();
     cfg.CreateMap<LevelFile, LevelFilePartialDto>();
+    cfg.CreateMap<Token, SessionDto>();
 });
 
 builder.Services.AddHttpClient();

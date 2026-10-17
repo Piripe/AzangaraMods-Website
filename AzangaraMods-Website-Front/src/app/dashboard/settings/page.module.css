@@ -1,0 +1,172 @@
+.sections {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 52rem;
+}
+
+.section {
+    align-items: flex-start;
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    & > svg {
+        color: var(--primary);
+    }
+}
+
+.description {
+    color: var(--on-surface-variant);
+    font-size: var(--font-size-1);
+}
+
+.avatarRow {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.field {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-self: stretch;
+
+    & > button {
+        margin-top: 8px;
+    }
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-self: stretch;
+}
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    align-self: stretch;
+}
+
+.error {
+    color: var(--error);
+    font-size: var(--font-size-1);
+}
+
+.success {
+    color: var(--primary);
+    font-size: var(--font-size-1);
+}
+
+.sessions {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    list-style: none;
+}
+
+.session {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+
+    & + & {
+        border-top: 1px solid rgb(from var(--outline-variant) r g b / 0.5);
+    }
+}
+
+.sessionIcon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--shape-full);
+    background-color: var(--secondary-container);
+    color: var(--on-secondary-container);
+}
+
+.sessionInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.sessionName {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.sessionMeta {
+    overflow: hidden;
+    color: var(--on-surface-variant);
+    font-size: var(--font-size-1);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.danger {
+    box-shadow: inset 0 0 0 1px rgb(from var(--error) r g b / 0.4);
+
+    & .sectionTitle > svg {
+        color: var(--error);
+    }
+}
+
+.dangerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    align-self: stretch;
+
+    & + & {
+        padding-top: 16px;
+        border-top: 1px solid rgb(from var(--outline-variant) r g b / 0.5);
+    }
+}
+
+.dangerTitle {
+    font-weight: 500;
+}
+
+.dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    & label {
+        width: 100%;
+    }
+}
+
+.dialogActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+@media (max-width: 600px) {
+    .dangerRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}

@@ -78,13 +78,18 @@ type LoginResponseData = {
     token: string,
     user: User
 }
-type RegisterResponseData = {
-    status: string
-}
 type AdminTaskResponseData = {
     succeeded: number,
     failed: number,
     errors: string[],
+}
+type Session = {
+    id: string,
+    created: string,
+    lastUsed: string,
+    userAgent: string|null,
+    ipAddress: string|null,
+    current: boolean,
 }
 type LevelFileUploadResponseData = {
     id: string,

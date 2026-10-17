@@ -11,6 +11,9 @@ interface UserContextProps {
     setUser: (user:User | null) => void;
     pushLevel: (level: Level) => void;
     updateLevel: (level: Level) => void;
+    // Bumped when the profile picture changes so <Avatar> reloads it
+    avatarVersion: number;
+    bumpAvatarVersion: () => void;
 }
 
 export const UserContext = createContext<UserContextProps | null>(null);
@@ -19,6 +22,8 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
     const [user, setUser] = useState<User | null>(null);
 
     const [token, setToken] = useState<string | null>(null);
+
+    const [avatarVersion, setAvatarVersion] = useState(0);
 
     useEffect(()=>{
         setToken(localStorage.getItem("token"));
@@ -49,8 +54,8 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode}> = ({chi
             if (user) {
                 setUser({...user, levels: user.levels?.map(l => l.id === level.id ? level : l) ?? []});
             }
-        }}),
-        [user, setUser, token, setToken]
+        }, avatarVersion, bumpAvatarVersion: () => setAvatarVersion(Date.now())}),
+        [user, setUser, token, setToken, avatarVersion]
     );
 
     return (

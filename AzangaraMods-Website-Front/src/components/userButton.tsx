@@ -5,28 +5,20 @@ import Button from "./kit/button";
 import { createPortal } from "react-dom";
 import UserButtonMenu from "./userButtonMenu";
 import Popup from "./kit/popup";
-import { LoginBox } from "./loginBox";
 import useUserData from "../hooks/useUserData";
-import { RegisterBox } from "./registerBox";
+import { AuthBox, AuthMode } from "./authBox";
 import styles from "./userButton.module.css";
 import SvgIcon from "./kit/svgIcon";
+import Avatar from "./kit/avatar";
 
 export default function UserButton() {
   const [menuVisible, setMenuVisible] = useState(false);
-  const [loginBoxVisible, setLoginBoxVisible] = useState(false);
-  const [registerBoxVisible, setRegisterBoxVisible] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode|null>(null);
 
   const toggleMenu = () => setMenuVisible(!menuVisible);
-  const toggleLoginBox = () => {
-    setLoginBoxVisible(!loginBoxVisible);
-    setRegisterBoxVisible(false);
-  };
-  const toggleRegisterBox = () => {
-    setRegisterBoxVisible(!registerBoxVisible);
-    setLoginBoxVisible(false);
-  };
+  const closeAuthBox = () => setAuthMode(null);
 
-  const {user, token} = useUserData();
+  const {user, token, avatarVersion} = useUserData();
 
   return (
 
@@ -34,15 +26,15 @@ export default function UserButton() {
       {user || token ?
         (<Button click={toggleMenu}>
           <>
-            <span className={styles.avatar}>{(user?.username ?? "?").charAt(0)}</span>
+            <Avatar className={styles.avatar} user={user} size={28} version={avatarVersion}/>
             <span className={styles.name}>{user ? user.username : "User"}</span>
             <SvgIcon name="expandMore" size={18}/>
           </>
         </Button>)
       :
         <div className={styles.buttons}>
-          <Button variant="text" click={toggleLoginBox}>{"Log in"}</Button>
-          <Button variant="filled" click={toggleRegisterBox}>{"Sign up"}</Button>
+          <Button variant="text" click={()=>setAuthMode("login")}>{"Log in"}</Button>
+          <Button variant="filled" click={()=>setAuthMode("register")}>{"Sign up"}</Button>
         </div>
       }
       {menuVisible &&
@@ -51,11 +43,10 @@ export default function UserButton() {
           document.body
         )
       }
-      {loginBoxVisible && 
-        <Popup title="Log in" closeCallback={toggleLoginBox}><LoginBox/></Popup>
-      }
-      {registerBoxVisible && 
-        <Popup title="Create account" closeCallback={toggleRegisterBox}><RegisterBox/></Popup>
+      {authMode &&
+        <Popup title={authMode === "register" ? "Create your account" : "Log in"} closeCallback={closeAuthBox}>
+          <AuthBox mode={authMode} setMode={setAuthMode} onSuccess={closeAuthBox}/>
+        </Popup>
       }
     </div>
   );

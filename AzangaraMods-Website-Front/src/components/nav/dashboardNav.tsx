@@ -15,6 +15,7 @@ export function DashboardNav() {
             {/* <Link className={pathname === "/dashboard" ? styles.highlightNav : undefined} href="/dashboard">Dashboard</Link> */}
             <Link className={pathname.startsWith("/dashboard/levels") ? styles.highlightNav : undefined} href="/dashboard/levels"><SvgIcon name="map" size={20}/>My Levels</Link>
             {user?.admin && <Link className={pathname.startsWith("/dashboard/admin") ? styles.highlightNav : undefined} href="/dashboard/admin"><SvgIcon name="shield" size={20}/>Admin</Link>}
+            <Link className={pathname.startsWith("/dashboard/settings") ? styles.highlightNav : undefined} href="/dashboard/settings"><SvgIcon name="settings" size={20}/>Settings</Link>
         </nav>
     );
 }

@@ -77,7 +77,8 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
                             [{latestFile?.FileName}.pak]({downloadPath}) [{downloadCount:#,##0} download{(downloadCount==1?"":"s")}]
                            """;
             
-            if (!level.Published || level.LevelFiles?.Count <= 0)
+            // A disabled author's levels are hidden like drafts
+            if (!level.Published || level.LevelFiles?.Count <= 0 || (level.Author?.Flags.HasFlag(UserFlags.Disabled) ?? false))
             {
                 if (level.DiscordForumMessage == null || level.DiscordForumThread == null) return;
 

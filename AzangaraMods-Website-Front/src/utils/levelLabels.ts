@@ -19,6 +19,11 @@ export function galleryImageUrl(levelId: string, fileId: string) {
   return process.env.NEXT_PUBLIC_API_URL + "/download/level/" + levelId + "/gallery/" + fileId;
 }
 
+// version busts the browser cache after the picture changes
+export function avatarUrl(userId: string, version?: number) {
+  return process.env.NEXT_PUBLIC_API_URL + "/download/user/" + userId + "/avatar" + (version ? "?v=" + version : "");
+}
+
 export function levelFileDownloadUrl(levelId: string, fileId: string, ext: "pak"|"zip" = "pak") {
   return process.env.NEXT_PUBLIC_API_URL + "/download/level/" + levelId + "/files/" + fileId + "?ext=" + ext;
 }

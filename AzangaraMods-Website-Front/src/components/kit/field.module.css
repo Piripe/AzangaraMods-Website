@@ -251,3 +251,43 @@ select.input ~ .outline > legend {
 .box:focus-within > .leadingIcon {
     color: var(--primary);
 }
+
+/* Trailing action inside a text box, e.g. the show password toggle */
+.trailingButton {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    margin: 8px 6px 8px 0;
+    border: none;
+    border-radius: var(--shape-full);
+    background: none;
+    color: var(--on-surface-variant);
+    cursor: pointer;
+    transition: color var(--duration-short) var(--ease-standard);
+
+    &:hover {
+        color: var(--on-surface);
+        background-color: rgb(from var(--on-surface) r g b / var(--state-hover));
+    }
+    &:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+    }
+}
+
+.supportingError {
+    color: var(--error);
+}
+
+.box.invalid {
+    border-color: var(--error);
+
+    &:focus-within {
+        border-color: var(--error);
+        box-shadow: 0 0 0 3px rgb(from var(--error) r g b / 0.2);
+    }
+    & > .leadingIcon {
+        color: var(--error);
+    }
+}

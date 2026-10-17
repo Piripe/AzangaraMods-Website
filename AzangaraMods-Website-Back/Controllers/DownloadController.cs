@@ -6,13 +6,14 @@ using AzangaraMods_Website_Back.Models;
 using AzangaraMods_Website_Back.Services.LevelFiles;
 using AzangaraMods_Website_Back.Services.LevelGalleries;
 using AzangaraMods_Website_Back.Services.Levels;
+using AzangaraMods_Website_Back.Services.Users;
 using AzangaraMods_Website_Back.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AzangaraMods_Website_Back.Controllers;
 
 [Route("[controller]"), Public]
-public class DownloadController(ILevelService levelService, ILevelFileService levelFileService, ILevelGalleryService levelGalleryService) : Controller
+public class DownloadController(ILevelService levelService, ILevelFileService levelFileService, ILevelGalleryService levelGalleryService, IUserService userService) : Controller
 {
     
     [HttpGet("level/{levelId}/files/{levelFileId}")]
@@ -23,14 +24,15 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
         level = await levelService.FetchLevelGallery(await levelService.FetchLevelAuthor(level));
         var user = HttpContext.Items[0] as User;
         // Admins can download drafts to review them
-        if (!level.Published && user?.Id != level.AuthorId && !(user?.Flags.HasFlag(UserFlags.Admin) ?? false)) return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.DownloadLevelRestricted));
+        var isPublic = level.Published && !(level.Author?.Flags.HasFlag(UserFlags.Disabled) ?? false);
+        if (!isPublic && user?.Id != level.AuthorId && !(user?.Flags.HasFlag(UserFlags.Admin) ?? false)) return Unauthorized(new ErrorResponseModel("Level is restricted", ErrorCodes.DownloadLevelRestricted));
         var levelFile = level?.LevelFiles?.FirstOrDefault(x=>x.Id == levelFileId) ?? await levelFileService.GetLevelFileById(levelId, levelFileId);
         if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found", ErrorCodes.DownloadLevelFileNotFound));
 
         var zipFile = System.IO.File.OpenRead(levelFileId.GetIdFilePath("zip"));
         
         // Drafts are only downloaded by their author or by admins reviewing them, so they don't count
-        if (level.Published) await levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        if (isPublic) await levelFileService.DownloadLevelFile(levelFile, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
         
         switch (ext)
         {
@@ -60,5 +62,20 @@ public class DownloadController(ILevelService levelService, ILevelFileService le
         Response.ContentType = "image/webp";
         return Ok(imageFile);
         
+    }
+
+    [HttpGet("user/{userId}/avatar")]
+    public async Task<IActionResult> DownloadAvatar([FromRoute] long userId)
+    {
+        var user = await userService.GetUserById(userId);
+        if (user is not { HasProfilePicture: true } || user.Flags.HasFlag(UserFlags.Disabled))
+            return NotFound(new ErrorResponseModel("Profile picture not found", ErrorCodes.DownloadAvatarNotFound));
+
+        var filePath = userId.GetIdFilePath("avatar.webp");
+        if (!System.IO.File.Exists(filePath)) return NotFound(new ErrorResponseModel("Profile picture not found", ErrorCodes.DownloadAvatarNotFound));
+
+        // Short cache since the picture can be replaced under the same URL
+        Response.Headers.CacheControl = "public, max-age=300";
+        return PhysicalFile(filePath, "image/webp");
     }
 }

@@ -17,6 +17,7 @@ export default function UserButtonMenu({closeCallback}:{closeCallback?:(()=>void
         <div ref={ref} className={styles.menu}>
             <Link href="/dashboard/levels"><SvgIcon name="map" size={20}/>My Levels</Link>
             {user?.admin && <Link href="/dashboard/admin"><SvgIcon name="shield" size={20}/>Admin</Link>}
+            <Link href="/dashboard/settings"><SvgIcon name="settings" size={20}/>Settings</Link>
             {/* <Link href="/dashboard">Dashboard</Link> */}
             <div className={styles.divider}/>
             <Link href="/" onNavigate={()=>{

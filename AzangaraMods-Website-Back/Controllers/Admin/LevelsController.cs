@@ -137,18 +137,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
     {
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.AdminLevelNotFound));
-        level = await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level));
-
-        // Turns the Discord post into "Unpublished level" before the row disappears
-        level.Published = false;
-        await discordService.UpdateDiscordForum(level, true);
-
-        var filePaths = (level.LevelFiles ?? []).Select(x => x.Id.GetIdFilePath("zip"))
-            .Concat((level.GalleryFiles ?? []).Select(x => x.Id.GetIdFilePath("webp")))
-            .ToArray();
-
-        await levelService.DeleteLevel(level);
-        foreach (var path in filePaths) System.IO.File.Delete(path);
+        await levelService.PurgeLevel(level);
 
         return Ok(mapper.Map<LevelPartialDto>(level));
     }

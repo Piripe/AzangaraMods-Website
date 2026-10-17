@@ -12,6 +12,7 @@ import Lightbox from "@/components/kit/lightbox";
 import LinkButton from "@/components/kit/linkButton";
 import Menu from "@/components/kit/menu";
 import Spinner from "@/components/kit/spinner";
+import Avatar from "@/components/kit/avatar";
 import SvgIcon, { SvgIconName } from "@/components/kit/svgIcon";
 import Tabs from "@/components/kit/tabs";
 import formatBytes from "@/utils/fileSize";
@@ -206,7 +207,7 @@ export default function Page({
           {level.author &&
             <Card title="Creator">
               <div className={styles.creator}>
-                <span className={styles.avatar}>{level.author.username.slice(0, 1).toUpperCase()}</span>
+                <Avatar user={level.author}/>
                 <div>
                   <p className={styles.creatorName}>{level.author.username}</p>
                   <p className={styles.creatorMeta}>Author</p>

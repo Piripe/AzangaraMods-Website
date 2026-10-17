@@ -23,4 +23,6 @@ public interface ILevelService
     public Task<bool> UserOwnsLevel(long userId, long levelId);
     public Task<bool> UserCanEditLevel(User user, long levelId);
     public Task<int> DeleteLevel(Level level);
+    // Deletes the level, its files on disk and unpublishes its Discord post
+    public Task PurgeLevel(Level level);
 }

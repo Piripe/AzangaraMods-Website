@@ -1,12 +1,13 @@
 using AzangaraMods_Website_Back.Data;
 using AzangaraMods_Website_Back.Enums;
 using AzangaraMods_Website_Back.Models;
-using AzangaraMods_Website_Back.Services.Tokens;
+using AzangaraMods_Website_Back.Services.Discord;
+using AzangaraMods_Website_Back.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Services.Levels;
 
-public class LevelService(MainDbContext db) : ILevelService
+public class LevelService(MainDbContext db, IDiscordService discordService) : ILevelService
 {
     public Task<int> Insert(Level level)
     {
@@ -80,6 +81,8 @@ public class LevelService(MainDbContext db) : ILevelService
     {
         var levels = db.Levels!.AsQueryable();
         if (published.HasValue) levels = levels.Where(x => x.Published == published.Value);
+        // Public searches hide the levels of disabled accounts
+        if (published == true) levels = levels.Where(x => (x.Author!.Flags & UserFlags.Disabled) == 0);
         if (verification.HasValue) levels = levels.Where(x => x.Verification == verification.Value);
 
         string? pattern = null;
@@ -120,7 +123,7 @@ public class LevelService(MainDbContext db) : ILevelService
 
     public async Task<(string tag, int count)[]> GetPublicTags()
     {
-        var tags = await db.Levels!.Where(x => x.Published).Select(x => x.Tags).ToArrayAsync();
+        var tags = await db.Levels!.Where(x => x.Published && (x.Author!.Flags & UserFlags.Disabled) == 0).Select(x => x.Tags).ToArrayAsync();
         return tags
             .SelectMany(x => x)
             .Where(x => x.Length > 0)
@@ -160,5 +163,22 @@ public class LevelService(MainDbContext db) : ILevelService
         await FetchLevelFiles(level);
         db.Levels?.Remove(level);
         return await db.SaveChangesAsync();
+    }
+
+    public async Task PurgeLevel(Level level)
+    {
+        level = await FetchLevelAuthor(await FetchLevelFiles(level));
+
+        // Turns the Discord post into "Unpublished level" before the row disappears
+        level.Published = false;
+        await discordService.UpdateDiscordForum(level, true);
+        await discordService.DeleteVerificationRequest(level);
+
+        var filePaths = (level.LevelFiles ?? []).Select(x => x.Id.GetIdFilePath("zip"))
+            .Concat((level.GalleryFiles ?? []).Select(x => x.Id.GetIdFilePath("webp")))
+            .ToArray();
+
+        await DeleteLevel(level);
+        foreach (var path in filePaths) File.Delete(path);
     }
 }

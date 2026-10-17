@@ -16,34 +16,57 @@ public class AuthController(IUserService userService, ITokenService tokenService
     [HttpPost("/login"), Public]
     public async Task<IActionResult> Login([FromBody] LoginRequestData req)
     {
-        var user = await userService.GetUserByEmail(req.Email);
+        var user = await userService.GetUserByEmail(req.Email?.Trim() ?? "");
 
-        if (user == null || !await userService.Login(user, req.Password))
+        if (user == null || !await userService.Login(user, req.Password ?? ""))
         {
-            return UnprocessableEntity(new ErrorResponseModel("Invalid username or password", ErrorCodes.AuthLoginInvalid));
+            return UnprocessableEntity(new ErrorResponseModel("Invalid email or password", ErrorCodes.AuthLoginInvalid));
         }
 
-        return Ok(new LoginResponseData(await tokenService.GenerateToken(user), await userService.FetchLevels(user)));
+        // Logging in brings back an account disabled from the settings
+        if (user.Flags.HasFlag(UserFlags.Disabled)) await userService.SetDisabled(user, false);
+
+        return Ok(await CreateSession(user));
     }
     
-    public record RegisterResponseData(string Status);
     public record RegisterRequestData(string Username, string Email, string Password);
     
+    // Logs the new user in right away
     [HttpPost("/register"), Public]
     public async Task<IActionResult> Register([FromBody] RegisterRequestData req)
     {
-        if (await userService.CheckUserExists(req.Email, req.Username)) return UnprocessableEntity(new ErrorResponseModel("Can't register user", ErrorCodes.AuthRegisterUnknownError));
+        var username = req.Username?.Trim() ?? "";
+        var email = req.Email?.Trim() ?? "";
 
-        await userService.Insert(new ()
+        if (!UserValidation.IsValidUsername(username))
+            return BadRequest(new ErrorResponseModel("Username must be 3 to 32 characters long", ErrorCodes.UserSettingsUsernameInvalid));
+        if (!UserValidation.IsValidEmail(email))
+            return BadRequest(new ErrorResponseModel("Invalid email address", ErrorCodes.UserSettingsEmailInvalid));
+        if (!UserValidation.IsValidPassword(req.Password))
+            return BadRequest(new ErrorResponseModel("Password must be at least 8 characters long", ErrorCodes.UserSettingsPasswordTooShort));
+        if (await userService.UsernameTaken(username, 0))
+            return UnprocessableEntity(new ErrorResponseModel("This username is already taken", ErrorCodes.UserSettingsUsernameTaken));
+        if (await userService.EmailTaken(email, 0))
+            return UnprocessableEntity(new ErrorResponseModel("This email is already used", ErrorCodes.UserSettingsEmailTaken));
+
+        User user = new()
         {
             Id = await IdUtils.GenerateId(),
-            Username = req.Username,
-            Email = req.Email,
+            Username = username,
+            Email = email,
             Password = HashUtils.HashString(req.Password)
-        });
+        };
+        await userService.Insert(user);
 
-        return Ok(new RegisterResponseData("Created"));
+        return Ok(await CreateSession(user));
     }
+
+    private async Task<LoginResponseData> CreateSession(User user)
+    {
+        var token = await tokenService.GenerateToken(user, Request.Headers.UserAgent.ToString(), HttpContext.Connection.RemoteIpAddress?.ToString());
+        return new LoginResponseData(token, await userService.FetchLevels(user));
+    }
+
     [HttpGet("/logout")]
     public async Task<IActionResult> GetCurrentUser()
     {

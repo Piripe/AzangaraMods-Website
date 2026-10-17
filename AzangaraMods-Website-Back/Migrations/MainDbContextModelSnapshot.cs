@@ -164,10 +164,24 @@ namespace AzangaraMods_Website_Back.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("LastUsed")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Secret")
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
