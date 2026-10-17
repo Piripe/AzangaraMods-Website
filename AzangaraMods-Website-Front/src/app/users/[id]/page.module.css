@@ -1,0 +1,12 @@
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    & > :last-child {
+        flex: 1;
+        min-width: 0;
+        margin-bottom: 0;
+    }
+}

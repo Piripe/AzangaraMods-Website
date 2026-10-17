@@ -61,4 +61,5 @@ public enum ErrorCodes
     UserSessionNotFound = 0x38,
     UserDataExportRateLimited = 0x39,
     DownloadAvatarNotFound = 0x3A,
+    UserGetNotFound = 0x3B,
 }

@@ -15,6 +15,13 @@ public class UserPublicPartialDto
     public bool VerifiedModder { get; set; } = false;
 }
 
+// Author page header: the stats only count published levels
+public class UserProfileDto : UserPublicPartialDto
+{
+    public int LevelCount { get; set; }
+    public int Downloads { get; set; }
+}
+
 public class UserPublicDto : UserPublicPartialDto
 {
     public virtual ICollection<LevelPartialDto>? Levels { get; set; }

@@ -95,7 +95,7 @@ export default function Page({
             <h1>{level.name}</h1>
             {!level.published && <Chip small variant="highlight" icon="lock">Draft</Chip>}
           </div>
-          {level.author && <p className={styles.author}><SvgIcon name="person" size={16}/>by {level.author.username}</p>}
+          {level.author && <p className={styles.author}><SvgIcon name="person" size={16}/>by <Link href={`/users/${level.authorId}`} className={styles.authorLink}>{level.author.username}</Link></p>}
           <div className={styles.stats}>
             <span title={`${downloads} downloads`}><SvgIcon name="download" size={18}/><strong>{formatCount(downloads)}</strong> downloads</span>
             <span title={new Date(level.lastEdit).toLocaleString()}><SvgIcon name="history" size={18}/>Updated {formatRelativeDate(level.lastEdit)}</span>
@@ -206,13 +206,13 @@ export default function Page({
           </Card>
           {level.author &&
             <Card title="Creator">
-              <div className={styles.creator}>
+              <Link href={`/users/${level.authorId}`} className={styles.creator}>
                 <Avatar user={level.author}/>
                 <div>
                   <p className={styles.creatorName}>{level.author.username}</p>
-                  <p className={styles.creatorMeta}>Author</p>
+                  <p className={styles.creatorMeta}>See all their levels</p>
                 </div>
-              </div>
+              </Link>
             </Card>
           }
         </aside>

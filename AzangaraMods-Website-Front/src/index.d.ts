@@ -12,6 +12,15 @@ type User = {
     admin?: boolean,
     levels: Level[]|undefined,
 }
+type UserProfile = {
+    id: string,
+    username: string,
+    creation: string,
+    hasProfilePicture: boolean,
+    verifiedModder: boolean,
+    levelCount: number,
+    downloads: number,
+}
 type Level = {
     id: string,
     name: string,

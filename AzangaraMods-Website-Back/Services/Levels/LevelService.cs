@@ -77,13 +77,14 @@ public class LevelService(MainDbContext db, IDiscordService discordService) : IL
 
     // published == null searches every level, drafts included (admin panel)
     public async Task<(Level[] levels, int total)> SearchLevels(bool? published, string? query, LevelDifficulties[] difficulties,
-        string[] tags, LevelSortOrders sort, int offset, int limit, LevelVerificationStatus? verification = null)
+        string[] tags, LevelSortOrders sort, int offset, int limit, LevelVerificationStatus? verification = null, long? authorId = null)
     {
         var levels = db.Levels!.AsQueryable();
         if (published.HasValue) levels = levels.Where(x => x.Published == published.Value);
         // Public searches hide the levels of disabled accounts
         if (published == true) levels = levels.Where(x => (x.Author!.Flags & UserFlags.Disabled) == 0);
         if (verification.HasValue) levels = levels.Where(x => x.Verification == verification.Value);
+        if (authorId.HasValue) levels = levels.Where(x => x.AuthorId == authorId.Value);
 
         string? pattern = null;
         if (!string.IsNullOrWhiteSpace(query))
@@ -132,6 +133,12 @@ public class LevelService(MainDbContext db, IDiscordService discordService) : IL
             .OrderByDescending(x => x.Item2)
             .ThenBy(x => x.Key)
             .ToArray();
+    }
+
+    public async Task<(int levels, int downloads)> GetPublicAuthorStats(long authorId)
+    {
+        var levels = db.Levels!.Where(x => x.AuthorId == authorId && x.Published);
+        return (await levels.CountAsync(), await levels.SelectMany(x => x.LevelFiles!).SumAsync(f => f.Downloads));
     }
 
     public Task<int> SetVerification(Level level, LevelVerificationStatus status, string? note = null)

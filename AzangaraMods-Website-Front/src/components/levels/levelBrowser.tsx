@@ -25,7 +25,8 @@ const pageSize = 20;
 const shownTagsCount = 12;
 const difficulties = Object.keys(difficultyNames) as `${LevelDifficulties}`[];
 
-export default function LevelBrowser() {
+// authorId restricts the results to one author's levels (author page)
+export default function LevelBrowser({authorId}:{authorId?:string}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -37,6 +38,7 @@ export default function LevelBrowser() {
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1") || 1);
 
   const apiParams = new URLSearchParams();
+  if (authorId) apiParams.set("author", authorId);
   if (query) apiParams.set("q", query);
   selectedDifficulties.forEach(d=>apiParams.append("difficulty", d));
   selectedTags.forEach(t=>apiParams.append("tag", t));
@@ -179,7 +181,7 @@ export default function LevelBrowser() {
           <EmptyState
             icon="search"
             title="No levels found"
-            text={query || filterCount > 0 ? "Try another search or remove some filters." : "Nobody has published a level yet."}
+            text={query || filterCount > 0 ? "Try another search or remove some filters." : authorId ? "This author hasn't published a level yet." : "Nobody has published a level yet."}
             action={filterCount > 0 ? <Button variant="outlined" icon="close" click={clearFilters}>Clear filters</Button> : undefined}
           />
         :

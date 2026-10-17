@@ -36,6 +36,8 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.CreateMap<User, UserPublicPartialDto>()
         .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)));
+    cfg.CreateMap<User, UserProfileDto>()
+        .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)));
     cfg.CreateMap<User, UserPublicDto>()
         .ForMember(d => d.VerifiedModder, o => o.MapFrom(s => s.Flags.HasFlag(UserFlags.VerifiedModder)));
     cfg.CreateMap<User, UserPrivateDto>()
