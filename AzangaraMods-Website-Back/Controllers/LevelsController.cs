@@ -19,6 +19,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         [FromQuery] string? q,
         [FromQuery] LevelDifficulties[] difficulty,
         [FromQuery] string[] tag,
+        [FromQuery] LevelSizes[] size,
         [FromQuery] long? author,
         [FromQuery] LevelSortOrders sort = LevelSortOrders.Relevance,
         [FromQuery] int offset = 0,
@@ -26,7 +27,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
     {
         offset = Math.Max(offset, 0);
         limit = Math.Clamp(limit, 1, 100);
-        var (levels, total) = await levelService.SearchLevels(true, q, difficulty, tag.Take(10).ToArray(), sort, offset, limit, authorId: author);
+        var (levels, total) = await levelService.SearchLevels(true, q, difficulty, tag.Take(10).ToArray(), sort, offset, limit, authorId: author, sizes: size);
         return Ok(new LevelSearchResultDto<LevelSearchHitDto>
         {
             Hits = mapper.Map<LevelSearchHitDto[]>(levels),

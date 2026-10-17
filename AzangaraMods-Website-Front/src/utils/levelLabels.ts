@@ -15,6 +15,15 @@ export function getLevelSizeText(size: number) {
   return "Very Large";
 }
 
+// Room count buckets of getLevelSizeText; ids are the backend LevelSizes names, sent as ?size=
+export const levelSizes = [
+  { id: "verySmall", label: "Very Small", rooms: "1–7" },
+  { id: "small", label: "Small", rooms: "8–15" },
+  { id: "medium", label: "Medium", rooms: "16–23" },
+  { id: "large", label: "Large", rooms: "24–31" },
+  { id: "veryLarge", label: "Very Large", rooms: "32+" },
+];
+
 export function galleryImageUrl(levelId: string, fileId: string) {
   return process.env.NEXT_PUBLIC_API_URL + "/download/level/" + levelId + "/gallery/" + fileId;
 }

@@ -13,7 +13,7 @@ import Spinner from "../kit/spinner";
 import SvgIcon from "../kit/svgIcon";
 import TextBox from "../kit/textbox";
 import fetchApi from "@/utils/fetchApi";
-import { difficultyNames } from "@/utils/levelLabels";
+import { difficultyNames, levelSizes } from "@/utils/levelLabels";
 
 const sortOptions = [
   { id: "relevance", label: "Relevance" },
@@ -33,6 +33,7 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
 
   const query = searchParams.get("q") ?? "";
   const selectedDifficulties = searchParams.getAll("difficulty");
+  const selectedSizes = searchParams.getAll("size");
   const selectedTags = searchParams.getAll("tag");
   const sortIndex = Math.max(0, sortOptions.findIndex(s=>s.id === searchParams.get("sort")));
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1") || 1);
@@ -41,6 +42,7 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
   if (authorId) apiParams.set("author", authorId);
   if (query) apiParams.set("q", query);
   selectedDifficulties.forEach(d=>apiParams.append("difficulty", d));
+  selectedSizes.forEach(s=>apiParams.append("size", s));
   selectedTags.forEach(t=>apiParams.append("tag", t));
   apiParams.set("sort", sortOptions[sortIndex].id);
   apiParams.set("offset", ((page - 1) * pageSize).toString());
@@ -113,11 +115,12 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
   function clearFilters() {
     updateFilters(p=>{
       p.delete("difficulty");
+      p.delete("size");
       p.delete("tag");
     });
   }
 
-  const filterCount = selectedDifficulties.length + selectedTags.length;
+  const filterCount = selectedDifficulties.length + selectedSizes.length + selectedTags.length;
   // Selected tags stay visible even when they fall outside the shown ones
   const tagsList = showAllTags ? tags : [
     ...tags.slice(0, shownTagsCount),
@@ -135,6 +138,16 @@ export default function LevelBrowser({authorId}:{authorId?:string}) {
             {difficulties.map(d=>(
               <FilterChip key={d} small icon="terrain" selected={selectedDifficulties.includes(d)} onToggle={()=>toggle("difficulty", d)}>
                 {difficultyNames[Number(d) as LevelDifficulties]}
+              </FilterChip>
+            ))}
+          </div>
+        </section>
+        <section className={styles.filterGroup}>
+          <h3>Size</h3>
+          <div className={styles.chips}>
+            {levelSizes.map(s=>(
+              <FilterChip key={s.id} small icon="rooms" selected={selectedSizes.includes(s.id)} onToggle={()=>toggle("size", s.id)}>
+                <span title={`${s.rooms} rooms`}>{s.label}</span>
               </FilterChip>
             ))}
           </div>

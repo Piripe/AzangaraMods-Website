@@ -77,7 +77,8 @@ public class LevelService(MainDbContext db, IDiscordQueue discordQueue) : ILevel
 
     // published == null searches every level, drafts included (admin panel)
     public async Task<(Level[] levels, int total)> SearchLevels(bool? published, string? query, LevelDifficulties[] difficulties,
-        string[] tags, LevelSortOrders sort, int offset, int limit, LevelVerificationStatus? verification = null, long? authorId = null)
+        string[] tags, LevelSortOrders sort, int offset, int limit, LevelVerificationStatus? verification = null, long? authorId = null,
+        LevelSizes[]? sizes = null)
     {
         var levels = db.Levels!.AsQueryable();
         if (published.HasValue) levels = levels.Where(x => x.Published == published.Value);
@@ -94,6 +95,19 @@ public class LevelService(MainDbContext db, IDiscordQueue discordQueue) : ILevel
         }
         if (difficulties.Length > 0) levels = levels.Where(x => difficulties.Contains(x.Difficulty));
         foreach (var tag in tags) levels = levels.Where(x => x.Tags.Contains(tag));
+        if (sizes is { Length: > 0 })
+        {
+            // Levels with no counted room have an unknown size, so no size bucket matches them
+            bool verySmall = sizes.Contains(LevelSizes.VerySmall), small = sizes.Contains(LevelSizes.Small),
+                medium = sizes.Contains(LevelSizes.Medium), large = sizes.Contains(LevelSizes.Large),
+                veryLarge = sizes.Contains(LevelSizes.VeryLarge);
+            levels = levels.Where(x =>
+                (verySmall && x.RoomAmount >= 1 && x.RoomAmount < 8) ||
+                (small && x.RoomAmount >= 8 && x.RoomAmount < 16) ||
+                (medium && x.RoomAmount >= 16 && x.RoomAmount < 24) ||
+                (large && x.RoomAmount >= 24 && x.RoomAmount < 32) ||
+                (veryLarge && x.RoomAmount >= 32));
+        }
 
         var total = await levels.CountAsync();
 
