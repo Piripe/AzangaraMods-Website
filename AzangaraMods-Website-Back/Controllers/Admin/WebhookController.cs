@@ -6,32 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace AzangaraMods_Website_Back.Controllers.Admin;
 
 [Route("admin/webhook"), Admin]
-public class WebhookController(ILevelService levelService, IDiscordService discordService) : Controller
+public class WebhookController(ILevelService levelService, IDiscordQueue discordQueue) : Controller
 {
     [HttpPost("reload_messages")]
     public async Task<IActionResult> ReloadMessages()
     {
         var levels = await levelService.GetPublicLevels();
-        var errors = new List<string>();
-        
-        foreach (var level in levels)
-        {
-            try
-            {
-                Console.WriteLine($"Reloading webhook messages {Array.IndexOf(levels, level) + 1}/{levels.Length}");
+        foreach (var level in levels) discordQueue.QueueForumUpdate(level.Id);
 
-                await discordService.UpdateDiscordForum(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level)));
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-                errors.Add($"{level.Name}: {e.Message}");
-            }
-
-            await Task.Delay(100);
-            
-        }
-        
-        return Ok(new LevelsController.AdminTaskResponseData(levels.Length - errors.Count, errors.Count, errors.ToArray()));
+        // The messages are updated in the background, so this counts the queued levels
+        return Ok(new LevelsController.AdminTaskResponseData(levels.Length, 0, []));
     }
 }

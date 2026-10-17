@@ -12,7 +12,7 @@ using Level = AzangaraMods_Website_Back.Models.Level;
 namespace AzangaraMods_Website_Back.Controllers;
 
 [Route("[controller]")]
-public class LevelsController(IMapper mapper, ILevelService levelService, IDiscordService discordService) : Controller
+public class LevelsController(IMapper mapper, ILevelService levelService, IDiscordQueue discordQueue) : Controller
 {
     [HttpGet(""), Public]
     public async Task<IActionResult> GetLevels(
@@ -105,7 +105,8 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
             partialLevel.roomAmount,
             partialLevel.tags);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.LevelPatchNotFound));
-        await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+        await levelService.FetchLevelFiles(level);
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(mapper.Map<LevelDto>(level));
     }
 
@@ -122,7 +123,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (level.LevelFiles?.Count is null or 0) return BadRequest(new ErrorResponseModel("Upload a file before asking for a verification", ErrorCodes.LevelVerificationNoFiles));
 
         await levelService.SetVerification(level, LevelVerificationStatus.Pending);
-        await discordService.NotifyVerificationRequest(level);
+        discordQueue.QueueVerificationRequest(level.Id);
         return Ok(mapper.Map<LevelDto>(level));
     }
 
@@ -135,7 +136,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, IDisco
         if (level.Verification != LevelVerificationStatus.Pending) return BadRequest(new ErrorResponseModel("No verification is pending", ErrorCodes.LevelVerificationNotPending));
 
         await levelService.SetVerification(level, LevelVerificationStatus.None);
-        await discordService.DeleteVerificationRequest(level);
+        discordQueue.QueueDeleteVerificationRequest(level.Id);
         return Ok(mapper.Map<LevelDto>(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level))));
     }
 

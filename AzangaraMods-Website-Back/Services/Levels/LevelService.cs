@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Services.Levels;
 
-public class LevelService(MainDbContext db, IDiscordService discordService) : ILevelService
+public class LevelService(MainDbContext db, IDiscordQueue discordQueue) : ILevelService
 {
     public Task<int> Insert(Level level)
     {
@@ -176,10 +176,8 @@ public class LevelService(MainDbContext db, IDiscordService discordService) : IL
     {
         level = await FetchLevelAuthor(await FetchLevelFiles(level));
 
-        // Turns the Discord post into "Unpublished level" before the row disappears
-        level.Published = false;
-        await discordService.UpdateDiscordForum(level, true);
-        await discordService.DeleteVerificationRequest(level);
+        // Turns the Discord post into "Unpublished level", from a copy since the row disappears
+        discordQueue.QueueLevelRemoval(level);
 
         var filePaths = (level.LevelFiles ?? []).Select(x => x.Id.GetIdFilePath("zip"))
             .Concat((level.GalleryFiles ?? []).Select(x => x.Id.GetIdFilePath("webp")))

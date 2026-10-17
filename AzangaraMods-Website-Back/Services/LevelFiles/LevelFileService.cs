@@ -15,7 +15,7 @@ using Level = AzangaraTools.Models.Script.Level;
 
 namespace AzangaraMods_Website_Back.Services.LevelFiles;
 
-public class LevelFileService(MainDbContext db, ILevelService levelService, IDiscordService discordService) : ILevelFileService
+public class LevelFileService(MainDbContext db, ILevelService levelService, IDiscordQueue discordQueue) : ILevelFileService
 {
     private ILevelFileService _levelFileServiceImplementation;
 
@@ -63,7 +63,7 @@ public class LevelFileService(MainDbContext db, ILevelService levelService, IDis
         
         db.Entry(levelFile).Property(x => x.Downloads).CurrentValue++;
 
-        _ = discordService.PushWebhookUpdateTask(levelFile.Level!);
+        discordQueue.QueueDebouncedForumUpdate(levelFile.LevelId);
         
         return await db.SaveChangesAsync();
     }

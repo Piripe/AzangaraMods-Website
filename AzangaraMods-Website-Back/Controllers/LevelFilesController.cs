@@ -19,7 +19,7 @@ using Level = AzangaraTools.Models.Script.Level;
 namespace AzangaraMods_Website_Back.Controllers;
 
 [Route("levels/{levelId:long}/files")]
-public class LevelFilesController(IMapper mapper, ILevelService levelService, ILevelFileService levelFileService, IDiscordService discordService) : Controller
+public class LevelFilesController(IMapper mapper, ILevelService levelService, ILevelFileService levelFileService, IDiscordQueue discordQueue) : Controller
 {
     public record PutLevelFileResponseData(string id, string[] files, string[] otherFiles);
 
@@ -150,8 +150,7 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
             partialLevelFile.entryPoint, null);
         if (levelFile == null) return NotFound(new ErrorResponseModel("Level file not found", ErrorCodes.LevelFilePatchLevelNotFound));
         
-        var level = levelFile.Level ?? await levelService.GetLevelById(levelFile.LevelId);
-        if (level != null) await discordService.UpdateDiscordForum(level);
+        discordQueue.QueueForumUpdate(levelFile.LevelId);
         
         return Ok(mapper.Map<LevelFileDto>(levelFile));
     }
@@ -167,7 +166,8 @@ public class LevelFilesController(IMapper mapper, ILevelService levelService, IL
         
         var level = levelFile.Level ?? await levelService.GetLevelById(levelId);
         if (level == null) return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseModel("Level not found but file deleted", ErrorCodes.LevelFileDeleteLevelNotFound));
-        await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+        await levelService.FetchLevelFiles(level);
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(mapper.Map<LevelDto>(level));
     }
 }

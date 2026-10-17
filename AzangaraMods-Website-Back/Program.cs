@@ -31,6 +31,9 @@ builder.Services.AddScoped<ILevelService, LevelService>();
 builder.Services.AddScoped<ILevelFileService, LevelFileService>();
 builder.Services.AddScoped<ILevelGalleryService, LevelGalleryService>();
 builder.Services.AddScoped<IDiscordService, DiscordService>();
+builder.Services.AddSingleton<DiscordQueue>();
+builder.Services.AddSingleton<IDiscordQueue>(sp => sp.GetRequiredService<DiscordQueue>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DiscordQueue>());
 
 builder.Services.AddAutoMapper(cfg =>
 {

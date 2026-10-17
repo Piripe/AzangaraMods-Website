@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AzangaraMods_Website_Back.Controllers;
 
 [Route("levels/{levelId:long}/gallery")]
-public class LevelGalleryController(IMapper mapper, ILevelService levelService, ILevelGalleryService levelGalleryService, IDiscordService discordService) : Controller
+public class LevelGalleryController(IMapper mapper, ILevelService levelService, ILevelGalleryService levelGalleryService, IDiscordQueue discordQueue) : Controller
 {
     [HttpPut("")]
     [RequestSizeLimit(5 * 1024 * 1024)]
@@ -53,8 +53,7 @@ public class LevelGalleryController(IMapper mapper, ILevelService levelService, 
                 await levelGalleryService.InsertGalleryFile(galleryFile);
                 
                 
-                var level = galleryFile.Level ?? await levelService.GetLevelById(galleryFile.LevelId);
-                if (level != null) await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+                discordQueue.QueueForumUpdate(galleryFile.LevelId);
                 
                 return Ok(mapper.Map<GalleryFileDto>(galleryFile));
             default:
@@ -73,7 +72,8 @@ public class LevelGalleryController(IMapper mapper, ILevelService levelService, 
         
         var level = galleryFile.Level ?? await levelService.GetLevelById(levelId);
         if (level == null) return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseModel("Level not found but image deleted", ErrorCodes.LevelGalleryDeleteLevelNotFound));
-        await discordService.UpdateDiscordForum(await levelService.FetchLevelFiles(level));
+        await levelService.FetchLevelFiles(level);
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(mapper.Map<LevelDto>(level));
     }
 }

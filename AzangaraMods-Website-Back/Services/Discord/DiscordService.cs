@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -211,24 +210,5 @@ public class DiscordService(MainDbContext db, IHttpClientFactory httpClientFacto
             < 32 => "Large",
             _ => "Very Large"
         };
-    }
-
-    private static ConcurrentDictionary<long, CancellationTokenSource> _cancellations = [];
-    public async Task PushWebhookUpdateTask(Level level)
-    {
-        if (_cancellations.TryRemove(level.Id, out var tokenSource))
-        {
-            await tokenSource.CancelAsync();
-        }
-
-        var cts = new CancellationTokenSource();
-        _cancellations.TryAdd(level.Id, cts);
-        
-        await Task.Delay(60000, cts.Token).ContinueWith((_) =>{});
-        
-        if (cts.IsCancellationRequested) return;
-        
-        _cancellations.TryRemove(level.Id, out var _);
-        await UpdateDiscordForum(level, true);
     }
 }

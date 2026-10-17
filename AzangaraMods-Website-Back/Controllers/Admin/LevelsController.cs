@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AzangaraMods_Website_Back.Controllers.Admin;
 
 [Route("admin/levels"), Admin]
-public class LevelsController(IMapper mapper, ILevelService levelService, ILevelFileService levelFileService, IDiscordService discordService) : Controller
+public class LevelsController(IMapper mapper, ILevelService levelService, ILevelFileService levelFileService, IDiscordQueue discordQueue) : Controller
 {
     public record AdminTaskResponseData(int succeeded, int failed, string[] errors);
 
@@ -48,7 +48,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
         level.Published = true;
         levelService.SoftEditLevel(level);
         await levelService.SetVerification(level, LevelVerificationStatus.Verified);
-        await discordService.UpdateDiscordForum(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level)));
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(mapper.Map<LevelPartialDto>(level));
     }
 
@@ -74,7 +74,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.AdminLevelNotFound));
 
         var result = await ReprocessLevelFiles(level);
-        _ = discordService.UpdateDiscordForum(level);
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(result);
     }
 
@@ -98,7 +98,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
                 new ErrorResponseModel("Error during file processing", ErrorCodes.AdminReprocessError, e.ToString()));
         }
 
-        _ = discordService.UpdateDiscordForum(level);
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(new AdminTaskResponseData(1, 0, []));
     }
 
@@ -112,7 +112,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
         {
             Console.WriteLine($"Reprocessing levels {results.Count + 1}/{levels.Length}");
             results.Add(await ReprocessLevelFiles(level));
-            await discordService.UpdateDiscordForum(level);
+            discordQueue.QueueForumUpdate(level.Id);
             await Task.Delay(100);
         }
 
@@ -128,7 +128,7 @@ public class LevelsController(IMapper mapper, ILevelService levelService, ILevel
         var level = await levelService.GetLevelById(levelId);
         if (level == null) return NotFound(new ErrorResponseModel("Level not found", ErrorCodes.AdminLevelNotFound));
 
-        await discordService.UpdateDiscordForum(await levelService.FetchLevelAuthor(await levelService.FetchLevelFiles(level)));
+        discordQueue.QueueForumUpdate(level.Id);
         return Ok(new AdminTaskResponseData(1, 0, []));
     }
 

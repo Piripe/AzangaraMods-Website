@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AzangaraMods_Website_Back.Services.Users;
 
-public class UserService(MainDbContext db, ILevelService levelService, IDiscordService discordService) : IUserService
+public class UserService(MainDbContext db, ILevelService levelService, IDiscordQueue discordQueue) : IUserService
 {
     public Task<int> Insert(User user)
     {
@@ -68,10 +68,7 @@ public class UserService(MainDbContext db, ILevelService levelService, IDiscordS
 
         // Discord posts show the creator's name
         foreach (var level in (await FetchLevels(user)).Levels!.Where(x => x.DiscordForumMessage.HasValue))
-        {
-            level.Author = user;
-            await discordService.UpdateDiscordForum(level, true);
-        }
+            discordQueue.QueueForumUpdate(level.Id, true);
         return changes;
     }
 
@@ -101,10 +98,7 @@ public class UserService(MainDbContext db, ILevelService levelService, IDiscordS
         await db.SaveChangesAsync();
 
         foreach (var level in (await FetchLevels(user)).Levels!.Where(x => x.Published))
-        {
-            level.Author = user;
-            await discordService.UpdateDiscordForum(level, true);
-        }
+            discordQueue.QueueForumUpdate(level.Id, true);
     }
 
     public async Task DeleteUser(User user)
